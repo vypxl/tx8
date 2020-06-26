@@ -1,0 +1,9 @@
+.vscode
+.clangd
+docs
+bin
+out
+
+tmp
+*.o
+compile_commands.json
