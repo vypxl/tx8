@@ -127,7 +127,7 @@ tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode
 tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode) {
     switch (mode) {
         case tx_param_absolute_address: return param; break;
-        case tx_param_relative_address: return cpu->o + param; break;
+        case tx_param_relative_address: return cpu->o + *((tx_int32*)(&param)); break;
         case tx_param_register_address: return tx_cpu_reg_read(cpu, (tx_uint8)param); break;
         default:
             tx_cpu_error(cpu, "Parameter is not an address");
