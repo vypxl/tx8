@@ -82,7 +82,7 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
     tx_uint8   pcount      = tx_param_count[p[0]];
     tx_mem_ptr param_start = p + 1 + tx_param_mode_bytes[pcount];
     tx_uint8   mode_p1     = pcount > 0 ? p[1] >> 4U : 0;
-    tx_uint8   mode_p2     = pcount > 1 ? p[1] & tx_REG_SIZE_MASK : 0;
+    tx_uint8   mode_p2     = pcount > 1 ? p[1] & tx_PARAM_MODE_2_MASK : 0;
     tx_uint8   mode_p3     = pcount > 2 ? p[2] >> 4U : 0;
 
     // clang-format off
@@ -290,34 +290,32 @@ void tx_cpu_op_hlt(tx_CPU* cpu, tx_Parameters* params) { cpu->halted = 1; }
 void tx_cpu_op_mov(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("mov")
 
-    tx_mem_addr dest = tx_cpu_get_param_address(cpu, params->p1, params->mode_p1);
-    tx_uint32   val  = PARAMV(2);
+    tx_uint32 val = PARAMV(2);
 
     // register <- value
     if (tx_param_isregister(params->mode_p1)) tx_cpu_reg_write(cpu, params->p1, val);
     // address <- address
     else if (tx_param_isaddress(params->mode_p2))
-        tx_cpu_mem_write8(cpu, dest, (tx_uint8)val);
+        tx_cpu_mem_write8(cpu, PARAMA(1), (tx_uint8)val);
     // address <- register
     else if (tx_param_isregister(params->mode_p2))
-        tx_cpu_mem_write_n(cpu, dest, val, tx_register_size(params->p2));
+        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_register_size(params->p2));
     // address <- constant
     else
-        tx_cpu_mem_write_n(cpu, dest, val, tx_param_value_size(params->p2, params->mode_p2));
+        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_param_value_size(params->p2, params->mode_p2));
 }
 
 void tx_cpu_op_mxv(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("mxv")
 
-    tx_mem_addr dest = tx_cpu_get_param_address(cpu, params->p1, params->mode_p1);
-    tx_uint32   val  = PARAMV(2);
+    tx_uint32 val = PARAMV(2);
 
     if (tx_param_isregister(params->mode_p1)) {
         if (tx_register_size(params->p1) != 4) tx_cpu_error(cpu, "Cannot mxv into small register");
         else
             tx_cpu_reg_write(cpu, params->p1, val);
     } else {
-        tx_cpu_mem_write32(cpu, dest, val);
+        tx_cpu_mem_write32(cpu, PARAMA(1), val);
     }
 }
 
@@ -395,48 +393,61 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
         tx_cpu_mem_write32(cpu, PARAMA(1), result.u);
 
 #define AR_SIMPLE_OP_1(name, op) \
-    AR_OP_1_BEGIN(name) result.i = op a.i; \
+    AR_OP_1_BEGIN(name) \
+        result.i = op a.i; \
     AR_OP_END
 #define AR_SIMPLE_OP_2(name, op) \
-    AR_OP_2_BEGIN(name) result.i = a.i op b.i; \
+    AR_OP_2_BEGIN(name) \
+        result.i = a.i op b.i; \
     AR_OP_END
 
 #define AR_SIMPLE_UOP_1(name, op) \
-    AR_OP_1_BEGIN(name) result.u = op a.u; \
+    AR_OP_1_BEGIN(name) \
+        result.u = op a.u; \
     AR_OP_END
 #define AR_SIMPLE_UOP_2(name, op) \
-    AR_OP_2_BEGIN(name) result.u = a.u op b.u; \
+    AR_OP_2_BEGIN(name) \
+        result.u = a.u op b.u; \
     AR_OP_END
 
 #define AR_SIMPLE_FOP_1(name, op) \
-    AR_OP_1_BEGIN(name) result.f = op a.f; \
+    AR_OP_1_BEGIN(name) \
+        result.f = op a.f; \
     AR_OP_END
 #define AR_SIMPLE_FOP_2(name, op) \
-    AR_OP_2_BEGIN(name) result.f = a.f op b.f; \
+    AR_OP_2_BEGIN(name) \
+        result.f = a.f op b.f; \
     AR_OP_END
 
 #define AR_FUN_OP_1(name, fun) \
-    AR_OP_1_BEGIN(name) result.i = fun(a.i); \
+    AR_OP_1_BEGIN(name) \
+        result.i = fun(a.i); \
     AR_OP_END
 #define AR_FUN_OP_2(name, fun) \
-    AR_OP_2_BEGIN(name) result.i = fun(a.i, b.i); \
+    AR_OP_2_BEGIN(name) \
+        result.i = fun(a.i, b.i); \
     AR_OP_END
 #define AR_FUN_OP_3(name, fun) \
-    AR_OP_3_BEGIN(name) result.i = fun(a.i, b.i); \
+    AR_OP_3_BEGIN(name) \
+        result.i = fun(a.i, b.i); \
     AR_OP_END
 
 #define AR_FUN_UOP_3(name, fun) \
-    AR_OP_3_BEGIN(name) result.u = fun(a.u, b.u); \
+    AR_OP_3_BEGIN(name) \
+        result.u = fun(a.u, b.u); \
     AR_OP_END
 
 #define AR_FUN_FOP_1(name, fun) \
-    AR_OP_2_BEGIN(name) result.f = fun(a.f); \
+    AR_OP_2_BEGIN(name) \
+        result.f = fun(a.f); \
     AR_OP_END
 #define AR_FUN_FOP_2(name, fun) \
-    AR_OP_2_BEGIN(name) result.f = fun(a.f, b.f); \
+    AR_OP_2_BEGIN(name) \
+        result.f = fun(a.f, b.f); \
     AR_OP_END
 #define AR_FUN_FOP_3(name, fun) \
-    AR_OP_3_BEGIN(name) result.f = fun(a.f, b.f); \
+    AR_OP_3_BEGIN(name) \
+        result.f = fun(a.f, b.f); \
     AR_OP_END
 
 
@@ -455,7 +466,7 @@ void tx_cpu_op_ora(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("ora", 
 void tx_cpu_op_not(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_1("not", ~) }
 void tx_cpu_op_nnd(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("nnd")
-    result.u = ~(a.u & b.u);
+        result.u = ~(a.u & b.u);
     AR_OP_END
 }
 void tx_cpu_op_xor(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("xor", ^) }
@@ -463,16 +474,16 @@ void tx_cpu_op_shr(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("shr", 
 void tx_cpu_op_shl(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("shl", <<) }
 void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
-    const tx_uint32 mask = 31;
-    b.u &= mask;
-    result.u = (a.u >> b.u) | (a.u << ((-b.u) & mask));
+        const tx_uint32 mask = 31;
+        b.u &= mask;
+        result.u = (a.u >> b.u) | (a.u << ((-b.u) & mask));
     AR_OP_END
 }
 void tx_cpu_op_rol(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
-    const tx_uint32 mask = 31;
-    b.u &= mask;
-    result.u = (a.u << b.u) | (a.u >> ((-b.u) & mask));
+        const tx_uint32 mask = 31;
+        b.u &= mask;
+        result.u = (a.u << b.u) | (a.u >> ((-b.u) & mask));
     AR_OP_END
 }
 
@@ -486,12 +497,12 @@ void tx_cpu_op_fmo(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmo", fmo
 
 void tx_cpu_op_itf(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("itf")
-    result.f = (tx_float32)a.i;
+        result.f = (tx_float32)a.i;
     AR_OP_END
 }
 void tx_cpu_op_fti(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("fti")
-    result.i = (tx_int32)a.f;
+        result.i = (tx_int32)a.f;
     AR_OP_END
 }
 
@@ -512,7 +523,7 @@ void tx_cpu_op_fab(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("fab", fab
 
 void tx_cpu_op_rnd(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("rnd")
-    result.f = ((tx_float32)tx_cpu_rand(cpu)) / ((tx_float32)tx_RAND_MAX);
+        result.f = ((tx_float32)tx_cpu_rand(cpu)) / ((tx_float32)tx_RAND_MAX);
     AR_OP_END
 }
 void tx_cpu_op_rsd(tx_CPU* cpu, tx_Parameters* params) { cpu->rseed = PARAMV(1); }
@@ -524,12 +535,12 @@ void tx_cpu_op_umn(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_UOP_3("umn", MIN
 
 void tx_cpu_op_utf(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("utf")
-    result.f = (tx_float32)a.u;
+        result.f = (tx_float32)a.u;
     AR_OP_END
 }
 void tx_cpu_op_ftu(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("ftu")
-    result.u = (tx_uint32)a.f;
+        result.u = (tx_uint32)a.f;
     AR_OP_END
 }
 
