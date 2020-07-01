@@ -158,9 +158,9 @@ typedef enum tx_Register {
 
 // clang-format off
 static const char tx_reg_names[256][2] = {
-    "a",  "b",  "c",  "d",  "o",  "s",  "p",  "", "", "", "", "", "", "", "", "",
-    "as", "bs", "cs", "ds", "os", "ss", "ps", "", "", "", "", "", "", "", "", "",
-    "ab", "bb", "cb", "db", "ob", "sb", "pb", "", "", "", "", "", "", "", "", "",
+    "a",  "b",  "c",  "d",  "o",  "p",  "s",  "", "", "", "", "", "", "", "", "",
+    "as", "bs", "cs", "ds", "os", "ps", "ss", "", "", "", "", "", "", "", "", "",
+    "ab", "bb", "cb", "db", "ob", "pb", "sb", "", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
@@ -250,6 +250,7 @@ static inline bool tx_param_isregister(tx_ParamMode which) { return which == tx_
 static const tx_uint8  tx_param_sizes[0x8] = {0, 1, 2, 4, 3, 3, 1, 1};
 static const tx_uint32 tx_param_masks[0x8] = {
     0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};
+#define tx_PARAM_MODE_2_MASK 0xfU
 
 // clang-format off
 static const tx_uint8 tx_param_count[256] = {
