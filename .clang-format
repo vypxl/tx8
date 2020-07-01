@@ -59,8 +59,8 @@ IndentPPDirectives: None
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false
-MacroBlockBegin: ''
-MacroBlockEnd:   ''
+MacroBlockBegin: '_BEGIN$'
+MacroBlockEnd:   '_END$'
 MaxEmptyLinesToKeep: 3
 NamespaceIndentation: None
 PenaltyBreakAssignment: 2
