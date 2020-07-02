@@ -1,6 +1,6 @@
-#include "debug.h"
+#include "tx8/core/debug.h"
 
-#include "instruction.h"
+#include "tx8/core/instruction.h"
 
 #include <stdio.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "instruction.h"
-#include "types.h"
+#include "tx8/core/instruction.h"
+#include "tx8/core/types.h"
 
 #include <stdbool.h>
 

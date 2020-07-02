@@ -1,12 +1,12 @@
-#include "assembler.h"
+#include "tx8/asm/assembler.h"
 
-#include "asm_types.h"
-#include "instruction.h"
-#include "types.h"
+#include "tx8/asm/types.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tx8/core/instruction.h>
+#include <tx8/core/types.h>
 
 char*        strdup(char* src);
 extern int   tx_asm_yyerror(char* msg, ...);
@@ -94,13 +94,14 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* asm, char* name)
 
 tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* asm, tx_uint32 id) {
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, asm->labels)
-        if (label->id == id)
+        if (label->id == id) {
             if (label->position != 0xffffffff) {
                 return label->position;
             } else {
                 tx_asm_error("Label '%s' has no corresponding location", label->name);
                 return 0;
             }
+        }
     tx_asm_LL_FOREACH_END
 
     tx_asm_error("No label with id %d found", id);

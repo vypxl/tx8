@@ -1,8 +1,9 @@
 %{
+#include "tx8.tab.h"
+
 #include <stdio.h>
 #include <math.h>
-#include "tx8.tab.h"
-#include "instruction.h"
+#include <tx8/core/instruction.h>
 
 extern TX_ASM_YYSTYPE tx_asm_yylval;
 char* strdup(char* src);

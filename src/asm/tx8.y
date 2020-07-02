@@ -1,14 +1,14 @@
 %code requires {
-#include "instruction.h"
-#include "types.h"
+#include "tx8/asm/types.h"
 
-#include "asm_types.h"
-// #include "assembler.h"
+#include <tx8/core/instruction.h>
+#include <tx8/core/types.h>
 }
 
 %{
+#include "tx8/asm/assembler.h"
+
 #include <stdio.h>
-#include "assembler.h"
 
 extern int tx_asm_yylineno;
 extern tx_asm_Assembler* tx_asm_yyasm;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "instruction.h"
+#include <tx8/core/instruction.h>
 
 typedef struct tx_asm_Parameter {
     tx_num32 value;

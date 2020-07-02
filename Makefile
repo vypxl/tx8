@@ -1,7 +1,7 @@
 NAME=TX8
 OUT_DIR=out
-SOURCES=src/cpu.c src/debug.c
-CC_OPTS=-std=c11 -Wall -Wextra -Werror
+SOURCES=src/core/cpu.c src/core/debug.c
+CC_OPTS=-std=c11 -Iinclude -Wall -Wextra -Werror
 LINK_OPTS=-lc -lm
 OUT_LIB=$(OUT_DIR)/tx8-core.so
 
@@ -24,8 +24,8 @@ format:
 
 .PHONY: lint
 lint:
-	@find src -iname *.h -o -iname *.c -exec clang-tidy {} -- -Isrc \;
-	@find test -iname *.h -o -iname *.c -exec clang-tidy {} -- -Isrc -Itest \;
+	@find src -iname *.h -o -iname *.c -exec clang-tidy {} -- -Iinclude \;
+	@find test -iname *.h -o -iname *.c -exec clang-tidy {} -- -Iinclude \;
 
 .PHONY: build
 build: mk_out_dir

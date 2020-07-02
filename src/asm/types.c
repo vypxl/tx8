@@ -1,10 +1,9 @@
-#include "asm_types.h"
-
-#include "instruction.h"
-#include "types.h"
+#include "tx8/asm/types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <tx8/core/instruction.h>
+#include <tx8/core/types.h>
 
 void tx_asm_print_parameter(tx_asm_Parameter* p) {
     switch (p->mode) {

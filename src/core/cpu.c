@@ -1,9 +1,9 @@
-#include "cpu.h"
+#include "tx8/core/cpu.h"
 
-#include "debug.h"
-#include "instruction.h"
-#include "types.h"
-#include "util.h"
+#include "tx8/core/debug.h"
+#include "tx8/core/instruction.h"
+#include "tx8/core/types.h"
+#include "tx8/core/util.h"
 
 #include <math.h>
 #include <stdarg.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include "tx8/core/types.h"
 
 #include <stdbool.h>
 #include <string.h>

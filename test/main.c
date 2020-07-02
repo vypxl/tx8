@@ -1,6 +1,6 @@
-#include "../src/cpu.h"
-#include "../src/instruction.h"
-#include "../src/types.h"
+#include <tx8/core/cpu.h>
+#include <tx8/core/instruction.h>
+#include <tx8/core/types.h>
 
 #include <stdio.h>
 #include <stdlib.h>

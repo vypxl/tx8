@@ -1,9 +1,9 @@
 #pragma once
 
-#include "asm_types.h"
-#include "types.h"
+#include "tx8/asm/types.h"
 
 #include <stdio.h>
+#include <tx8/core/types.h>
 
 typedef struct tx_asm_Assembler {
     tx_asm_LL* labels;

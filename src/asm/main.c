@@ -1,5 +1,5 @@
-#include "asm_types.h"
-#include "assembler.h"
+#include "tx8/asm/assembler.h"
+#include "tx8/asm/types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
