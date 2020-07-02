@@ -3,6 +3,10 @@
 docs
 bin
 out
+obj
+
+Makefile
+*.make
 
 tmp
 *.o
