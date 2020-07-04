@@ -165,10 +165,10 @@ extern inline tx_uint32 tx_cpu_pop32(tx_CPU* cpu) {
 }
 
 extern inline tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location) {
-    return (location >= 0 && location < tx_MEM_SIZE) ? cpu->mem + location : NULL;
+    return (location < tx_MEM_SIZE) ? cpu->mem + location : NULL;
 }
 extern inline tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location) {
-    return (location >= 0 && location < tx_MEM_SIZE) ? cpu->mem + cpu->o + location : NULL;
+    return (location < tx_MEM_SIZE) ? cpu->mem + cpu->o + location : NULL;
 }
 
 extern inline void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
@@ -242,9 +242,9 @@ extern inline void tx_cpu_mem_write_n(tx_CPU*     cpu,
                                       tx_uint32   value,
                                       tx_uint8    bytes) {
     switch (bytes) {
-        case 1: tx_cpu_mem_write8(cpu, location, (tx_uint8)value);
-        case 2: tx_cpu_mem_write16(cpu, location, (tx_uint16)value);
-        case 4: tx_cpu_mem_write32(cpu, location, value);
+        case 1: tx_cpu_mem_write8(cpu, location, (tx_uint8)value); break;
+        case 2: tx_cpu_mem_write16(cpu, location, (tx_uint16)value); break;
+        case 4: tx_cpu_mem_write32(cpu, location, value); break;
         default: tx_cpu_error(cpu, "Invalid byte count in tx_cpu_mem_write_n"); break;
     }
 }
