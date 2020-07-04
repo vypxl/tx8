@@ -12,11 +12,10 @@ typedef struct tx_asm_Assembler {
     tx_uint32  last_label_id;
 } tx_asm_Assembler;
 
-static const tx_uint8 tx_asm_param_label_id = 0xf1;
-
 void tx_asm_init_assembler(tx_asm_Assembler* asm);
 void tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input);
 void tx_asm_assembler_write_binary(tx_asm_Assembler* asm, FILE* output);
+tx_uint8* tx_asm_assembler_generate_binary(tx_asm_Assembler* asm, tx_uint32* out_size);
 void tx_asm_destroy_assembler(tx_asm_Assembler* asm);
 
 void tx_asm_error(const char* format, ...);

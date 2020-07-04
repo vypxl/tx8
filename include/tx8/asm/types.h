@@ -28,6 +28,8 @@ typedef struct tx_asm_LL {
     struct tx_asm_LL* next;
 } tx_asm_LL;
 
+static const tx_uint8 tx_asm_param_label_id = 0xf1;
+
 void     tx_asm_print_parameter(tx_asm_Parameter* p);
 tx_uint8 tx_asm_parameter_write_binary(tx_asm_Parameter* p, tx_uint8* buf);
 

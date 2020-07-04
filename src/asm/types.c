@@ -22,6 +22,14 @@ void tx_asm_print_parameter(tx_asm_Parameter* p) {
     }
 }
 
+static inline tx_uint32 tx_asm_param_size(tx_uint32 mode) {
+    if (mode >= 0 && mode <= tx_param_register_address) return tx_param_sizes[mode];
+    switch (mode) {
+        case tx_asm_param_label_id: return tx_param_sizes[tx_param_constant32]; break;
+        default: return 0xffffffff; break;
+    }
+}
+
 tx_uint8 tx_asm_parameter_write_binary(tx_asm_Parameter* p, tx_uint8* buf) {
     switch (p->mode) {
         case tx_param_constant8:
@@ -34,12 +42,12 @@ tx_uint8 tx_asm_parameter_write_binary(tx_asm_Parameter* p, tx_uint8* buf) {
         default: break;
     }
 
-    return tx_param_sizes[p->mode];
+    return tx_asm_param_size(p->mode);
 }
 
 tx_uint32 tx_asm_instruction_length(tx_asm_Instruction* inst) {
-    return 1 + tx_param_mode_bytes[tx_param_count[inst->opcode]] + tx_param_sizes[inst->p1.mode]
-           + tx_param_sizes[inst->p2.mode] + tx_param_sizes[inst->p3.mode];
+    return 1 + tx_param_mode_bytes[tx_param_count[inst->opcode]] + tx_asm_param_size(inst->p1.mode)
+           + tx_asm_param_size(inst->p2.mode) + tx_asm_param_size(inst->p3.mode);
 }
 
 void tx_asm_print_instruction(tx_asm_Instruction* inst) {
