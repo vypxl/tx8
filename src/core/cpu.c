@@ -50,10 +50,14 @@ void tx_run_cpu(tx_CPU* cpu) {
 
         current_instruction = tx_parse_instruction(cpu, cpu->p);
 
-        tx_debug_print_instruction(cpu, &current_instruction);
+        if (current_instruction.opcode != tx_op_nop)
+            tx_debug_print_instruction(cpu, &current_instruction);
         tx_cpu_exec_instruction(cpu, current_instruction);
 
-        cpu->p += current_instruction.len;
+        // do not increment p if instruction changes p
+        // TODO better detection
+        if (!(current_instruction.opcode >= tx_op_jmp && current_instruction.opcode <= tx_op_ret))
+            cpu->p += current_instruction.len;
     }
 }
 
@@ -78,12 +82,18 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
         return nop;
     }
 
-    tx_mem_ptr p           = cpu->mem + pc;
-    tx_uint8   pcount      = tx_param_count[p[0]];
+    tx_mem_ptr p      = cpu->mem + pc;
+    tx_uint8   pcount = tx_param_count[p[0]];
+
+    tx_uint8 mode_p1 = pcount > 0 ? p[1] >> 4U : 0;
+    tx_uint8 mode_p2 = pcount > 1 ? p[1] & tx_PARAM_MODE_2_MASK : 0;
+    tx_uint8 mode_p3 = pcount > 2 ? p[2] >> 4U : 0;
+
     tx_mem_ptr param_start = p + 1 + tx_param_mode_bytes[pcount];
-    tx_uint8   mode_p1     = pcount > 0 ? p[1] >> 4U : 0;
-    tx_uint8   mode_p2     = pcount > 1 ? p[1] & tx_PARAM_MODE_2_MASK : 0;
-    tx_uint8   mode_p3     = pcount > 2 ? p[2] >> 4U : 0;
+    tx_uint32  p1          = *((tx_uint32*)(param_start)) & tx_param_masks[mode_p1];
+    tx_uint32 p2 = *((tx_uint32*)(param_start + tx_param_sizes[mode_p1])) & tx_param_masks[mode_p2];
+    tx_uint32 p3 = *((tx_uint32*)(param_start + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]))
+                   & tx_param_masks[mode_p3];
 
     // clang-format off
     tx_Instruction inst = {
@@ -92,9 +102,10 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
             .mode_p1 = mode_p1,
             .mode_p2 = mode_p2,
             .mode_p3 = mode_p3,
-            .p1      = param_start[0] & tx_param_masks[mode_p1],
-            .p2      = param_start[tx_param_sizes[mode_p1]] & tx_param_masks[mode_p2],
-            .p3      = param_start[tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]] & tx_param_masks[mode_p3]},
+            .p1 = p1,
+            .p2 = p2,
+            .p3 = p3
+        },
         .len = 1 + tx_param_mode_bytes[pcount] + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]
                + tx_param_sizes[mode_p3]
     };
