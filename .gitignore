@@ -2,8 +2,7 @@
 .clangd
 docs
 bin
-out
-obj
+build
 
 Makefile
 *.make
