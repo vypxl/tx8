@@ -1,3 +1,8 @@
+/**
+ * @file types.h
+ * @brief Intermediate types used throughout the tx8-asm library
+ * @details Includes structs for Parameter, Instruction, Statement and Label constructs, and a linked list type
+ */
 #pragma once
 
 #include <tx8/core/instruction.h>

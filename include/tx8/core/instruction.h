@@ -1,3 +1,8 @@
+/**
+ * @file instruction.h
+ * @brief Constants, structs and conversion methods for various values used in the tx8 ecosystem.
+ * @details Includes definitions for Opcodes, Registers, Parameters and Instructions
+ */
 #pragma once
 #include "tx8/core/types.h"
 
@@ -6,6 +11,8 @@
 
 #pragma clang diagnostic ignored "-Wunused-function"
 
+/// List of opcodes understood by a tx8 cpu
+/// Contains constants for every opcode
 typedef enum tx_Opcode {
     tx_op_nop = 0x00,
     tx_op_jmp = 0x01,
@@ -82,6 +89,7 @@ typedef enum tx_Opcode {
 } tx_Opcode;
 
 // clang-format off
+/// Mapping of tx8 opcodes to their respective human readable names
 static const char tx_op_names[256][4] = {
     // 0x0
     "nop", "jmp", "jeq", "jne", "jgt", "jge", "jlt", "jle", "cal", "ret", "sys", "hlt", "INV", "INV", "INV", "INV",
@@ -118,7 +126,8 @@ static const char tx_op_names[256][4] = {
 };
 // clang-format on
 
-static inline tx_uint8 tx_opcode_from_name(const char* name) {
+/// Convert a human readable tx8 opcode name to its corresponding opcode
+static inline tx_Opcode tx_opcode_from_name(const char* name) {
     for (tx_uint32 i = 0; i < tx_op_invalid; ++i)
         if (strcmp(tx_op_names[i], name) == 0) return i;
 
@@ -150,6 +159,7 @@ typedef enum tx_Register {
     tx_register_invalid = 0xff
 } tx_Register;
 
+// Constants for getting different attributs of a register id
 #define tx_REG_SIZE_4    0x00U
 #define tx_REG_SIZE_1    0x10U
 #define tx_REG_SIZE_2    0x20U
@@ -157,6 +167,7 @@ typedef enum tx_Register {
 #define tx_REG_ID_MASK   0x0fU
 
 // clang-format off
+/// Mapping of tx8 cpu registers to their respective human readable names
 static const char tx_reg_names[256][2] = {
     "a",  "b",  "c",  "d",  "o",  "p",  "s",  "", "", "", "", "", "", "", "", "",
     "as", "bs", "cs", "ds", "os", "ps", "ss", "", "", "", "", "", "", "", "", "",
@@ -177,6 +188,7 @@ static const char tx_reg_names[256][2] = {
 };
 // clang-format on
 
+/// Convert a human readable tx8 cpu register name to its corresponding id
 static inline tx_uint8 tx_reg_id_from_name(const char* name) {
     tx_uint8 id = 0;
     switch (name[0]) {
@@ -199,8 +211,9 @@ static inline tx_uint8 tx_reg_id_from_name(const char* name) {
     return id;
 }
 
-// maps a register size (high four bits of tx_Register value) to to an & mask
+/// Masks to truncate a tx8 cpu register value according to the register size
 static const tx_uint32 tx_register_mask[4] = {0xffffffff, 0xff, 0x0, 0xffffff};
+/// Get the register size of a tx8 cpu register by its id
 static inline tx_uint8 tx_register_size(tx_Register reg) {
     switch (reg & tx_REG_SIZE_MASK) {
         case tx_REG_SIZE_1: return 1; break;
@@ -210,6 +223,7 @@ static inline tx_uint8 tx_register_size(tx_Register reg) {
     }
 }
 
+/// List of tx8 instruction parameter modes
 typedef enum tx_ParamMode {
     tx_param_unused           = 0x0,
     tx_param_constant8        = 0x1,
@@ -221,6 +235,7 @@ typedef enum tx_ParamMode {
     tx_param_register_address = 0x7
 } tx_ParamMode;
 
+/// Get the size of a tx8 instruction parameter in bytes
 static inline tx_uint8 tx_param_value_size(tx_uint32 param, tx_ParamMode mode) {
     switch (mode) {
         case tx_param_constant8: return 1; break;
@@ -235,24 +250,31 @@ static inline tx_uint8 tx_param_value_size(tx_uint32 param, tx_ParamMode mode) {
     return 0;
 }
 
+/// Check if a parameter represents a writable destination by its mode
 static inline bool tx_param_iswritable(tx_ParamMode which) {
     return which == tx_param_register || which == tx_param_absolute_address
            || which == tx_param_relative_address || which == tx_param_register_address;
 }
 
+/// Check if a parameter represents some memory address by its mode
 static inline bool tx_param_isaddress(tx_ParamMode which) {
     return which == tx_param_absolute_address || which == tx_param_relative_address
            || which == tx_param_register_address;
 }
 
+/// Check if a parameter represents a register by its mode
 static inline bool tx_param_isregister(tx_ParamMode which) { return which == tx_param_register; };
 
+/// Mapping of parameter modes to their byte size in tx8 binary
 static const tx_uint8  tx_param_sizes[0x8] = {0, 1, 2, 4, 3, 3, 1, 1};
+/// Masks to truncate a parameter value to its meaningful bytes (indexed by parameter mode)
 static const tx_uint32 tx_param_masks[0x8] = {
     0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};
+/// Mask to get the mode of parameter 2 in the first parameter mode byte
 #define tx_PARAM_MODE_2_MASK 0xfU
 
 // clang-format off
+/// Mapping of opcodes to their respective parameter counts
 static const tx_uint8 tx_param_count[256] = {
     // 0x0
     0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 1, 0, 0, 0, 0, 0,
@@ -289,19 +311,23 @@ static const tx_uint8 tx_param_count[256] = {
 };
 // clang-format on
 
+/// Mapping of parameter counts to number of parameter mode bytes in a binary instruction
 static const tx_uint8 tx_param_mode_bytes[4] = {0, 1, 1, 2};
 
+/// Struct representing the three possible parameters to an instruction
 typedef struct tx_Parameters {
     tx_ParamMode mode_p1, mode_p2, mode_p3;
     tx_uint32    p1, p2, p3;
 } tx_Parameters;
 
+/// Struct representing a single instruction with opcode, parameters and a length in bytes (binary length)
 typedef struct tx_Instruction {
     tx_Opcode     opcode;
     tx_Parameters parameters;
     tx_uint8      len;
 } tx_Instruction;
 
+/// The maximum length of a binary instruction in bytes
 #define tx_INSTRUCTION_MAX_LENGTH 0xe
 
 #pragma clang diagnostic warning "-Wunused-function"

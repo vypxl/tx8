@@ -1,3 +1,8 @@
+/**
+ * @file assembler.h
+ * @brief tx_asm_Assembler and its methods
+ * @details Includes methods for parsing assembly and generating debug text or tx8 binary output
+ */
 #pragma once
 
 #include "tx8/asm/types.h"

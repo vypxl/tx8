@@ -89,11 +89,14 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
     tx_uint8 mode_p2 = pcount > 1 ? p[1] & tx_PARAM_MODE_2_MASK : 0;
     tx_uint8 mode_p3 = pcount > 2 ? p[2] >> 4U : 0;
 
-    tx_mem_ptr param_start = p + 1 + tx_param_mode_bytes[pcount];
-    tx_uint32  p1          = *((tx_uint32*)(param_start)) & tx_param_masks[mode_p1];
-    tx_uint32 p2 = *((tx_uint32*)(param_start + tx_param_sizes[mode_p1])) & tx_param_masks[mode_p2];
-    tx_uint32 p3 = *((tx_uint32*)(param_start + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]))
-                   & tx_param_masks[mode_p3];
+    tx_mem_addr param_start = pc + 1 + tx_param_mode_bytes[pcount];
+
+    tx_uint32 p1 = tx_cpu_mem_read32(cpu, param_start) & tx_param_masks[mode_p1];
+    tx_uint32 p2 =
+        tx_cpu_mem_read32(cpu, param_start + tx_param_sizes[mode_p1]) & tx_param_masks[mode_p2];
+    tx_uint32 p3 =
+        tx_cpu_mem_read32(cpu, param_start + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2])
+        & tx_param_masks[mode_p3];
 
     // clang-format off
     tx_Instruction inst = {
@@ -114,7 +117,7 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
     return inst;
 }
 
-extern inline void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
+void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
     tx_cpu_op_function[instruction.opcode](cpu, &(instruction.parameters));
 }
 
@@ -147,80 +150,80 @@ tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode 
     }
 }
 
-extern inline void tx_cpu_jump(tx_CPU* cpu, tx_mem_addr location) { cpu->p = location; }
+void tx_cpu_jump(tx_CPU* cpu, tx_mem_addr location) { cpu->p = location; }
 
-extern inline void tx_cpu_push8(tx_CPU* cpu, tx_uint8 value) {
+void tx_cpu_push8(tx_CPU* cpu, tx_uint8 value) {
     cpu->s--;
     tx_cpu_mem_write8(cpu, cpu->s, value);
 }
-extern inline void tx_cpu_push16(tx_CPU* cpu, tx_uint16 value) {
+void tx_cpu_push16(tx_CPU* cpu, tx_uint16 value) {
     cpu->s -= 2;
     tx_cpu_mem_write16(cpu, cpu->s, value);
 }
-extern inline void tx_cpu_push32(tx_CPU* cpu, tx_uint32 value) {
+void tx_cpu_push32(tx_CPU* cpu, tx_uint32 value) {
     cpu->s -= 4;
     tx_cpu_mem_write32(cpu, cpu->s, value);
 }
 
-extern inline tx_uint8 tx_cpu_pop8(tx_CPU* cpu) {
+tx_uint8 tx_cpu_pop8(tx_CPU* cpu) {
     cpu->s++;
     return tx_cpu_mem_read8(cpu, cpu->s - 1);
 }
-extern inline tx_uint16 tx_cpu_pop16(tx_CPU* cpu) {
+tx_uint16 tx_cpu_pop16(tx_CPU* cpu) {
     cpu->s += 2;
     return tx_cpu_mem_read16(cpu, cpu->s - 2);
 }
-extern inline tx_uint32 tx_cpu_pop32(tx_CPU* cpu) {
+tx_uint32 tx_cpu_pop32(tx_CPU* cpu) {
     cpu->s += 4;
     return tx_cpu_mem_read32(cpu, cpu->s - 4);
 }
 
-extern inline tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location) {
     return (location < tx_MEM_SIZE) ? cpu->mem + location : NULL;
 }
-extern inline tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location) {
     return (location < tx_MEM_SIZE) ? cpu->mem + cpu->o + location : NULL;
 }
 
-extern inline void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
+void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
     *tx_cpu_mem_get_ptr(cpu, location) = value;
 }
-extern inline void tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
+void tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
     *((tx_uint16*)tx_cpu_mem_get_ptr(cpu, location)) = value;
 }
-extern inline void tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
+void tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
     *((tx_uint32*)tx_cpu_mem_get_ptr(cpu, location)) = value;
 }
-extern inline tx_uint8 tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint8 tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location) {
     return *tx_cpu_mem_get_ptr(cpu, location);
 }
-extern inline tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location) {
     return *((tx_uint16*)tx_cpu_mem_get_ptr(cpu, location));
 }
-extern inline tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location) {
     return *((tx_uint32*)tx_cpu_mem_get_ptr(cpu, location));
 }
 
-extern inline void tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
+void tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
     *tx_cpu_mem_get_ptr_rel(cpu, location) = value;
 }
-extern inline void tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
+void tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
     *((tx_uint16*)tx_cpu_mem_get_ptr_rel(cpu, location)) = value;
 }
-extern inline void tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
+void tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
     *((tx_uint32*)tx_cpu_mem_get_ptr_rel(cpu, location)) = value;
 }
-extern inline tx_uint8 tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint8 tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location) {
     return *tx_cpu_mem_get_ptr_rel(cpu, location);
 }
-extern inline tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location) {
     return *((tx_uint16*)tx_cpu_mem_get_ptr_rel(cpu, location));
 }
-extern inline tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location) {
+tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location) {
     return *((tx_uint32*)tx_cpu_mem_get_ptr_rel(cpu, location));
 }
 
-extern inline void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value) {
+void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value) {
     if ((which & tx_REG_ID_MASK) > tx_REGISTER_COUNT) tx_cpu_error(cpu, "Invalid register id");
     else
         switch (which & tx_REG_SIZE_MASK) {
@@ -237,7 +240,7 @@ extern inline void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 va
         }
 }
 
-extern inline tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which) {
+tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which) {
     if ((which & tx_REG_ID_MASK) > tx_REGISTER_COUNT) tx_cpu_error(cpu, "Invalid register id");
     // because tx_REG_SIZE_4 is 0x00, the only valid register sizes are 0x00, 0x10 and 0x20
     else if ((which & tx_REG_SIZE_MASK) > tx_REG_SIZE_2)
@@ -248,10 +251,7 @@ extern inline tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which) {
     return 0;
 }
 
-extern inline void tx_cpu_mem_write_n(tx_CPU*     cpu,
-                                      tx_mem_addr location,
-                                      tx_uint32   value,
-                                      tx_uint8    bytes) {
+void tx_cpu_mem_write_n(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value, tx_uint8 bytes) {
     switch (bytes) {
         case 1: tx_cpu_mem_write8(cpu, location, (tx_uint8)value); break;
         case 2: tx_cpu_mem_write16(cpu, location, (tx_uint16)value); break;

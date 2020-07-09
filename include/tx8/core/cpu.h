@@ -1,3 +1,9 @@
+/**
+ * @file cpu.h
+ * @brief tx_CPU and its methods.
+ * @details Includes some constants for tx_CPU memory initialization, all raw op functions and the
+ * table of opcode function pointers.
+ */
 #pragma once
 
 #include "tx8/core/instruction.h"
@@ -14,7 +20,7 @@
 #define tx_RAND_MAX_32    ((1U << 31U) - 1)
 #define tx_RAND_MAX       ((1U << 15U) - 1)
 
-typedef struct {
+typedef struct tx_CPU {
     tx_mem_ptr mem;
     union {
         struct {
@@ -32,41 +38,38 @@ void      tx_run_cpu(tx_CPU* cpu);
 void      tx_cpu_error(tx_CPU* cpu, char* format, ...);
 tx_uint32 tx_cpu_rand(tx_CPU* cpu);
 
-tx_Instruction     tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
-extern inline void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
+tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
+void           tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
 
 tx_uint32   tx_cpu_get_param_value(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);
 tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);
 
-extern inline void      tx_cpu_jump(tx_CPU* cpu, tx_uint32 location);
-extern inline void      tx_cpu_push8(tx_CPU* cpu, tx_uint8 value);
-extern inline void      tx_cpu_push16(tx_CPU* cpu, tx_uint16 value);
-extern inline void      tx_cpu_push32(tx_CPU* cpu, tx_uint32 value);
-extern inline tx_uint8  tx_cpu_pop8(tx_CPU* cpu);
-extern inline tx_uint16 tx_cpu_pop16(tx_CPU* cpu);
-extern inline tx_uint32 tx_cpu_pop32(tx_CPU* cpu);
-extern inline tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location);
-extern inline tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location);
-extern inline void      tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
-extern inline void      tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
-extern inline void      tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
-extern inline tx_uint8  tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location);
-extern inline tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location);
-extern inline tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location);
-extern inline void      tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
-extern inline void      tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
-extern inline void      tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
-extern inline tx_uint8  tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location);
-extern inline tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location);
-extern inline tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location);
-extern inline void      tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value);
-extern inline tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which);
+void      tx_cpu_jump(tx_CPU* cpu, tx_uint32 location);
+void      tx_cpu_push8(tx_CPU* cpu, tx_uint8 value);
+void      tx_cpu_push16(tx_CPU* cpu, tx_uint16 value);
+void      tx_cpu_push32(tx_CPU* cpu, tx_uint32 value);
+tx_uint8  tx_cpu_pop8(tx_CPU* cpu);
+tx_uint16 tx_cpu_pop16(tx_CPU* cpu);
+tx_uint32 tx_cpu_pop32(tx_CPU* cpu);
+tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location);
+tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location);
+void      tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
+void      tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
+void      tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
+tx_uint8  tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location);
+tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location);
+tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location);
+void      tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
+void      tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
+void      tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
+tx_uint8  tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location);
+tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location);
+tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location);
+void      tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value);
+tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which);
 
 // write 1, 2 or 4 bytes read from value to the specified memory location
-extern inline void tx_cpu_mem_write_n(tx_CPU*     cpu,
-                                      tx_mem_addr location,
-                                      tx_uint32   value,
-                                      tx_uint8    bytes);
+void tx_cpu_mem_write_n(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value, tx_uint8 bytes);
 
 void tx_cpu_op_nop(tx_CPU* cpu, tx_Parameters* params);
 void tx_cpu_op_jmp(tx_CPU* cpu, tx_Parameters* params);
