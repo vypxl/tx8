@@ -9,6 +9,7 @@
 #include "tx8/core/instruction.h"
 #include "tx8/core/types.h"
 
+#include <khash.h>
 #include <stdbool.h>
 
 #define tx_MEM_SIZE       0xffffffU
@@ -20,7 +21,11 @@
 #define tx_RAND_MAX_32    ((1U << 31U) - 1)
 #define tx_RAND_MAX       ((1U << 15U) - 1)
 
-typedef struct tx_CPU {
+typedef struct tx_CPU tx_CPU;
+typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu);
+KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc_ptr, 1, kh_int_hash_func, kh_int_hash_equal) // NOLINT
+
+struct tx_CPU {
     tx_mem_ptr mem;
     union {
         struct {
@@ -28,9 +33,10 @@ typedef struct tx_CPU {
         };
         tx_uint32 registers[tx_REGISTER_COUNT];
     };
+    khash_t(tx_sysfunc)* sys_func_table;
     tx_uint32 rseed;
     bool      halted;
-} tx_CPU;
+};
 
 void      tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size);
 void      tx_destroy_cpu(tx_CPU* cpu);
@@ -40,6 +46,9 @@ tx_uint32 tx_cpu_rand(tx_CPU* cpu);
 
 tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
 void           tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
+
+void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func);
+void tx_cpu_exec_sysfunc(tx_CPU* cpu, tx_uint32 hashed_name);
 
 tx_uint32   tx_cpu_get_param_value(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);
 tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);

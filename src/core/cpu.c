@@ -5,6 +5,7 @@
 #include "tx8/core/types.h"
 #include "tx8/core/util.h"
 
+#include <khash.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -29,6 +30,9 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     cpu->s      = tx_STACK_BEGIN;
     cpu->p      = tx_ENTRY_POINT;
     cpu->mem    = malloc(tx_MEM_SIZE);
+
+    // initialize sys function table
+    cpu->sys_func_table = kh_init(tx_sysfunc);
 
     // zero out all memory
     for (tx_uint32 i = 0; i < tx_MEM_SIZE; i++)
@@ -119,6 +123,32 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
 
 void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
     tx_cpu_op_function[instruction.opcode](cpu, &(instruction.parameters));
+}
+
+void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func) {
+    tx_int32  ret;
+    tx_uint32 pos = kh_put(tx_sysfunc, cpu->sys_func_table, tx_str_hash(name), &ret);
+
+    if (ret == 0)
+        tx_cpu_error(cpu,
+                     "Could not register sysfunction '%s' as another function is already "
+                     "registered under the same name",
+                     name);
+    else if (ret == -1)
+        tx_cpu_error(cpu,
+                     "Could not register sysfunction '%s'; An error occurred while reallocating "
+                     "the sysfunction hashtable.",
+                     name);
+    else
+        kh_value(cpu->sys_func_table, pos) = func;
+}
+
+void tx_cpu_exec_sys_func(tx_CPU* cpu, tx_uint32 hashed_name) {
+    tx_uint32 key = kh_get(tx_sysfunc, cpu->sys_func_table, hashed_name);
+    if (key == kh_end(cpu->sys_func_table))
+        tx_cpu_error(cpu, "Sys function with id %x not found", hashed_name);
+    else
+        (kh_value(cpu->sys_func_table, key)(cpu));
 }
 
 // Returns the numerical value of a parameter
@@ -294,7 +324,7 @@ void tx_cpu_op_cal(tx_CPU* cpu, tx_Parameters* params) {
 
 void tx_cpu_op_ret(tx_CPU* cpu, tx_Parameters* params) { tx_cpu_jump(cpu, tx_cpu_pop32(cpu)); }
 
-void tx_cpu_op_sys(tx_CPU* cpu, tx_Parameters* params) { printf("sys: TODO"); }
+void tx_cpu_op_sys(tx_CPU* cpu, tx_Parameters* params) { tx_cpu_exec_sys_func(cpu, PARAMV(1)); }
 
 void tx_cpu_op_hlt(tx_CPU* cpu, tx_Parameters* params) { cpu->halted = 1; }
 

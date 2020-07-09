@@ -17,11 +17,12 @@ endif()
 find_library(MATH_LIBRARY m)
 
 
-add_library(tx8-core SHARED src/core/cpu.c src/core/debug.c)
+add_library(tx8-core SHARED src/core/cpu.c src/core/debug.c src/core/stdlib.c)
 set_property(TARGET tx8-core PROPERTY C_STANDARD 11)
 set_property(TARGET tx8-core PROPERTY C_EXTENSIONS OFF)
 target_compile_options(tx8-core PRIVATE -Wall -Wextra -Werror)
 target_include_directories(tx8-core PUBLIC include)
+target_include_directories(tx8-core PRIVATE deps)
 target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY})
 
 add_library(tx8-asm
@@ -32,6 +33,7 @@ add_library(tx8-asm
 set_property(TARGET tx8-asm PROPERTY C_STANDARD 11)
 set_property(TARGET tx8-asm PROPERTY C_EXTENSIONS OFF)
 target_compile_options(tx8-asm PRIVATE -Wall -Wextra)
+target_include_directories(tx8-asm PRIVATE deps)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
 
 # Custom commands for yacc / lex (actually bison/flex)
@@ -56,4 +58,5 @@ add_executable(tx8-test test/main.c)
 set_property(TARGET tx8-test PROPERTY C_STANDARD 11)
 set_property(TARGET tx8-test PROPERTY C_EXTENSIONS OFF)
 target_compile_options(tx8-test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(tx8-test PRIVATE deps)
 target_link_libraries(tx8-test PRIVATE tx8-core tx8-asm)

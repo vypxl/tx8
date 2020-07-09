@@ -3,6 +3,8 @@
 mov a 0x42u8
 mov a 0x42u16
 mov a 0x42u
+psh a
+sys &print
 inc a
 mov o 5538
 jne o a :moreLabels

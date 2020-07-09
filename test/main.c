@@ -4,6 +4,7 @@
 #include <tx8/asm/types.h>
 #include <tx8/core/cpu.h>
 #include <tx8/core/instruction.h>
+#include <tx8/core/stdlib.h>
 #include <tx8/core/types.h>
 
 int tx_asm_yydebug = 1;
@@ -35,13 +36,15 @@ int main() {
 
     tx_asm_assembler_write_binary(&asm, stdout);
     tx_uint32 rom_size = 0;
-    tx_uint8* rom = tx_asm_assembler_generate_binary(&asm, &rom_size);
+    tx_uint8* rom      = tx_asm_assembler_generate_binary(&asm, &rom_size);
     tx_asm_destroy_assembler(&asm);
 
     tx_CPU cpu;
     tx_init_cpu(&cpu, rom, rom_size);
+    tx_cpu_use_stdlib(&cpu);
     free(rom);
 
+    printf("\n==== Starting execution ====\n");
     tx_run_cpu(&cpu);
     tx_destroy_cpu(&cpu);
     return 0;

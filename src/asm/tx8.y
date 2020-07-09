@@ -3,6 +3,7 @@
 
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
+#include <tx8/core/util.h>
 }
 
 %{
@@ -48,7 +49,7 @@ instruction: tx_asm_OPCODE3 tx_asm_SPACE parameter tx_asm_SPACE parameter tx_asm
            | tx_asm_OPCODE2 tx_asm_SPACE parameter tx_asm_SPACE parameter                        { tx_asm_Instruction i = { .opcode = $1, .p1 = $3, .p2 = $5 }; $$ = i; }
            | tx_asm_OPCODE1 tx_asm_SPACE parameter                                               { tx_asm_Instruction i = { .opcode = $1, .p1 = $3 }; $$ = i; }
            | tx_asm_OPCODE0                                                                      { tx_asm_Instruction i = { .opcode = $1 }; $$ = i; }
-parameter:   tx_asm_ALIAS                                 { tx_asm_Parameter p = { .value.u = 0xdeadbeef, .mode = tx_param_constant32 }; $$ = p; free($1); }
+parameter:   tx_asm_ALIAS                                 { tx_asm_Parameter p = { .value.u = tx_str_hash($1), .mode = tx_param_constant32 }; $$ = p; free($1); }
            | tx_asm_INTEGER8                              { tx_asm_Parameter p = { .value.u = $1, .mode = tx_param_constant8 }; $$ = p; }
            | tx_asm_INTEGER16                             { tx_asm_Parameter p = { .value.u = $1, .mode = tx_param_constant16 }; $$ = p; }
            | tx_asm_INTEGER32                             { tx_asm_Parameter p = { .value.u = $1, .mode = tx_param_constant32 }; $$ = p; }
