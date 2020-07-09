@@ -15,6 +15,8 @@ extern int   tx_asm_yyparse();
 extern FILE* tx_asm_yyin;
 extern int   tx_asm_yylineno;
 
+#define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
+
 tx_asm_Assembler* tx_asm_yyasm;
 
 void tx_asm_init_assembler(tx_asm_Assembler* asm) {
@@ -77,7 +79,7 @@ tx_uint32 tx_asm_assembler_new_label(tx_asm_Assembler* asm, char* name) {
     tx_asm_Label* label = malloc(sizeof(tx_asm_Label));
     label->name         = strdup(name);
     label->id           = ++(asm->last_label_id);
-    label->position     = 0xffffffff;
+    label->position     = tx_asm_INVALID_LABEL_ADDRESS;
 
     // insert the new label into the list
     tx_asm_LL_append(&(asm->labels), label);
@@ -92,7 +94,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* asm, char* name)
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, asm->labels)
         if (strcmp(name, label->name) == 0) {
             // error if the matched label already has a position set
-            if (label->position != 0xffffffff)
+            if (label->position != tx_asm_INVALID_LABEL_ADDRESS)
                 tx_asm_error("Cannot create two or more labels with the same name '%s'\n", name);
             else {
                 // set position of found label
@@ -111,7 +113,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* asm, char* name)
 tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* asm, tx_uint32 id) {
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, asm->labels)
         if (label->id == id) {
-            if (label->position != 0xffffffff) return label->position;
+            if (label->position != tx_asm_INVALID_LABEL_ADDRESS) return label->position;
 
             // error if label does not have a position set
             tx_asm_error("Label '%s' has no corresponding location", label->name);
