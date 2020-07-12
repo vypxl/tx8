@@ -3,10 +3,11 @@
 
 #define f(name) void tx_stdlib_##name(tx_CPU* cpu)
 
+/// `print` - prints the topmost unsigned 32bit integer to stdout
 f(print) {
     tx_uint32 val = tx_cpu_pop32(cpu);
     tx_cpu_push32(cpu, val);
-    printf("[PRINT] %x", val);
+    printf("[PRINT] %x\n", val);
 }
 
 #undef f

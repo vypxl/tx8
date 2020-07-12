@@ -74,7 +74,7 @@ void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
-    return (cpu->rseed = (cpu->rseed * 214013 + 2541011) & tx_RAND_MAX_32) >> 16; // NOLINT
+    return (cpu->rseed = (cpu->rseed * 214013 + 2541011) & tx_RAND_MAX) >> 16; // NOLINT
 }
 
 tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {

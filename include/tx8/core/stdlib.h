@@ -6,4 +6,5 @@
 
 #include <tx8/core/cpu.h>
 
+/// Use this method to register the all standard library functions
 void tx_cpu_use_stdlib(tx_CPU* cpu);
