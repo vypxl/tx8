@@ -23,7 +23,7 @@ void tx_asm_init_assembler(tx_asm_Assembler* asm) {
     asm->labels        = NULL;
     asm->instructions  = NULL;
     asm->position      = 0;
-    asm->last_label_id = 0;
+    asm->last_label_id = 1;
 }
 
 void tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input) {
@@ -33,10 +33,10 @@ void tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input) {
     tx_asm_assembler_convert_labels(asm);
 }
 
-void tx_asm_assembler_write_binary(tx_asm_Assembler* asm, FILE* output) {
+void tx_asm_assembler_write_binary_file(tx_asm_Assembler* asm, FILE* output) {
     tx_uint8 buf[tx_INSTRUCTION_MAX_LENGTH];
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, asm->instructions)
-        tx_asm_instruction_write_binary(inst, buf);
+        tx_asm_instruction_generate_binary(inst, buf);
         fwrite(buf, tx_asm_instruction_length(inst), 1, output);
     tx_asm_LL_FOREACH_END
 }
@@ -48,7 +48,7 @@ tx_uint8* tx_asm_assembler_generate_binary(tx_asm_Assembler* asm, tx_uint32* out
     tx_uint32 pos = 0;
 
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, asm->instructions)
-        tx_asm_instruction_write_binary(inst, buf + pos);
+        tx_asm_instruction_generate_binary(inst, buf + pos);
         pos += tx_asm_instruction_length(inst);
     tx_asm_LL_FOREACH_END
 
@@ -68,8 +68,7 @@ void tx_asm_error(const char* format, ...) {
     va_end(argptr);
 }
 
-// return the id of the existing or newly created label
-tx_uint32 tx_asm_assembler_new_label(tx_asm_Assembler* asm, char* name) {
+tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* asm, char* name) {
     // search for an existing label with the same name and return its id if found
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, asm->labels)
         if (strcmp(name, label->name) == 0) return label->id;

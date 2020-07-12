@@ -24,13 +24,11 @@ void tx_asm_print_parameter(tx_asm_Parameter* p) {
 
 static inline tx_uint32 tx_asm_param_size(tx_uint32 mode) {
     if (mode >= 0 && mode <= tx_param_register_address) return tx_param_sizes[mode];
-    switch (mode) {
-        case tx_asm_param_label_id: return tx_param_sizes[tx_param_constant32]; break;
-        default: return 0xffffffff; break;
-    }
+    if (mode == tx_asm_param_label_id) return tx_param_sizes[tx_param_constant32];
+    return 0xffffffff;
 }
 
-tx_uint8 tx_asm_parameter_write_binary(tx_asm_Parameter* p, tx_uint8* buf) {
+tx_uint8 tx_asm_parameter_generate_binary(tx_asm_Parameter* p, tx_uint8* buf) {
     switch (p->mode) {
         case tx_param_constant8:
         case tx_param_register:
@@ -67,15 +65,15 @@ void tx_asm_print_instruction(tx_asm_Instruction* inst) {
     printf("\n");
 }
 
-void tx_asm_instruction_write_binary(tx_asm_Instruction* inst, tx_uint8* buf) {
+void tx_asm_instruction_generate_binary(tx_asm_Instruction* inst, tx_uint8* buf) {
     buf[0] = inst->opcode;
     buf[1] = ((inst->p1.mode) << 4) | inst->p2.mode;
     buf[2] = (inst->p3.mode << 4);
 
     tx_uint8* _buf = buf + 1 + tx_param_mode_bytes[tx_param_count[inst->opcode]];
-    _buf += tx_asm_parameter_write_binary(&(inst->p1), _buf);
-    _buf += tx_asm_parameter_write_binary(&(inst->p2), _buf);
-    tx_asm_parameter_write_binary(&(inst->p3), _buf);
+    _buf += tx_asm_parameter_generate_binary(&(inst->p1), _buf);
+    _buf += tx_asm_parameter_generate_binary(&(inst->p2), _buf);
+    tx_asm_parameter_generate_binary(&(inst->p3), _buf);
 }
 
 void tx_asm_LL_destroy(tx_asm_LL* ll) {
@@ -109,7 +107,6 @@ void tx_asm_LL_insert(tx_asm_LL** ll, void* item) {
     }
 }
 
-// get linked list item at position idx
 void* tx_asm_LL_get(tx_asm_LL* ll, tx_uint32 idx) {
     tx_asm_LL* next = ll;
     for (tx_uint32 i = 0; i < idx; ++i) {
@@ -119,7 +116,6 @@ void* tx_asm_LL_get(tx_asm_LL* ll, tx_uint32 idx) {
     return next->item;
 }
 
-// append an item to the end of the linked list
 void tx_asm_LL_append(tx_asm_LL** ll, void* item) {
     tx_asm_LL** next = ll;
     if (*next != NULL)

@@ -34,7 +34,7 @@ int main() {
         tx_asm_assembler_print_instructions(&asm);
     }
 
-    tx_asm_assembler_write_binary(&asm, stdout);
+    tx_asm_assembler_write_binary_file(&asm, stdout);
     tx_uint32 rom_size = 0;
     tx_uint8* rom      = tx_asm_assembler_generate_binary(&asm, &rom_size);
     tx_asm_destroy_assembler(&asm);
