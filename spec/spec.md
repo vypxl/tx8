@@ -115,7 +115,6 @@ Parameters are described like this: Three characters, one for each parameter:
 - `0` for unused
 - `v` for values (constants, addresses, registers)
 - `w` for writable (addresses, registers)
-- `c` for constants
 
 #### Flow Control
 
@@ -133,7 +132,7 @@ Comparing jump instruction all operate like this: `if parameter1 <comparison> pa
 | 0x07   | jle | `vvv`      | jump if less than or equal to            | `jle 4 4 :branch`   |
 | 0x08   | cal | `v00`      | call function                            | `cal :fun`          |
 | 0x09   | ret | `000`      | return from function                     | `ret`               |
-| 0x0a   | sys | `c00`      | call system function (more further down) | `sys &PRINT`        |
+| 0x0a   | sys | `v00`      | call system function (more further down) | `sys &PRINT`        |
 | 0x0b   | hlt | `000`      | halt / stop execution                    | `hlt`               |
 
 ##### Calling Convention
