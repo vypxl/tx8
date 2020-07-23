@@ -11,7 +11,7 @@ You can also find the TX8 specification in this repository under `spec/`.
 ## TX8
 
 TX8 is a fantasy console running custom bytecode from virtual cartridges, featuring
-sound, music and graphics capabilities. More information in the specification.
+sound, music and graphics capabilities. More information in the [specification](https://github.com/vypxl/tx8/blob/master/spec/spec.md).
 
 ## Used Libraries
 
