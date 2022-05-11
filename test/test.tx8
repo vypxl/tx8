@@ -1,26 +1,20 @@
-:label1
-:code nop
-mov a 0x42u8
-mov a 0x42u16
-mov a 0x42u
-psh a
-sys &print
-inc a
-mov o 5538
-jne o a :moreLabels
-inc $513
-dec #5531
-:label2 add a 0b0110101001
-max b #5541 $-513
-jmp :code
-sys &print
-mov c 15.53829
+mov o 0xc03000
 
-:moreLabels
-fin @c
+mov $0  0x48
+mov $1  0x65
+mov $2  0x6c
+mov $3  0x6c
+mov $4  0x6f
+mov $5  0x20
+mov $6  0x77
+mov $7  0x6f
+mov $8  0x72
+mov $9  0x6c
+mov $a 0x64
+mov $b 0x21
+mov $c 0
+
+psh o
+sys &println
+
 hlt
-
-jmp :label1
-jmp :code
-jmp :label2
-jmp :moreLabels

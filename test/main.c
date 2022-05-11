@@ -24,7 +24,7 @@ int main() {
 
     tx_asm_Assembler asm;
     tx_asm_init_assembler(&asm);
-    tx_asm_run_assembler(&asm, input);
+    if (tx_asm_run_assembler(&asm, input) != 0) return 1;
 
     if (tx_asm_yydebug) {
         printf("labels:\n");

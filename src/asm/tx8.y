@@ -60,8 +60,8 @@ parameter:   tx_asm_ALIAS                                 { tx_asm_Parameter p =
 %%
 
 int tx_asm_yyerror(const char* str) {
-    fprintf(stderr, "Line %d: %s\n ", tx_asm_yylineno, str);
-    return 1;
+    tx_asm_error(tx_asm_yyasm, "Line %d: %s\n ", tx_asm_yylineno, str);
+    return tx_asm_yyasm->error;
 }
 
 int tx_asm_yywrap() {

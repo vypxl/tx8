@@ -24,16 +24,23 @@ void tx_asm_init_assembler(tx_asm_Assembler* asm) {
     asm->instructions  = NULL;
     asm->position      = 0;
     asm->last_label_id = 1;
+    asm->error         = 0;
 }
 
-void tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input) {
+int tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input) {
     tx_asm_yyin  = input;
     tx_asm_yyasm = asm;
     tx_asm_yyparse();
     tx_asm_assembler_convert_labels(asm);
+
+    return asm->error;
 }
 
 void tx_asm_assembler_write_binary_file(tx_asm_Assembler* asm, FILE* output) {
+    if (asm->error != 0) {
+        fprintf(stderr, "Assembler encountered an error, did not write binary file.\n");
+        return;
+    }
     tx_uint8 buf[tx_INSTRUCTION_MAX_LENGTH];
     tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, asm->instructions)
         tx_asm_instruction_generate_binary(inst, buf);
@@ -42,6 +49,11 @@ void tx_asm_assembler_write_binary_file(tx_asm_Assembler* asm, FILE* output) {
 }
 
 tx_uint8* tx_asm_assembler_generate_binary(tx_asm_Assembler* asm, tx_uint32* out_size) {
+    if (asm->error != 0) {
+        fprintf(stderr, "Assembler encountered an error, did not generate binary.\n");
+        return NULL;
+    }
+
     *out_size     = asm->position;
     tx_uint8* buf = malloc(asm->position);
 
@@ -60,11 +72,12 @@ void tx_asm_destroy_assembler(tx_asm_Assembler* asm) {
     tx_asm_LL_destroy(asm->instructions);
 }
 
-void tx_asm_error(const char* format, ...) {
+void tx_asm_error(tx_asm_Assembler* asm, char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
     fprintf(stderr, "Line %d: ", tx_asm_yylineno);
     vfprintf(stderr, format, argptr);
+    asm->error = 1;
     va_end(argptr);
 }
 
@@ -94,7 +107,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* asm, char* name)
         if (strcmp(name, label->name) == 0) {
             // error if the matched label already has a position set
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS)
-                tx_asm_error("Cannot create two or more labels with the same name '%s'\n", name);
+                tx_asm_error(asm, "Cannot create two or more labels with the same name '%s'\n", name);
             else {
                 // set position of found label
                 // TODO fix position offset hack
@@ -105,7 +118,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* asm, char* name)
     tx_asm_LL_FOREACH_END
 
     // error if no match was found
-    tx_asm_error("No label '%s' to set position to\n", name);
+    tx_asm_error(asm, "No label '%s' to set position to\n", name);
     return 0;
 }
 
@@ -115,12 +128,12 @@ tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* asm, tx_uint32 id) {
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS) return label->position;
 
             // error if label does not have a position set
-            tx_asm_error("Label '%s' has no corresponding location", label->name);
+            tx_asm_error(asm, "Label '%s' has no corresponding location", label->name);
             return 0;
         }
     tx_asm_LL_FOREACH_END
 
-    tx_asm_error("No label with id %d found", id);
+    tx_asm_error(asm, "No label with id %d found", id);
     return 0;
 }
 

@@ -17,13 +17,14 @@ typedef struct tx_asm_Assembler {
     tx_asm_LL* instructions;
     tx_uint32  position;
     tx_uint32  last_label_id;
+    tx_uint8   error;
 } tx_asm_Assembler;
 
 /// Initialize the assembler
 void tx_asm_init_assembler(tx_asm_Assembler* asm);
 /// @brief Run the assembly process on the specified input.
 /// @details Run this before reading any output like the resulting binary.
-void tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input);
+int tx_asm_run_assembler(tx_asm_Assembler* asm, FILE* input);
 /// Write the generated binary to a tx8 binary file specified by `output`
 void tx_asm_assembler_write_binary_file(tx_asm_Assembler* asm, FILE* output);
 /// Get a pointer to the generated tx8 binary in malloc'd memory
@@ -31,7 +32,7 @@ tx_uint8* tx_asm_assembler_generate_binary(tx_asm_Assembler* asm, tx_uint32* out
 /// Free all resources allocated by the assembler
 void tx_asm_destroy_assembler(tx_asm_Assembler* asm);
 /// Print an error message with the current linenumber from lex
-void tx_asm_error(const char* format, ...);
+void tx_asm_error(tx_asm_Assembler* asm, char* format, ...);
 
 /// Register a new label and return its id or the id of the already registered label with the same name
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* asm, char* name);

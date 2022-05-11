@@ -4,7 +4,7 @@
 
 - 8bit color (256 color)
 - 512x288 pixel display
-- 16x16 tiles (32x18 tile display)
+- 16x16px tiles (32x18 tile display)
 
 ## Sound & Music
 
@@ -76,7 +76,7 @@ In binary, parameter modes are indicated by the 0-2 bytes after the opcode. Ever
 parameter mode, the last 4 bits are unused (only 3-param ops).
 
 | Code | Mode             |
-| ---- | ---------------- |
+|------|------------------|
 | 0x0  | Unused           |
 | 0x1  | Constant 8bit    |
 | 0x2  | Constant 16bit   |
@@ -121,7 +121,7 @@ Parameters are described like this: Three characters, one for each parameter:
 Comparing jump instruction all operate like this: `if parameter1 <comparison> parameter2 then jump to parameter3`.
 
 | Opcode | Asm | Parameters | Operation                                | Example             |
-| ------ | --- | ---------- | ---------------------------------------- | ------------------- |
+|--------|-----|------------|------------------------------------------|---------------------|
 | 0x00   | nop | `000`      | no operation                             | `nop`               |
 | 0x01   | jmp | `v00`      | jump to address                          | `jmp :label`        |
 | 0x02   | jeq | `vvv`      | jump if equal                            | `jeq 42 42 :branch` |
@@ -174,7 +174,7 @@ Push and pop behave like this:
 - `pop address` pops 4 bytes
 
 | Opcode | Asm | Parameters | Operation                                          | Example         |
-| ------ | --- | ---------- | -------------------------------------------------- | --------------- |
+|--------|-----|------------|----------------------------------------------------|-----------------|
 | 0x10   | mov | `wv0`      | move value (parameter2) into parameter1 (p1 := p2) | `mov A 42`      |
 | 0x11   | mxv | `wv0`      | move 4 bytes from parameter2 into parameter1       | `mxv a #c01234` |
 | 0x12   | lda | `v00`      | load value into register A                         | `lda 42`        |
@@ -197,7 +197,7 @@ Normal instructions operate on signed integers, if you have unsigned integers
 or floats, you have to use the respective special instructions.
 
 | Opcode | Asm | Parameters | Operation                                  | Example            |
-| ------ | --- | ---------- | ------------------------------------------ | ------------------ |
+|--------|-----|------------|--------------------------------------------|--------------------|
 | 0x20   | inc | `w00`      | increment                                  | `inc a`            |
 | 0x21   | dec | `w00`      | decrement                                  | `dec $1`           |
 | 0x22   | add | `wv0`      | add                                        | `add a 5`          |
@@ -247,13 +247,13 @@ or floats, you have to use the respective special instructions.
 
 TX8 programs or games are distributed as binary files. These files must include a header at the top.
 
-| Bytes | Type                                 | Meaning / Content                                                                         |
-| ----- | ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| 0-3   | Magic bytes                          | `0x54 0x58 0x38` (or `TX8` in ascii)                                                      |
-| 4     | Little endian 8bit unsigned integer  | program name length in bytes (0 for no name)                                              |
-| 5-6   | Little endian 16bit unsigned integer | description length in bytes (0 for no description)                                        |
-| 7-10  | Little endian 32bit unsigned integer | Length of the actual binary data in bytes                                                 |
-| 11-64 | Reserved                             | Reserved for future use (should be all-zero)                                              |
-| 65+   | String                               | Program name (as many bytes as specified, not zero-terminated)                            |
-| ...   | String                               | Description (as many bytes as specified, not zero-terminated)                             |
-| Rest  | Binary                               | Actual binary data (instructions, assets, ...). This part is what gets loaded into memory |
+| Bytes | Type                                 | Meaning / Content                                                                       |
+|-------|--------------------------------------|-----------------------------------------------------------------------------------------|
+| 0-3   | Magic bytes                          | `0x54 0x58 0x38` (or `TX8` in ascii)                                                    |
+| 4     | Little endian 8bit unsigned integer  | program name length in bytes (0 for no name)                                            |
+| 5-6   | Little endian 16bit unsigned integer | description length in bytes (0 for no description)                                      |
+| 7-10  | Little endian 32bit unsigned integer | Length of the actual binary data in bytes                                               |
+| 11-64 | Reserved                             | Reserved for future use (should be all-zero)                                            |
+| 65+   | String                               | Program name (as many bytes as specified, not zero-terminated)                          |
+| ...   | String                               | Description (as many bytes as specified, not zero-terminated)                           |
+| Rest  | Binary                               | Actual binary data (instructions, assets, ...). This part is what is loaded into memory |

@@ -71,6 +71,9 @@ void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
     vfprintf(stderr, format, argptr);
     cpu->halted = true;
     va_end(argptr);
+    tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
+    fprintf(stderr, "\nCaused by instruction:\n");
+    tx_debug_fprint_raw_instruction(cpu, &current_instruction, stderr);
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
@@ -208,6 +211,16 @@ tx_uint32 tx_cpu_pop32(tx_CPU* cpu) {
     return tx_cpu_mem_read32(cpu, cpu->s - 4);
 }
 
+tx_uint8 tx_cpu_top8(tx_CPU* cpu) {
+    return tx_cpu_mem_read8(cpu, cpu->s);
+}
+tx_uint16 tx_cpu_top16(tx_CPU* cpu) {
+    return tx_cpu_mem_read16(cpu, cpu->s);
+}
+tx_uint32 tx_cpu_top32(tx_CPU* cpu) {
+    return tx_cpu_mem_read32(cpu, cpu->s);
+}
+
 tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location) {
     return (location < tx_MEM_SIZE) ? cpu->mem + location : NULL;
 }
@@ -255,19 +268,18 @@ tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location) {
 
 void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value) {
     if ((which & tx_REG_ID_MASK) > tx_REGISTER_COUNT) tx_cpu_error(cpu, "Invalid register id");
-    else
-        switch (which & tx_REG_SIZE_MASK) {
-            case tx_REG_SIZE_1:
-                *((tx_uint8*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint8)value;
-                break;
-            case tx_REG_SIZE_2:
-                *((tx_uint16*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint16)value;
-                break;
-            case tx_REG_SIZE_4:
-                *((tx_uint32*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint32)value;
-                break;
-            default: tx_cpu_error(cpu, "Invalid register size"); break;
-        }
+    else switch (which & tx_REG_SIZE_MASK) {
+        case tx_REG_SIZE_1:
+            *((tx_uint8*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint8)value;
+            break;
+        case tx_REG_SIZE_2:
+            *((tx_uint16*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint16)value;
+            break;
+        case tx_REG_SIZE_4:
+            *((tx_uint32*)(cpu->registers + (which & tx_REG_ID_MASK))) = (tx_uint32)value;
+            break;
+        default: tx_cpu_error(cpu, "Invalid register size"); break;
+    }
 }
 
 tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which) {

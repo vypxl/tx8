@@ -30,7 +30,7 @@ OP0         nop|ret|hlt
 OP1         jmp|cal|sys|lda|sta|ldb|stb|ldc|stc|ldd|std|zer|psh|pop|inc|dec|not|fin|fde|itf|fti|sin|cos|tan|sqt|abs|fab|rnd|rsd|utf|ftu
 OP2         mov|mxv|add|sub|mul|div|mod|and|ora|nnd|xor|shr|shl|ror|rol|fad|fsu|fmu|fdi|fmo|umu|udi
 OP3         jeq|jne|jgt|jge|jlt|jle|max|min|fmx|fmn|atn|umx|umn
-IDENTIFIER  [a-z][a-z0-9]*
+IDENTIFIER  [a-zA-Z][a-zA-Z0-9_\-]*
 INTEGER8    (0x[0-9a-f]{1,2}|0b[01]{1,8}|-?[0-9]+)(i8|u8)
 INTEGER16   (0x[0-9a-f]{1,4}|0b[01]{1,16}|-?[0-9]+)(i16|u16)
 INTEGER32   (0x[0-9a-f]{1,8}|0b[01]{1,32}|-?[0-9]+)(i|u|i32|u32)?

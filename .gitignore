@@ -1,8 +1,10 @@
 .vscode
+.idea
 .clangd
 docs
 bin
 build
+cmake-build-debug
 
 Makefile
 *.make

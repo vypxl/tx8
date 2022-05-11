@@ -18,7 +18,7 @@
 #define tx_STACK_BEGIN 0xc02000U
 /// The default starting point for code in tx8 memory
 #define tx_ENTRY_POINT 0x400000U
-/// The position in tx8 memory where the rom gets inserted
+/// The position in tx8 memory where the rom is inserted
 #define tx_ROM_START 0x400000U
 /// The maximum size of a tx8 rom
 #define tx_ROM_SIZE 0x800000U
@@ -30,6 +30,7 @@
 typedef struct tx_CPU tx_CPU;
 /// A function pointer type alias for tx8 system functions callable by `sys` instructions
 typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu);
+/// \private
 KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc_ptr, 1, kh_int_hash_func, kh_int_hash_equal);
 
 /// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
@@ -91,6 +92,12 @@ tx_uint8 tx_cpu_pop8(tx_CPU* cpu);
 tx_uint16 tx_cpu_pop16(tx_CPU* cpu);
 /// Pop a 32bit value from the stack
 tx_uint32 tx_cpu_pop32(tx_CPU* cpu);
+/// Get the topmost 8bit value from the stack
+tx_uint8 tx_cpu_top8(tx_CPU* cpu);
+/// Get the topmost 816it value from the stack
+tx_uint16 tx_cpu_top16(tx_CPU* cpu);
+/// Get the topmost 32bit value from the stack
+tx_uint32 tx_cpu_top32(tx_CPU* cpu);
 /// Get a pointer to the specified location in tx8 cpu memory
 tx_mem_ptr tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location);
 /// Get a pointer to the specified location relative to the O register in tx8 cpu memory
