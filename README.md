@@ -20,7 +20,7 @@ You can also find the TX8 specification in this repository under `spec/`.
 
 ## TX8 Assembler
 
-The assembler that can translate tx8-Assembly into bytecode `.tx8` files.
+The assembler that can translate tx8-Assembly into bytecode files.
 
 # Development
 

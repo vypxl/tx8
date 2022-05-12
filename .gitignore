@@ -5,6 +5,7 @@ docs
 bin
 build
 cmake-build-debug
+cmake-build-debug-coverage
 
 Makefile
 *.make
@@ -13,3 +14,4 @@ tmp
 *.o
 compile_commands.json
 TODO.md
+links.md
