@@ -2,6 +2,7 @@
 
 #include "tx8/core/debug.h"
 #include "tx8/core/instruction.h"
+#include "tx8/core/log.h"
 #include "tx8/core/types.h"
 #include "tx8/core/util.h"
 
@@ -22,6 +23,7 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
 
     // initialize registers and memory
     cpu->halted = 0;
+    cpu->debug  = 0;
     cpu->a      = 0;
     cpu->b      = 0;
     cpu->c      = 0;
@@ -54,7 +56,7 @@ void tx_run_cpu(tx_CPU* cpu) {
 
         current_instruction = tx_parse_instruction(cpu, cpu->p);
 
-        if (current_instruction.opcode != tx_op_nop)
+        if (cpu->debug && current_instruction.opcode != tx_op_nop)
             tx_debug_print_instruction(cpu, &current_instruction);
         tx_cpu_exec_instruction(cpu, current_instruction);
 
@@ -68,12 +70,12 @@ void tx_run_cpu(tx_CPU* cpu) {
 void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
-    vfprintf(stderr, format, argptr);
+    tx_log_err(format, argptr);
     cpu->halted = true;
     va_end(argptr);
     tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
-    fprintf(stderr, "\nCaused by instruction:\n");
-    tx_debug_fprint_raw_instruction(cpu, &current_instruction, stderr);
+    tx_log_err("\nCaused by instruction:\n");
+    tx_debug_print_raw_instruction(cpu, &current_instruction);
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {

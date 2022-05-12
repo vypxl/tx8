@@ -32,5 +32,7 @@ To build the documentation, run `doxygen` in the project root directory.
 
 # Used Libraries
 
-TX8 uses the khash library from [klib](https://github.com/attractivechaos/klib), which is licensed under the MIT License.
+TX8 uses the khash and kstring libraries from [klib](https://github.com/attractivechaos/klib), which are licensed under the MIT License.
 You can find the license text in the [header file](https://github.com/vypxl/tx8/blob/master/deps/khash.h).
+
+TX8 uses Google Test for unit testing.

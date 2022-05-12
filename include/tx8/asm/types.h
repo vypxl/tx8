@@ -9,6 +9,10 @@
 
 #include <tx8/core/instruction.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// Struct representing a parameter to an instruction, consisting of value and mode
 typedef struct tx_asm_Parameter {
     tx_num32 value;
@@ -70,3 +74,7 @@ void tx_asm_LL_append(tx_asm_LL** ll, void* item);
     } \
     while ((__next = tx_asm_LL_next(__next))) \
         ;
+
+#ifdef __cplusplus
+}
+#endif

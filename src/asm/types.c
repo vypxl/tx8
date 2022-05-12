@@ -1,24 +1,24 @@
 #include "tx8/asm/types.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
+#include <tx8/core/log.h>
 
 void tx_asm_print_parameter(tx_asm_Parameter* p) {
     switch (p->mode) {
-        case tx_param_constant8: printf("0x%xu8", (tx_uint8)p->value.u); break;
-        case tx_param_constant16: printf("0x%xu16", (tx_uint16)p->value.u); break;
-        case tx_param_constant32: printf("0x%xu32", p->value.u); break;
-        case tx_param_absolute_address: printf("#%x", p->value.u); break;
+        case tx_param_constant8: tx_log("0x%xu8", (tx_uint8)p->value.u); break;
+        case tx_param_constant16: tx_log("0x%xu16", (tx_uint16)p->value.u); break;
+        case tx_param_constant32: tx_log("0x%xu32", p->value.u); break;
+        case tx_param_absolute_address: tx_log("#%x", p->value.u); break;
         case tx_param_relative_address:
-            if (p->value.i < 0) printf("$-%x", -p->value.i);
+            if (p->value.i < 0) tx_log("$-%x", -p->value.i);
             else
-                printf("$%x", p->value.i);
+                tx_log("$%x", p->value.i);
             break;
-        case tx_param_register_address: printf("@%s", tx_reg_names[p->value.u]); break;
-        case tx_param_register: printf("%s", tx_reg_names[p->value.u]); break;
-        default: printf("{0x%x}", p->value.u); break;
+        case tx_param_register_address: tx_log("@%s", tx_reg_names[p->value.u]); break;
+        case tx_param_register: tx_log("%s", tx_reg_names[p->value.u]); break;
+        default: tx_log("{0x%x}", p->value.u); break;
     }
 }
 
@@ -49,20 +49,20 @@ tx_uint32 tx_asm_instruction_length(tx_asm_Instruction* inst) {
 }
 
 void tx_asm_print_instruction(tx_asm_Instruction* inst) {
-    printf("%s", tx_op_names[inst->opcode]);
+    tx_log("%s", tx_op_names[inst->opcode]);
     if (tx_param_count[inst->opcode] > 0) {
-        printf(" ");
+        tx_log(" ");
         tx_asm_print_parameter(&(inst->p1));
     }
     if (tx_param_count[inst->opcode] > 1) {
-        printf(" ");
+        tx_log(" ");
         tx_asm_print_parameter(&(inst->p2));
     }
     if (tx_param_count[inst->opcode] > 2) {
-        printf(" ");
+        tx_log(" ");
         tx_asm_print_parameter(&(inst->p3));
     }
-    printf("\n");
+    tx_log("\n");
 }
 
 void tx_asm_instruction_generate_binary(tx_asm_Instruction* inst, tx_uint8* buf) {

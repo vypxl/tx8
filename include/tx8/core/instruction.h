@@ -11,6 +11,10 @@
 
 #pragma clang diagnostic ignored "-Wunused-function"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// List of opcodes understood by a tx8 cpu
 /// Contains constants for every opcode
 typedef enum tx_Opcode {
@@ -129,7 +133,7 @@ static const char tx_op_names[256][4] = {
 /// Convert a human readable tx8 opcode name to its corresponding opcode
 static inline tx_Opcode tx_opcode_from_name(const char* name) {
     for (tx_uint32 i = 0; i < tx_op_invalid; ++i)
-        if (strcmp(tx_op_names[i], name) == 0) return i;
+        if (strcmp(tx_op_names[i], name) == 0) return (tx_Opcode) i;
 
     return tx_op_invalid;
 }
@@ -168,7 +172,7 @@ typedef enum tx_Register {
 
 // clang-format off
 /// Mapping of tx8 cpu registers to their respective human readable names
-static const char tx_reg_names[256][2] = {
+static const char tx_reg_names[256][3] = {
     "a",  "b",  "c",  "d",  "o",  "p",  "s",  "", "", "", "", "", "", "", "", "",
     "as", "bs", "cs", "ds", "os", "ps", "ss", "", "", "", "", "", "", "", "", "",
     "ab", "bb", "cb", "db", "ob", "pb", "sb", "", "", "", "", "", "", "", "", "",
@@ -244,7 +248,7 @@ static inline tx_uint8 tx_param_value_size(tx_uint32 param, tx_ParamMode mode) {
         case tx_param_absolute_address:
         case tx_param_relative_address:
         case tx_param_register_address: return 4;
-        case tx_param_register: return tx_register_size(param);
+        case tx_param_register: return tx_register_size((tx_Register) param);
         default: return 0; break;
     }
     return 0;
@@ -329,5 +333,9 @@ typedef struct tx_Instruction {
 
 /// The maximum length of a binary instruction in bytes
 #define tx_INSTRUCTION_MAX_LENGTH 0xe
+
+#ifdef __cplusplus
+}
+#endif
 
 #pragma clang diagnostic warning "-Wunused-function"

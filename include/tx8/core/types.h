@@ -5,6 +5,10 @@
  */
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef unsigned char  tx_uint8;
 typedef signed char    tx_int8;
 typedef unsigned short tx_uint16;
@@ -25,3 +29,7 @@ typedef union tx_num32 {
     /// The 32bit floating point value
     tx_float32 f;
 } tx_num32;
+
+#ifdef __cplusplus
+}
+#endif

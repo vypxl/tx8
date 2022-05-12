@@ -7,6 +7,10 @@
 
 #include <khash.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// Get the minimum of a or b (beware double evaluation)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 /// Get the maximum of a or b (beware double evaluation)
@@ -14,3 +18,7 @@
 
 /// Calculate a hash value for a string
 #define tx_str_hash(str) kh_str_hash_func(str)
+
+#ifdef __cplusplus
+}
+#endif

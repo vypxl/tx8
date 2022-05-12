@@ -13,6 +13,9 @@
 
 extern int tx_asm_yylineno;
 extern tx_asm_Assembler* tx_asm_yyasm;
+
+int tx_asm_yyerror(const char* str);
+extern int yylex (void);
 %}
 
 %define api.prefix {tx_asm_yy}

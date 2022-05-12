@@ -12,6 +12,10 @@
 #include <khash.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// The size of the tx8 memory in bytes
 #define tx_MEM_SIZE 0xffffffU
 /// The default position of the stack in tx8 memory
@@ -50,6 +54,8 @@ struct tx_CPU {
     tx_uint32 rseed;
     /// If the cpu is currently halted (stopped execution)
     bool halted;
+    /// If debug information should be printed
+    bool debug;
 };
 
 /// Initialize all cpu members and copy the rom into the memory
@@ -248,3 +254,7 @@ static const tx_OpFunction tx_cpu_op_function[256] = {
     &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
 };
 // clang-format on
+
+#ifdef __cplusplus
+}
+#endif

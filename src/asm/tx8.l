@@ -20,11 +20,14 @@ tx_int32 tx_asm_hex(const char* str) {
     return strtol(str, (char**)NULL, 16);
 }
 
+int fileno(FILE *stream);
 %}
 
 %option prefix="tx_asm_yy"
 %option caseless
 %option yylineno
+%option noinput
+%option nounput
 
 OP0         nop|ret|hlt
 OP1         jmp|cal|sys|lda|sta|ldb|stb|ldc|stc|ldd|std|zer|psh|pop|inc|dec|not|fin|fde|itf|fti|sin|cos|tan|sqt|abs|fab|rnd|rsd|utf|ftu
