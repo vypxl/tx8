@@ -1,8 +1,7 @@
 # TX8
 
-**WIP** The assembler as well as the bytecode interpreter should work as of now. I will creats unit tests for both and
+**WIP** The assembler as well as the bytecode interpreter should work as of now. I will create unit tests for both and
 add a few stdlib functions next.
-
 
 ## About
 
