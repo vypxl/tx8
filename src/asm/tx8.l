@@ -42,10 +42,10 @@ ADDRESS     [0-9a-f]{1,6}
 REGISTER    a|b|c|d|o|s|p|ai|bi|ci|di|oi|si|pi|as|bs|cs|ds|os|ss|ps|ab|bb|cb|db|ob|sb|pb
 SPACE       [ \t]+
 SEMI        [;]
-EOL         \n|\r\n
+EOL         ([ \t]*)(;.*)?(\n|\r\n)
 
 %%
-{SEMI}.+        ; // ignore comments
+{SEMI}.*        ; // ignore comments
 
 {SPACE}         { return tx_asm_SPACE; };
 :{IDENTIFIER}   { tx_asm_yylval.s = strdup(yytext + 1); return tx_asm_LABEL; }
