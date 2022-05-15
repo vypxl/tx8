@@ -53,14 +53,16 @@ extern tx_logfunc_ptr __tx_log_func_err;
 /// Discards the aggregated log string
 inline void tx_log_clear_str() {
     if (__tx_log_string == NULL) return;
-    if (__tx_log_string->s != NULL) free(__tx_log_string->s);
+    char* s = ks_release(__tx_log_string);
+    if (s != NULL) free(s);
     kputs("", __tx_log_string);
 }
 
 /// Discards the aggregated error log string
 inline void tx_log_clear_str_err() {
     if (__tx_log_string_err == NULL) return;
-    if (__tx_log_string_err->s != NULL) free(__tx_log_string_err->s);
+    char* s = ks_release(__tx_log_string_err);
+    if (s != NULL) free(s);
     kputs("", __tx_log_string_err);
 }
 
