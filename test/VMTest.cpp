@@ -1,7 +1,3 @@
-//
-// Created by thomas on 15.05.22.
-//
-
 #include "VMTest.hpp"
 
 extern int tx_asm_yydebug;
