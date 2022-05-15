@@ -516,8 +516,24 @@ void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_1("dec", -
 void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("add", +) }
 void tx_cpu_op_sub(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("sub", -) }
 void tx_cpu_op_mul(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("mul", *) }
-void tx_cpu_op_div(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("div", /) }
-void tx_cpu_op_mod(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("mod", %) }
+void tx_cpu_op_div(tx_CPU* cpu, tx_Parameters* params) {
+    AR_OP_2_BEGIN("div")
+        if (b.i == 0) {
+            tx_cpu_error(cpu, "Exception: divide by zero");
+            return;
+        }
+        result.i = a.i / b.i;
+    AR_OP_END
+}
+void tx_cpu_op_mod(tx_CPU* cpu, tx_Parameters* params) {
+    AR_OP_2_BEGIN("mod")
+        if (b.i == 0) {
+            tx_cpu_error(cpu, "Exception: divide by zero");
+            return;
+        }
+        result.i = a.i % b.i;
+    AR_OP_END
+}
 
 void tx_cpu_op_and(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("and", &) }
 void tx_cpu_op_ora(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("ora", |) }
