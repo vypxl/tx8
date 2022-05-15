@@ -23,10 +23,10 @@
 ## Memory
 
 - 16 megabyte memory
-- 4 byte adresses
+- 4 byte addresses
 - reading or writing out of bounds (beyond 0xffffff) truncates the address to 24-bit: `0x12345678 => 0x345678`
 - 4mb (#0x000000 - #0x3fffff) system reserved / registers (read/writable)
-- 8mb (#0x400000 - #0xbfffff) loaded cartrige data (read/writable)
+- 8mb (#0x400000 - #0xbfffff) loaded cartridge data (read/writable)
 - 4mb (#0xc00000 - #0xffffff) work RAM (read/writable)
 
 ## Assembly Programming (TX8-Asm)
@@ -38,7 +38,7 @@ Programming TX8 is generally done in assembly. The virtual processor and assembl
 All CPU registers are 32-bit. Smaller parts can be accessed using suffixes:
 Given the register `X`, the full register is available via `X` or `Xi`,
 the lower 2 bytes via `Xs` and the lowest byte via `Xb`.
-The names are case insensitive.
+The names are case-insensitive.
 (You can memorize the suffixes by thinking of: `int`, `short` and `byte`)
 The available CPU registers are described here:
 
@@ -201,10 +201,10 @@ or floats, you have to use the respective special instructions.
 | 0x20   | inc | `w00`      | increment                                  | `inc a`            |
 | 0x21   | dec | `w00`      | decrement                                  | `dec $1`           |
 | 0x22   | add | `wv0`      | add                                        | `add a 5`          |
-| 0x23   | sub | `wv0`      | substract                                  | `sub a 8`          |
+| 0x23   | sub | `wv0`      | subtract                                   | `sub a 8`          |
 | 0x24   | mul | `wv0`      | multiply                                   | `mul a -2`         |
-| 0x25   | div | `wv0`      | divide                                     | `div a 5`          |
-| 0x26   | mod | `wv0`      | remainder                                  | `mod a 7`          |
+| 0x25   | div | `wv0`      | divide (signed)                            | `div a 5`          |
+| 0x26   | mod | `wv0`      | remainder (signed)                         | `mod a 7`          |
 | 0x27   | and | `wv0`      | bitwise and                                | `and c 0b10011010` |
 | 0x28   | ora | `wv0`      | or                                         | `or c 0x7f`        |
 | 0x29   | not | `w00`      | not                                        | `not c`            |
@@ -217,7 +217,7 @@ or floats, you have to use the respective special instructions.
 | 0x30   | fin | `w00`      | floating point increment                   | `fin a`            |
 | 0x31   | fde | `w00`      | floating point decrement                   | `fde $1`           |
 | 0x32   | fad | `wv0`      | floating point add                         | `fad a 5.0`        |
-| 0x33   | fsu | `wv0`      | floating point substract                   | `fsu a 8`          |
+| 0x33   | fsu | `wv0`      | floating point subtract                    | `fsu a 8`          |
 | 0x34   | fmu | `wv0`      | floating point multiply                    | `fmu a -2.7924`    |
 | 0x35   | fdi | `wv0`      | floating point divide                      | `fdi a 5.2`        |
 | 0x36   | fmo | `wv0`      | floating point remainder                   | `fmo a 7`          |
