@@ -79,7 +79,7 @@ void tx_asm_instruction_generate_binary(tx_asm_Instruction* inst, tx_uint8* buf)
 void tx_asm_LL_destroy(tx_asm_LL* ll) {
     if (ll == NULL) return;
 
-    tx_asm_LL* next = tx_asm_LL_next(ll->next);
+    tx_asm_LL* next = tx_asm_LL_next(ll);
     free(ll->item);
     free(ll);
     tx_asm_LL_destroy(next);

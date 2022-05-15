@@ -43,7 +43,10 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     memcpy(cpu->mem + tx_ROM_START, rom, rom_size);
 }
 
-void tx_destroy_cpu(tx_CPU* cpu) { free(cpu->mem); }
+void tx_destroy_cpu(tx_CPU* cpu) {
+    free(cpu->mem);
+    kh_destroy_tx_sysfunc(cpu->sys_func_table);
+}
 
 void tx_run_cpu(tx_CPU* cpu) {
     tx_Instruction current_instruction;
