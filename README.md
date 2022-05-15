@@ -1,7 +1,8 @@
 # TX8
 
 **WIP** The assembler as well as the bytecode interpreter should work as of now. I will create unit tests for both and
-add a few stdlib functions next.
+add a few stdlib functions next. The api and binary format is not yet finalized, expect changes all over the place.
+As I am writing the tests, I will be modifying / augmenting the spec to correctly handle all features.
 
 ## About
 

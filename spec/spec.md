@@ -2,11 +2,15 @@
 
 ## Graphics
 
+(Not yet implemented)
+
 - 8bit color (256 color)
 - 512x288 pixel display
 - 16x16px tiles (32x18 tile display)
 
 ## Sound & Music
+
+(Not yet implemented)
 
 - 8 instruments
 - 8 effects
@@ -16,8 +20,8 @@
 ## Miscellaneous
 
 - Assembly instruction set
-- Many convenience functions builtin
-- 9 button input
+- Many convenience functions builtin (not yet implemented)
+- 9 button input (not yet implemented)
 - 8 megabyte cartridge (0x800000 bytes) for code, textures, map / data, sound, music
 
 ## Memory
