@@ -67,8 +67,8 @@ void tx_asm_print_instruction(tx_asm_Instruction* inst) {
 
 void tx_asm_instruction_generate_binary(tx_asm_Instruction* inst, tx_uint8* buf) {
     buf[0] = inst->opcode;
-    buf[1] = ((inst->p1.mode) << 4) | inst->p2.mode;
-    buf[2] = (inst->p3.mode << 4);
+    if (inst->p1.mode != 0) buf[1] = ((inst->p1.mode) << 4) | inst->p2.mode;
+    if (inst->p3.mode != 0) buf[2] = (inst->p3.mode << 4);
 
     tx_uint8* _buf = buf + 1 + tx_param_mode_bytes[tx_param_count[inst->opcode]];
     _buf += tx_asm_parameter_generate_binary(&(inst->p1), _buf);
