@@ -53,15 +53,15 @@ extern tx_logfunc_ptr __tx_log_func_err;
 /// Discards the aggregated log string
 inline void tx_log_clear_str() {
     if (__tx_log_string == NULL) return;
-    free(__tx_log_string->s);
-    __tx_log_string = NULL;
+    if (__tx_log_string->s != NULL) free(__tx_log_string->s);
+    kputs("", __tx_log_string);
 }
 
 /// Discards the aggregated error log string
 inline void tx_log_clear_str_err() {
     if (__tx_log_string_err == NULL) return;
-    free(__tx_log_string_err->s);
-    __tx_log_string_err = NULL;
+    if (__tx_log_string_err->s != NULL) free(__tx_log_string_err->s);
+    kputs("", __tx_log_string_err);
 }
 
 /// Normal logs go to stdout
@@ -91,9 +91,8 @@ inline void tx_log_init_str() {
         __tx_log_string->l = 0;
         __tx_log_string->m = 0;
         __tx_log_string->s = NULL;
-    } else {
-        tx_log_clear_str();
     }
+    tx_log_clear_str();
 }
 
 /// Error logs go to a string
@@ -103,9 +102,8 @@ inline void tx_log_init_str_err() {
         __tx_log_string_err->l = 0;
         __tx_log_string_err->m = 0;
         __tx_log_string_err->s = NULL;
-    } else {
-        tx_log_clear_str_err();
     }
+    tx_log_clear_str_err();
 }
 
 /// Normal logs call the given function
