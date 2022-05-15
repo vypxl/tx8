@@ -1,6 +1,7 @@
 .vscode
 .idea
 .clangd
+.cache
 docs
 bin
 build

@@ -43,10 +43,10 @@ target_link_libraries(tx8-asm PRIVATE tx8-core)
 
 # Custom commands for yacc / lex (actually bison/flex)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c 
+    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
             ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
     COMMAND bison
-    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d 
+    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d
          ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
     BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
 )
@@ -54,7 +54,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
     COMMAND flex
-    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c 
+    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
          ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
     MAIN_DEPENDENCY ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
 )
@@ -72,7 +72,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(tx8-test test/main.cpp)
+add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/arithmetic_test.cpp test/misc_test.cpp)
 target_include_directories(tx8-test PRIVATE deps)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 
