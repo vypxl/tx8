@@ -10,6 +10,13 @@ f(print_u32) {
     tx_log("%x", val);
 }
 
+/// `print_i32(int32 n)` - logs `n` as a signed value
+f(print_i32) {
+    tx_num32 val;
+    val.u = tx_cpu_top32(cpu);
+    tx_log("%d", val.i);
+}
+
 /// `print(char* s)` - logs the zero terminated string at `s`
 f(print) {
     tx_uint32 addr = tx_cpu_top32(cpu);
@@ -29,6 +36,7 @@ f(println) {
 
 void tx_cpu_use_stdlib(tx_CPU* cpu) {
     r(print_u32);
+    r(print_i32);
     r(print);
     r(println);
 }
