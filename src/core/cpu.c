@@ -544,8 +544,18 @@ void tx_cpu_op_nnd(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_END
 }
 void tx_cpu_op_xor(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("xor", ^) }
-void tx_cpu_op_shr(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("shr", >>) }
-void tx_cpu_op_shl(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("shl", <<) }
+void tx_cpu_op_shr(tx_CPU* cpu, tx_Parameters* params) {
+    AR_OP_2_BEGIN("shr")
+        if (b.u >= 32) result.u = 0;
+        else result.u = a.u >> b.u;
+    AR_OP_END
+}
+void tx_cpu_op_shl(tx_CPU* cpu, tx_Parameters* params) {
+    AR_OP_2_BEGIN("shl")
+        if (b.u >= 32) result.u = 0;
+        else result.u = a.u << b.u;
+    AR_OP_END
+}
 void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
         const tx_uint32 mask = 31;
