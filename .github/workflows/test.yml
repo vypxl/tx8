@@ -25,11 +25,10 @@ jobs:
         with:
           python-version: 3.8
       - name: Upload code coverage to coveralls
-        if: contains(matrix.os, 'ubuntu')
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-        run: |
+        run:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
-          coveralls -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps" 
+          coveralls -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps"
