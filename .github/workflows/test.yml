@@ -28,7 +28,9 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
+          echo -e "#!/bin/bash\nexec llvm-cov gcov \"\$@\"" > /tmp/gcov.sh
+          chmod +x /tmp/gcov.sh
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
-          coveralls -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps"
+          coveralls --gcov /tmp/gcov.sh -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps"
