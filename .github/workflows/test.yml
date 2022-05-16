@@ -33,4 +33,5 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
+          cd build
           coveralls --gcov /tmp/gcov.sh -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps"
