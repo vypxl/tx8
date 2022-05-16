@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install tools
-        run: apt-get update && apt-get install -y ninja-build clang libclang-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build clang libclang-dev
       - uses: actions/checkout@v2
       - name: configure
         run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja ."
