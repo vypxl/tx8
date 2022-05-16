@@ -27,7 +27,7 @@ jobs:
       - name: Upload code coverage to coveralls
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-        run:
+        run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
