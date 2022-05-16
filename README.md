@@ -1,3 +1,7 @@
+[![Build Status](https://github.com/vypxl/tx8/actions/workflows/test.yml/badge.svg)](https://github.com/vypxl/tx8/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/vypxl/tx8/badge.png?branch=master)](https://coveralls.io/r/vypxl/tx8?branch=main)
+[![License](https://img.shields.io/badge/license-%20MIT-blue.svg)](https://github.com/vypxl/tx8/blob/main/LICENSE)
+
 # TX8
 
 **WIP** The assembler as well as the bytecode interpreter should work as of now. I will create unit tests for both and
