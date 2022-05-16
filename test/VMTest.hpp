@@ -12,6 +12,9 @@ class VMTest : public ::testing::Test {
     tx_asm_Assembler as;
     tx_CPU           cpu;
 
+    VMTest();
+    ~VMTest();
+
     void SetUp() override;
 
     void TearDown() override;
