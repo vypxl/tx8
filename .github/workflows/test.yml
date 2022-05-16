@@ -1,4 +1,4 @@
-name: Run Google Test
+name: Tests
 
 on:
   push:
@@ -13,7 +13,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja .
-        env: CC=clang CXX=clang++
+        env:
+          CC: clang
+          CXX: clang++
       - name: build
         run: cmake --build build --target all
       - name: Run Test
