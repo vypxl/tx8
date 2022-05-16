@@ -34,7 +34,7 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
-          echo -e "#!/bin/bash\nexec llvm-cov gcov \"\$@\"" > /tmp/gcov.sh
+          echo -e "#!/bin/bash\nexec llvm-cov-13 gcov \"\$@\"" > /tmp/gcov.sh
           chmod +x /tmp/gcov.sh
           python -m venv venv
           source venv/bin/activate
