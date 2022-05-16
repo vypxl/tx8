@@ -14,7 +14,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build clang libclang-dev
       - uses: actions/checkout@v2
       - name: configure
-        run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -CMAKE_C_FLAGS=--coverage =CMAKE_CXX_FLAGS=--coverage ."
+        run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_FLAGS=--coverage -DCMAKE_CXX_FLAGS=--coverage ."
       - name: build
         run: cmake --build build --target all
       - name: Run Test
