@@ -39,4 +39,4 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
-          coveralls --gcov /tmp/gcov.sh -r "$pwd" -i src -i include --exclude build/_deps -E '.*deps.*' -E '.*CMakeCX?X?CompilerId.*' --gcov-options="-lp -s="$pwd" -r"
+          coveralls --gcov /tmp/gcov.sh -r "$(pwd)" -i src -i include --exclude build/_deps -E '.*deps.*' -E '.*CMakeCX?X?CompilerId.*' --gcov-options="-lp -s=\"$(pwd)\" -r"
