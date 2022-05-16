@@ -14,7 +14,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build clang libclang-dev llvm
       - uses: actions/checkout@v2
       - name: configure
-        run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_FLAGS=--coverage -DCMAKE_CXX_FLAGS=--coverage ."
+        run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping' ."
       - name: build
         run: cmake --build build --target all
       - name: Run Test
@@ -33,5 +33,4 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cpp-coveralls
-          cd build
-          coveralls --gcov /tmp/gcov.sh -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*" -E ".*test/.*.c.*" --exclude "venv" --exclude "build/_deps"
+          coveralls --gcov /tmp/gcov.sh -r "$pwd" -i src -i include --exclude build/_deps -E '.*deps.*' -E '.*CMakeCX?X?CompilerId.*' --gcov-options="-lp -s="$pwd" -r"
