@@ -626,3 +626,25 @@ hlt
 )EOF";
     run_and_compare(s, "0567812343e77ffff80000000deadbeef");
 }
+
+TEST_F(VMTest, fin) {
+    std::string s = R"EOF(
+lda 0.0
+fin a
+psh a
+sys &test_float ; 1.0
+
+lda -1.0
+fin a
+psh a
+sys &test_float ; 0.0
+
+lda 1234.567
+fin a
+psh a
+sys &test_float ; 1235.567
+
+hlt
+)EOF";
+    run_and_compare_f(s, {1.0, 0.0, 1235.567});
+}
