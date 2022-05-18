@@ -133,9 +133,14 @@ void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
     tx_cpu_op_function[instruction.opcode](cpu, &(instruction.parameters));
 }
 
-void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func) {
+void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void* data) {
     tx_int32  ret;
     tx_uint32 pos = kh_put(tx_sysfunc, cpu->sys_func_table, tx_str_hash(name), &ret);
+
+    tx_sysfunc f = {
+        .func = func,
+        .data = data
+    };
 
     if (ret == 0)
         tx_cpu_error(cpu,
@@ -148,15 +153,17 @@ void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func) {
                      "the sysfunction hashtable.",
                      name);
     else
-        kh_value(cpu->sys_func_table, pos) = func;
+        kh_value(cpu->sys_func_table, pos) = f;
 }
 
 void tx_cpu_exec_sys_func(tx_CPU* cpu, tx_uint32 hashed_name) {
     tx_uint32 key = kh_get(tx_sysfunc, cpu->sys_func_table, hashed_name);
     if (key == kh_end(cpu->sys_func_table))
         tx_cpu_error(cpu, "Sys function with id %x not found", hashed_name);
-    else
-        (kh_value(cpu->sys_func_table, key)(cpu));
+    else {
+        tx_sysfunc f = kh_value(cpu->sys_func_table, key);
+        f.func(cpu, f.data);
+    }
 }
 
 // Returns the numerical value of a parameter

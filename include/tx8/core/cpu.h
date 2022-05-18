@@ -33,9 +33,16 @@ extern "C" {
 
 typedef struct tx_CPU tx_CPU;
 /// A function pointer type alias for tx8 system functions callable by `sys` instructions
-typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu);
+typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu, void* data);
+
+/// A tx8 cpu system function
+typedef struct tx_sysfunc {
+    tx_sysfunc_ptr func;
+    void* data;
+} tx_sysfunc;
+
 /// \private
-KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc_ptr, 1, kh_int_hash_func, kh_int_hash_equal);
+KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc, 1, kh_int_hash_func, kh_int_hash_equal);
 
 /// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
 struct tx_CPU {
@@ -75,7 +82,7 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
 void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
 
 /// Register the given function in the system function table
-void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func);
+void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void* data);
 /// Execute the system function specified by its id (the hash of the string name)
 void tx_cpu_exec_sysfunc(tx_CPU* cpu, tx_uint32 hashed_name);
 
@@ -223,35 +230,35 @@ static const tx_OpFunction tx_cpu_op_function[256] = {
     // 0x0
     &tx_cpu_op_nop, &tx_cpu_op_jmp, &tx_cpu_op_jeq, &tx_cpu_op_jne, &tx_cpu_op_jgt, &tx_cpu_op_jge, &tx_cpu_op_jlt, &tx_cpu_op_jle, &tx_cpu_op_cal, &tx_cpu_op_ret, &tx_cpu_op_sys, &tx_cpu_op_hlt, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x1
-    &tx_cpu_op_mov, &tx_cpu_op_mxv, &tx_cpu_op_lda, &tx_cpu_op_sta, &tx_cpu_op_ldb, &tx_cpu_op_stb, &tx_cpu_op_ldc, &tx_cpu_op_stc, &tx_cpu_op_ldd, &tx_cpu_op_std, &tx_cpu_op_zer, &tx_cpu_op_psh, &tx_cpu_op_pop, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_op_mov, &tx_cpu_op_mxv, &tx_cpu_op_lda, &tx_cpu_op_sta, &tx_cpu_op_ldb, &tx_cpu_op_stb, &tx_cpu_op_ldc, &tx_cpu_op_stc, &tx_cpu_op_ldd, &tx_cpu_op_std, &tx_cpu_op_zer, &tx_cpu_op_psh, &tx_cpu_op_pop, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x2
-    &tx_cpu_op_inc, &tx_cpu_op_dec, &tx_cpu_op_add, &tx_cpu_op_sub, &tx_cpu_op_mul, &tx_cpu_op_div, &tx_cpu_op_mod, &tx_cpu_op_and, &tx_cpu_op_ora, &tx_cpu_op_not, &tx_cpu_op_nnd, &tx_cpu_op_xor, &tx_cpu_op_shr, &tx_cpu_op_shl, &tx_cpu_op_ror, &tx_cpu_op_rol, 
+    &tx_cpu_op_inc, &tx_cpu_op_dec, &tx_cpu_op_add, &tx_cpu_op_sub, &tx_cpu_op_mul, &tx_cpu_op_div, &tx_cpu_op_mod, &tx_cpu_op_and, &tx_cpu_op_ora, &tx_cpu_op_not, &tx_cpu_op_nnd, &tx_cpu_op_xor, &tx_cpu_op_shr, &tx_cpu_op_shl, &tx_cpu_op_ror, &tx_cpu_op_rol,
     // 0x3
-    &tx_cpu_op_fin, &tx_cpu_op_fde, &tx_cpu_op_fad, &tx_cpu_op_fsu, &tx_cpu_op_fmu, &tx_cpu_op_fdi, &tx_cpu_op_fmo, &tx_cpu_op_itf, &tx_cpu_op_fti, &tx_cpu_op_max, &tx_cpu_op_min, &tx_cpu_op_fmx, &tx_cpu_op_fmn, &tx_cpu_op_sin, &tx_cpu_op_cos, &tx_cpu_op_tan, 
+    &tx_cpu_op_fin, &tx_cpu_op_fde, &tx_cpu_op_fad, &tx_cpu_op_fsu, &tx_cpu_op_fmu, &tx_cpu_op_fdi, &tx_cpu_op_fmo, &tx_cpu_op_itf, &tx_cpu_op_fti, &tx_cpu_op_max, &tx_cpu_op_min, &tx_cpu_op_fmx, &tx_cpu_op_fmn, &tx_cpu_op_sin, &tx_cpu_op_cos, &tx_cpu_op_tan,
     // 0x4
     &tx_cpu_op_atn, &tx_cpu_op_sqt, &tx_cpu_op_abs, &tx_cpu_op_fab, &tx_cpu_op_rnd, &tx_cpu_op_rsd, &tx_cpu_op_umu, &tx_cpu_op_udi, &tx_cpu_op_umx, &tx_cpu_op_umn, &tx_cpu_op_utf, &tx_cpu_op_ftu, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x5
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x6
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x7
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x8
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0x9
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xa
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xb
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xc
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xd
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xe
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
     // 0xf
-    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, 
+    &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op, &tx_cpu_inv_op,
 };
 // clang-format on
 

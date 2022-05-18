@@ -2,7 +2,9 @@
 
 #include <tx8/core/cpu.h>
 
-#define f(name) void tx_stdlib_##name(tx_CPU* cpu)
+#define f(name) void tx_stdlib_##name(tx_CPU* cpu, void* data)
+
+#pragma clang diagnostic ignored "-Wunused-parameter"
 
 /// `print_u32(uint32 n)` - logs `n`
 f(print_u32) {
@@ -15,6 +17,12 @@ f(print_i32) {
     tx_num32 val;
     val.u = tx_cpu_top32(cpu);
     tx_log("%d", val.i);
+}
+
+f(print_f32) {
+    tx_num32 val;
+    val.u = tx_cpu_top32(cpu);
+    tx_log("%f", val.f);
 }
 
 /// `print(char* s)` - logs the zero terminated string at `s`
@@ -30,13 +38,16 @@ f(println) {
     tx_log("%s\n", str);
 }
 
+#pragma clang diagnostic warning "-Wunused-parameter"
+
 #undef f
 
-#define r(name) tx_cpu_register_sysfunc(cpu, #name, &tx_stdlib_##name)
+#define r(name) tx_cpu_register_sysfunc(cpu, #name, &tx_stdlib_##name, NULL)
 
 void tx_cpu_use_stdlib(tx_CPU* cpu) {
     r(print_u32);
     r(print_i32);
+    r(print_f32);
     r(print);
     r(println);
 }
