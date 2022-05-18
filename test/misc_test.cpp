@@ -23,5 +23,5 @@ sys &println
 
 hlt
 )EOF";
-    run_and_compare(s, "Hello world!\n");
+    run_and_compare_str(s, "Hello world!\n");
 }
