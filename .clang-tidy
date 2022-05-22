@@ -1,5 +1,5 @@
 ---
-Checks: 'clang-diagnostic-*,clang-analyzer-*,bugprone-*,hicpp-*,misc-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements,-misc-unused-parameters'
+Checks: 'clang-diagnostic-*,clang-analyzer-*,bugprone-*,hicpp-*,misc-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements,-misc-unused-parameters,-hicpp-uppercase-literal-suffix,-readability-uppercase-literal-suffix,-readability-identifier-length'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
@@ -34,4 +34,3 @@ CheckOptions:
   - key:             modernize-use-nullptr.NullMacros
     value:           'NULL'
 ...
-
