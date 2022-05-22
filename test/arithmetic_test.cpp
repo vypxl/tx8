@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(VMTest, inc) {
@@ -243,7 +245,10 @@ sys &test_int ; error
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0, 0, 3, 1337, -7, -3, 7}, "Exception: divide by zero\nCaused by instruction:\n#4000a0: 25 (div) 0 0 0 (modes: 6 3 0)\n");
+    run_and_compare_num(s,
+                        {0, 0, 3, 1337, -7, -3, 7},
+                        "Exception: divide by zero\nCaused by instruction:\n#4000a0: 25 (div) 0 0 "
+                        "0 (modes: 6 3 0)\n");
 }
 
 TEST_F(VMTest, mod_signed) {
@@ -290,7 +295,10 @@ sys &test_int ; error
 
 hlt
 )EOF";
-    run_and_compare_num(s, {2, 0, 2, 0, -1, -1, 1}, "Exception: divide by zero\nCaused by instruction:\n#4000a0: 26 (mod) 0 0 0 (modes: 6 3 0)\n");
+    run_and_compare_num(s,
+                        {2, 0, 2, 0, -1, -1, 1},
+                        "Exception: divide by zero\nCaused by instruction:\n#4000a0: 26 (mod) 0 0 "
+                        "0 (modes: 6 3 0)\n");
 }
 
 TEST_F(VMTest, and) {
@@ -374,10 +382,11 @@ sys &test_int ; -107
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
+    run_and_compare_num(
+        s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
 }
 
-TEST_F(VMTest, not) {
+TEST_F(VMTest, not ) {
     std::string s = R"EOF(
 lda 0xffffffff
 not a
@@ -648,3 +657,252 @@ hlt
 )EOF";
     run_and_compare_num(s, {1.0f, 0.0f, 1235.567f});
 }
+
+TEST_F(VMTest, fde) {
+    std::string s = R"EOF(
+lda 0.0
+fde a
+psh a
+sys &test_float ; -1.0
+
+lda 1.0
+fde a
+psh a
+sys &test_float ; 0.0
+
+lda 1234.567
+fde a
+psh a
+sys &test_float ; 1233.567
+hlt
+)EOF";
+    run_and_compare_num(s, {-1.0f, 0.0f, 1233.567f});
+}
+
+TEST_F(VMTest, fad) {
+    std::string s = R"EOF(
+lda 15.62
+fad a 0.0
+psh a
+sys &test_float ; 15.62
+
+lda 0.0
+fad a 0.0
+psh a
+sys &test_float ; 0.0
+
+lda -12.34
+fad a -12.34
+psh a
+sys &test_float ; -24.68
+
+lda 55.55
+fad a -11.11
+psh a
+sys &test_float ; 44.44
+
+lda -11.11
+fad a 55.55
+psh a
+sys &test_float ; 44.44
+
+hlt
+)EOF";
+    run_and_compare_num(s, {15.62f, 0.0f, -24.68f, 44.44f, 44.44f});
+}
+
+TEST_F(VMTest, fsu) {
+    std::string s = R"EOF(
+lda 15.62
+fsu a 0.0
+psh a
+sys &test_float ; 15.62
+
+lda 0.0
+fsu a 0.0
+psh a
+sys &test_float ; 0.0
+
+lda -12.34
+fsu a -12.34
+psh a
+sys &test_float ; 0.0
+
+lda 55.55
+fsu a -11.11
+psh a
+sys &test_float ; 66.66
+
+lda -11.11
+fsu a 55.55
+psh a
+sys &test_float ; -66.66
+
+hlt
+)EOF";
+    run_and_compare_num(s, {{15.62f, 0.0f, 0.0f, 66.66f, -66.66f}});
+}
+
+TEST_F(VMTest, fmu) {
+    std::string s = R"EOF(
+lda 1.0
+fmu a 5.5
+psh a
+sys &test_float ; 5.5
+
+lda 0.0
+fmu a 1.5
+psh a
+sys &test_float ; 0.0
+
+lda 2.5
+fmu a -1.5
+psh a
+sys &test_float ; -3.75
+
+lda -6.0
+fmu a 2.0
+psh a
+sys &test_float ; -12.0
+
+lda -2.5
+fmu a -6.0
+psh a
+sys &test_float ; 15.0
+
+lda -1.0
+fmu a -1.0
+psh a
+sys &test_float ; 1.0
+
+hlt
+)EOF";
+    run_and_compare_num(s, {{5.5f, 0.0f, -3.75f, -12.0f, 15.0f, 1.0f}});
+}
+
+TEST_F(VMTest, fdi) {
+    std::string s = R"EOF(
+lda 1.0
+fdi a 5.0
+psh a
+sys &test_float ; 0.2
+
+lda 5.0
+fdi a -0.2
+psh a
+sys &test_float ; -25.0
+
+lda -1.0
+fdi a 10.0
+psh a
+sys &test_float ; -0.1
+
+lda -5.0
+fdi a -10.0
+psh a
+sys &test_float ; 0.5
+
+lda 0.0
+fdi a 1.0
+psh a
+sys &test_float ; 0.0
+
+lda 13.37
+fdi a 0.0
+psh a
+sys &test_float ; inf
+
+lda 0.0
+fdi a 0.0
+psh a
+sys &test_float ; nan
+
+hlt
+)EOF";
+    run_and_compare_num(s,
+                        {0.2f,
+                         -25.0f,
+                         -0.1f,
+                         0.5f,
+                         0.0f,
+                         std::numeric_limits<float>::infinity(),
+                         std::numeric_limits<float>::quiet_NaN()});
+}
+
+TEST_F(VMTest, fmo) {
+    std::string s = R"EOF(
+lda 1.0
+fmo a 5.0
+psh a
+sys &test_float ; 1.0
+
+lda 13.37
+fmo a 10.0
+psh a
+sys &test_float ; 3.37
+
+lda 5.4
+fmo a -2.2
+psh a
+sys &test_float ; 1.0
+
+lda -6.0
+fmo a 1.6
+psh a
+sys &test_float ; -1.2
+
+lda 1.0
+fmo a 0.0
+psh a
+sys &test_float ; nan
+
+hlt
+)EOF";
+    run_and_compare_num(s, {1.0f, 3.37f, 1.0f, -1.2f, std::numeric_limits<float>::quiet_NaN()});
+}
+
+TEST_F(VMTest, itf) {
+    std::string s = R"EOF(
+lda 0
+itf a
+psh a
+sys &test_float ; 0.0
+
+lda 1337
+itf a
+psh a
+sys &test_float ; 1337.0
+
+lda -5
+itf a
+psh a
+sys &test_float ; -5.0
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0.0f, 1337.0f, -5.0f});
+}
+
+TEST_F(VMTest, fti) {
+    std::string s = R"EOF(
+lda 0.0
+fti a
+psh a
+sys &test_int ; 0
+
+lda 133.7
+fti a
+psh a
+sys &test_int ; 133
+
+lda -4.2
+fti a
+psh a
+sys &test_int ; -4
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0, 133, -4});
+}
+
+#pragma clang diagnostic pop
