@@ -1,5 +1,7 @@
 #include "VMTest.hpp"
 
+#include <cmath>
+
 extern int tx_asm_yydebug;
 
 VMTest::VMTest() {
@@ -70,7 +72,10 @@ void VMTest::run_and_compare_num(std::string             code,
         } else if (nums[i].type == tx_NumType::TX_NUM_FLOAT32) {
             tx_float32 result = nums[i].num.f;
             tx_float32 expected = std::get<tx_float32>(expecteds[i]);
-            EXPECT_FLOAT_EQ(result, expected) << "At index " << i;
+            if (std::isnan(result) && std::isnan(expected))
+                SUCCEED();
+            else
+                EXPECT_FLOAT_EQ(result, expected) << "At index " << i;
         }
 }
 

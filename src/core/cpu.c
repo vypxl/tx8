@@ -584,7 +584,7 @@ void tx_cpu_op_fad(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fad", 
 void tx_cpu_op_fsu(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fsu", -) }
 void tx_cpu_op_fmu(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fmu", *) }
 void tx_cpu_op_fdi(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fdi", /) }
-void tx_cpu_op_fmo(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmo", fmod) }
+void tx_cpu_op_fmo(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmo", fmodf) }
 
 void tx_cpu_op_itf(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_1_BEGIN("itf")
