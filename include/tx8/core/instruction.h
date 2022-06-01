@@ -18,115 +18,140 @@ extern "C" {
 /// List of opcodes understood by a tx8 cpu
 /// Contains constants for every opcode
 typedef enum tx_Opcode {
-    tx_op_nop = 0x00,
-    tx_op_jmp = 0x01,
-    tx_op_jeq = 0x02,
-    tx_op_jne = 0x03,
-    tx_op_jgt = 0x04,
-    tx_op_jge = 0x05,
-    tx_op_jlt = 0x06,
-    tx_op_jle = 0x07,
-    tx_op_cal = 0x08,
-    tx_op_ret = 0x09,
-    tx_op_sys = 0x0a,
-    tx_op_hlt = 0x0b,
+    tx_op_hlt  = 0x00,
+    tx_op_nop  = 0x01,
+    tx_op_jmp  = 0x02,
+    tx_op_jeq  = 0x03,
+    tx_op_jne  = 0x04,
+    tx_op_jgt  = 0x05,
+    tx_op_jge  = 0x06,
+    tx_op_jlt  = 0x07,
+    tx_op_jle  = 0x08,
+    tx_op_cmp  = 0x09,
+    tx_op_fcmp = 0x0a,
+    tx_op_ucmp = 0x0b,
+    tx_op_call = 0x0c,
+    tx_op_ret  = 0x0d,
+    tx_op_sys  = 0x0e,
 
-    tx_op_mov = 0x10,
-    tx_op_mxv = 0x11,
-    tx_op_lda = 0x12,
-    tx_op_sta = 0x13,
-    tx_op_ldb = 0x14,
-    tx_op_stb = 0x15,
-    tx_op_ldc = 0x16,
-    tx_op_stc = 0x17,
-    tx_op_ldd = 0x18,
-    tx_op_std = 0x19,
-    tx_op_zer = 0x1a,
-    tx_op_psh = 0x1b,
-    tx_op_pop = 0x1c,
+    tx_op_ld   = 0x10,
+    tx_op_lw   = 0x11,
+    tx_op_lda  = 0x12,
+    tx_op_sta  = 0x13,
+    tx_op_ldb  = 0x14,
+    tx_op_stb  = 0x15,
+    tx_op_ldc  = 0x16,
+    tx_op_stc  = 0x17,
+    tx_op_ldd  = 0x18,
+    tx_op_std  = 0x19,
+    tx_op_zero = 0x1a,
+    tx_op_push = 0x1b,
+    tx_op_pop  = 0x1c,
 
-    tx_op_inc     = 0x20,
-    tx_op_dec     = 0x21,
-    tx_op_add     = 0x22,
-    tx_op_sub     = 0x23,
-    tx_op_mul     = 0x24,
-    tx_op_div     = 0x25,
-    tx_op_mod     = 0x26,
-    tx_op_and     = 0x27,
-    tx_op_ora     = 0x28,
-    tx_op_not     = 0x29,
-    tx_op_nnd     = 0x2a,
-    tx_op_xor     = 0x2b,
-    tx_op_shr     = 0x2c,
-    tx_op_shl     = 0x2d,
-    tx_op_ror     = 0x2e,
-    tx_op_rol     = 0x2f,
-    tx_op_fin     = 0x30,
-    tx_op_fde     = 0x31,
-    tx_op_fad     = 0x32,
-    tx_op_fsu     = 0x33,
-    tx_op_fmu     = 0x34,
-    tx_op_fdi     = 0x35,
-    tx_op_fmo     = 0x36,
-    tx_op_itf     = 0x37,
-    tx_op_fti     = 0x38,
-    tx_op_max     = 0x39,
-    tx_op_min     = 0x3a,
-    tx_op_fmx     = 0x3b,
-    tx_op_fmn     = 0x3c,
-    tx_op_sin     = 0x3d,
-    tx_op_cos     = 0x3e,
-    tx_op_tan     = 0x3f,
-    tx_op_atn     = 0x40,
-    tx_op_sqt     = 0x41,
-    tx_op_abs     = 0x42,
-    tx_op_fab     = 0x43,
-    tx_op_rnd     = 0x44,
-    tx_op_rsd     = 0x45,
-    tx_op_umu     = 0x46,
-    tx_op_udi     = 0x47,
-    tx_op_umx     = 0x48,
-    tx_op_umn     = 0x49,
-    tx_op_utf     = 0x4a,
-    tx_op_ftu     = 0x4b,
+    tx_op_inc  = 0x20,
+    tx_op_dec  = 0x21,
+    tx_op_add  = 0x22,
+    tx_op_sub  = 0x23,
+    tx_op_mul  = 0x24,
+    tx_op_div  = 0x25,
+    tx_op_mod  = 0x26,
+    tx_op_max  = 0x27,
+    tx_op_min  = 0x28,
+    tx_op_abs  = 0x29,
+    tx_op_sign = 0x2a,
+
+    tx_op_and  = 0x30,
+    tx_op_or   = 0x31,
+    tx_op_not  = 0x32,
+    tx_op_nand = 0x33,
+    tx_op_xor  = 0x34,
+    tx_op_slr  = 0x35,
+    tx_op_sar  = 0x36,
+    tx_op_sll  = 0x37,
+    tx_op_ror  = 0x38,
+    tx_op_rol  = 0x39,
+    tx_op_set  = 0x3a,
+    tx_op_clr  = 0x3b,
+    tx_op_tgl  = 0x3c,
+    tx_op_test = 0x3d,
+
+    tx_op_finc  = 0x40,
+    tx_op_fdec  = 0x41,
+    tx_op_fadd  = 0x42,
+    tx_op_fsub  = 0x43,
+    tx_op_fmul  = 0x44,
+    tx_op_fdiv  = 0x45,
+    tx_op_fmod  = 0x46,
+    tx_op_fmax  = 0x47,
+    tx_op_fmin  = 0x48,
+    tx_op_fabs  = 0x49,
+    tx_op_fsign = 0x4a,
+    tx_op_sin   = 0x4b,
+    tx_op_cos   = 0x4c,
+    tx_op_tan   = 0x4d,
+    tx_op_asin  = 0x4e,
+    tx_op_acos  = 0x4f,
+    tx_op_atan  = 0x50,
+    tx_op_atan2 = 0x51,
+    tx_op_sqrt  = 0x52,
+    tx_op_pow   = 0x53,
+    tx_op_exp   = 0x54,
+    tx_op_log   = 0x55,
+    tx_op_log2  = 0x56,
+    tx_op_log10 = 0x57,
+
+    tx_op_umul = 0x60,
+    tx_op_udiv = 0x61,
+    tx_op_umod = 0x62,
+    tx_op_umax = 0x63,
+    tx_op_umin = 0x64,
+
+    tx_op_rand  = 0x70,
+    tx_op_rseed = 0x71,
+    tx_op_itf   = 0x72,
+    tx_op_fti   = 0x73,
+    tx_op_utf   = 0x74,
+    tx_op_ftu   = 0x75,
+    tx_op_ei    = 0x76,
+    tx_op_di    = 0x77,
     tx_op_invalid = 0xff
 } tx_Opcode;
 
 // clang-format off
 /// Mapping of tx8 opcodes to their respective human readable names
-static const char tx_op_names[256][4] = {
+static const char tx_op_names[256][6] = {
     // 0x0
-    "nop", "jmp", "jeq", "jne", "jgt", "jge", "jlt", "jle", "cal", "ret", "sys", "hlt", "INV", "INV", "INV", "INV",
+    "hlt",   "nop",   "jmp",   "jeq",   "jne",   "jgt",   "jge",   "jlt",   "jle",   "cmp",   "fcmp",  "ucmp",  "call",  "ret",   "sys",   "INV",
     // 0x1
-    "mov", "mxv", "lda", "sta", "ldb", "stb", "ldc", "stc", "ldd", "std", "zer", "psh", "pop", "INV", "INV", "INV",
+    "ld",    "lw",    "lda",   "sta",   "ldb",   "stb",   "ldc",   "stc",   "ldd",   "std",   "zero",  "push",  "pop",   "INV",   "INV",   "INV",
     // 0x2
-    "inc", "dec", "add", "sub", "mul", "div", "mod", "and", "ora", "not", "nnd", "xor", "shr", "shl", "ror", "rol",
+    "inc",   "dec",   "add",   "sub",   "mul",   "div",   "mod",   "max",   "min",   "abs",   "sign",  "INV",   "INV",   "INV",   "INV",   "INV",
     // 0x3
-    "fin", "fde", "fad", "fsu", "fmu", "fdi", "fmo", "itf", "fti", "max", "min", "fmx", "fmn", "sin", "cos", "tan",
+    "and",   "or",    "not",   "nand",  "xor",   "slr",   "sar",   "sll",   "ror",   "rol",   "set",   "clr",   "tgl", "test",    "INV",   "INV",
     // 0x4
-    "atn", "sqt", "abs", "fab", "rnd", "rsd", "umu", "udi", "umx", "umn", "utf", "ftu", "INV", "INV", "INV", "INV",
+    "finc",  "fdec",  "fadd",  "fsub",  "fmul",  "fdiv",  "fmod",  "fmax",  "fmin",  "fabs",  "fsign", "sin",   "cos",   "tan",   "asin",  "acos",
     // 0x5
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "atan",  "atan2", "sqrt",  "pow",   "exp",   "log",   "log2",  "log10", "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0x6
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "umul",  "udiv",  "umod",  "umax",  "umin",  "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0x7
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0x8
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0x9
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xa
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xb
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xc
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xd
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xe
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
     // 0xf
-    "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV", "INV",
+    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV"
 };
 // clang-format on
 
@@ -143,39 +168,42 @@ typedef enum tx_Register {
     tx_reg_b            = 0x1,
     tx_reg_c            = 0x2,
     tx_reg_d            = 0x3,
-    tx_reg_o            = 0x4,
-    tx_reg_p            = 0x5,
-    tx_reg_s            = 0x6,
+    tx_reg_r            = 0x4,
+    tx_reg_o            = 0x5,
+    tx_reg_p            = 0x6,
+    tx_reg_s            = 0x7,
     tx_reg_as           = 0x20,
     tx_reg_bs           = 0x21,
     tx_reg_cs           = 0x22,
     tx_reg_ds           = 0x23,
-    tx_reg_os           = 0x24,
-    tx_reg_ps           = 0x25,
-    tx_reg_ss           = 0x26,
+    tx_reg_rs           = 0x24,
+    tx_reg_os           = 0x25,
+    tx_reg_ps           = 0x26,
+    tx_reg_ss           = 0x27,
     tx_reg_ab           = 0x10,
     tx_reg_bb           = 0x11,
     tx_reg_cb           = 0x12,
     tx_reg_db           = 0x13,
-    tx_reg_ob           = 0x14,
-    tx_reg_pb           = 0x15,
-    tx_reg_sb           = 0x16,
+    tx_reg_rb           = 0x14,
+    tx_reg_ob           = 0x15,
+    tx_reg_pb           = 0x16,
+    tx_reg_sb           = 0x17,
     tx_register_invalid = 0xff
 } tx_Register;
 
 // Constants for getting different attributs of a register id
-#define tx_REG_SIZE_4    0x00U
-#define tx_REG_SIZE_1    0x10U
-#define tx_REG_SIZE_2    0x20U
-#define tx_REG_SIZE_MASK 0xf0U
-#define tx_REG_ID_MASK   0x0fU
+#define tx_REG_SIZE_4    0x00u
+#define tx_REG_SIZE_1    0x10u
+#define tx_REG_SIZE_2    0x20u
+#define tx_REG_SIZE_MASK 0xf0u
+#define tx_REG_ID_MASK   0x0fu
 
 // clang-format off
 /// Mapping of tx8 cpu registers to their respective human readable names
 static const char tx_reg_names[256][3] = {
-    "a",  "b",  "c",  "d",  "o",  "p",  "s",  "", "", "", "", "", "", "", "", "",
-    "as", "bs", "cs", "ds", "os", "ps", "ss", "", "", "", "", "", "", "", "", "",
-    "ab", "bb", "cb", "db", "ob", "pb", "sb", "", "", "", "", "", "", "", "", "",
+    "a",  "b",  "c",  "d",  "r",  "o",  "p",  "s",  "", "", "", "", "", "", "", "",
+    "as", "bs", "cs", "ds", "rs", "os", "ps", "ss", "", "", "", "", "", "", "", "",
+    "ab", "bb", "cb", "db", "rb", "ob", "pb", "sb", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
     "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
@@ -196,18 +224,29 @@ static const char tx_reg_names[256][3] = {
 static inline tx_uint8 tx_reg_id_from_name(const char* name) {
     tx_uint8 id = 0;
     switch (name[0]) {
+        case 'A':
         case 'a': id = tx_reg_a; break;
+        case 'B':
         case 'b': id = tx_reg_b; break;
+        case 'C':
         case 'c': id = tx_reg_c; break;
+        case 'D':
         case 'd': id = tx_reg_d; break;
+        case 'R':
+        case 'r': id = tx_reg_r; break;
+        case 'O':
         case 'o': id = tx_reg_o; break;
+        case 'S':
         case 's': id = tx_reg_s; break;
+        case 'P':
         case 'p': id = tx_reg_p; break;
         default: return tx_register_invalid; break;
     }
 
     switch (name[1]) {
+        case 'S':
         case 's': id |= tx_REG_SIZE_2; break;
+        case 'B':
         case 'b': id |= tx_REG_SIZE_1; break;
         default: break;
     }
@@ -275,27 +314,27 @@ static const tx_uint8  tx_param_sizes[0x8] = {0, 1, 2, 4, 3, 3, 1, 1};
 static const tx_uint32 tx_param_masks[0x8] = {
     0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};
 /// Mask to get the mode of parameter 2 in the first parameter mode byte
-#define tx_PARAM_MODE_2_MASK 0xfU
+#define tx_PARAM_MODE_2_MASK 0xfu
 
 // clang-format off
 /// Mapping of opcodes to their respective parameter counts
 static const tx_uint8 tx_param_count[256] = {
     // 0x0
-    0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 0, 1, 0,
     // 0x1
     2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
     // 0x2
-    1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2,
+    1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0,
     // 0x3
-    1, 2, 2, 2, 2, 2, 2, 1, 1, 3, 3, 3, 3, 1, 1, 1,
+    2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
     // 0x4
-    3, 1, 1, 1, 1, 1, 2, 2, 3, 3, 1, 1, 0, 0, 0, 0,
+    1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
     // 0x5
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 2, 1, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     // 0x6
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     // 0x7
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     // 0x8
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     // 0x9
@@ -316,12 +355,12 @@ static const tx_uint8 tx_param_count[256] = {
 // clang-format on
 
 /// Mapping of parameter counts to number of parameter mode bytes in a binary instruction
-static const tx_uint8 tx_param_mode_bytes[4] = {0, 1, 1, 2};
+static const tx_uint8 tx_param_mode_bytes[3] = {0, 1, 1};
 
 /// Struct representing the three possible parameters to an instruction
 typedef struct tx_Parameters {
-    tx_ParamMode mode_p1, mode_p2, mode_p3;
-    tx_uint32    p1, p2, p3;
+    tx_ParamMode mode_p1, mode_p2;
+    tx_uint32    p1, p2;
 } tx_Parameters;
 
 /// Struct representing a single instruction with opcode, parameters and a length in bytes (binary length)
@@ -332,7 +371,7 @@ typedef struct tx_Instruction {
 } tx_Instruction;
 
 /// The maximum length of a binary instruction in bytes
-#define tx_INSTRUCTION_MAX_LENGTH 0xe
+#define tx_INSTRUCTION_MAX_LENGTH 0xa
 
 #ifdef __cplusplus
 }

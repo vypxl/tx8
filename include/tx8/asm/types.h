@@ -22,7 +22,7 @@ typedef struct tx_asm_Parameter {
 /// Struct representing an instruction with opcode and parameters
 typedef struct tx_asm_Instruction {
     tx_Opcode        opcode;
-    tx_asm_Parameter p1, p2, p3;
+    tx_asm_Parameter p1, p2;
 } tx_asm_Instruction;
 
 /// Struct representing a label, consisting of a string name, an id and an absolute position in the resulting binary

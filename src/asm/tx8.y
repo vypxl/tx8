@@ -31,7 +31,7 @@ extern int yylex (void);
     tx_asm_Instruction inst;
 }
 
-%token <i> tx_asm_EOL tx_asm_SPACE tx_asm_REGISTER tx_asm_REGISTER_ADDRESS tx_asm_ABSOLUTE_ADDRESS tx_asm_RELATIVE_ADDRESS tx_asm_INTEGER8 tx_asm_INTEGER16 tx_asm_INTEGER32 tx_asm_OPCODE0 tx_asm_OPCODE1 tx_asm_OPCODE2 tx_asm_OPCODE3
+%token <i> tx_asm_EOL tx_asm_SPACE tx_asm_REGISTER tx_asm_REGISTER_ADDRESS tx_asm_ABSOLUTE_ADDRESS tx_asm_RELATIVE_ADDRESS tx_asm_INTEGER8 tx_asm_INTEGER16 tx_asm_INTEGER32 tx_asm_OPCODE0 tx_asm_OPCODE1 tx_asm_OPCODE2
 %token <f> tx_asm_FLOAT
 %token <s> tx_asm_LABEL tx_asm_ALIAS tx_asm_INVALID
 
@@ -46,8 +46,7 @@ program:     %empty
 statement:   tx_asm_LABEL tx_asm_SPACE instruction        { tx_asm_assembler_handle_label(tx_asm_yyasm, $1); tx_asm_assembler_set_label_position(tx_asm_yyasm, $1); free($1); tx_asm_assembler_add_instruction(tx_asm_yyasm, $3); }
            | tx_asm_LABEL tx_asm_EOL                      { tx_asm_assembler_handle_label(tx_asm_yyasm, $1); tx_asm_assembler_set_label_position(tx_asm_yyasm, $1); free($1); }
            | instruction tx_asm_EOL                       { tx_asm_assembler_add_instruction(tx_asm_yyasm, $1); }
-instruction: tx_asm_OPCODE3 tx_asm_SPACE parameter tx_asm_SPACE parameter tx_asm_SPACE parameter { tx_asm_Instruction i = { .opcode = $1, .p1 = $3, .p2 = $5, .p3 = $7 }; $$ = i; }
-           | tx_asm_OPCODE2 tx_asm_SPACE parameter tx_asm_SPACE parameter                        { tx_asm_Instruction i = { .opcode = $1, .p1 = $3, .p2 = $5 }; $$ = i; }
+instruction: tx_asm_OPCODE2 tx_asm_SPACE parameter tx_asm_SPACE parameter                        { tx_asm_Instruction i = { .opcode = $1, .p1 = $3, .p2 = $5 }; $$ = i; }
            | tx_asm_OPCODE1 tx_asm_SPACE parameter                                               { tx_asm_Instruction i = { .opcode = $1, .p1 = $3 }; $$ = i; }
            | tx_asm_OPCODE0                                                                      { tx_asm_Instruction i = { .opcode = $1 }; $$ = i; }
 parameter:   tx_asm_ALIAS                                 { tx_asm_Parameter p = { .value.u = tx_str_hash($1), .mode = tx_param_constant32 }; $$ = p; free($1); }

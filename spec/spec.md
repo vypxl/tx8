@@ -47,6 +47,7 @@ The names are case-insensitive.
 The available CPU registers are described here:
 
 - `A`,`B`,`C`,`D`: general purpose registers
+- `R`: 'rest' register (stores secondary results of previous operations)
 - `O`: offset for relative addressing
 - `S`: Stack pointer
 - `P`: Program counter / Instruction Pointer
@@ -61,8 +62,8 @@ There is no over/underflow detection, so be careful!
 
 ### Instructions
 
-Every instruction consists of a 1-byte opcode followed by 0-2 bytes parameter modes and 0-3 parameters.
-An example opcode looks like this: `op 42 bi #43`.
+Every instruction consists of a 1-byte opcode followed by 0-1 bytes parameter modes and 0-2 parameters.
+An example opcode looks like this: `op bi #43`.
 Every instruction takes up one line.
 Comments can be added after a semi-colon (;).
 
@@ -76,8 +77,8 @@ There are 5 ways to give parameters to instructions:
 - Register mode: `lda bi`
 - Register address mode: `lda @bs`
 
-In binary, parameter modes are indicated by the 0-2 bytes after the opcode. Every 4 bits represent one
-parameter mode, the last 4 bits are unused (only 3-param ops).
+In binary, parameter modes are indicated by the 0-1 bytes after the opcode. Every 4 bits represent one
+parameter mode.
 
 | Code | Mode             |
 |------|------------------|
@@ -93,9 +94,9 @@ parameter mode, the last 4 bits are unused (only 3-param ops).
 An example binary instruction looks like this:
 
 ```plain
-asm: max a #0xc04023 35
-bin: op mm m_ p1 p2 p2 p2 p3
-     39 64 10 00 23 40 c0 23
+asm: cmp a #0xc04023
+bin: op mm p1 p3 p3 p3
+     02 64 00 23 40 c0
 ```
 
 Jump points should be used to jump to absolute addresses like this:
@@ -122,22 +123,45 @@ Parameters are described like this: Three characters, one for each parameter:
 
 #### Flow Control
 
-Comparing jump instruction all operate like this: `if parameter1 <comparison> parameter2 then jump to parameter3`.
+The comparison instructions `cmp`, `fcmp` and `ucmp` compare the first parameter to the second parameter
+and write the result of the comparison into the `R` register. This is equivalent to calculating the difference
+and storing its signum in `R` (as a signed integer). 
 
-| Opcode | Asm | Parameters | Operation                                | Example             |
-|--------|-----|------------|------------------------------------------|---------------------|
-| 0x00   | nop | `000`      | no operation                             | `nop`               |
-| 0x01   | jmp | `v00`      | jump to address                          | `jmp :label`        |
-| 0x02   | jeq | `vvv`      | jump if equal                            | `jeq 42 42 :branch` |
-| 0x03   | jne | `vvv`      | jump if not equal                        | `jne 5 7 :branch`   |
-| 0x04   | jgt | `vvv`      | jump if greater than                     | `jgt 7 5 :branch`   |
-| 0x05   | jge | `vvv`      | jump if greater than or equal to         | `jge 8 6 :branch`   |
-| 0x06   | jlt | `vvv`      | jump if less than                        | `jlt 2 4 :branch`   |
-| 0x07   | jle | `vvv`      | jump if less than or equal to            | `jle 4 4 :branch`   |
-| 0x08   | cal | `v00`      | call function                            | `cal :fun`          |
-| 0x09   | ret | `000`      | return from function                     | `ret`               |
-| 0x0a   | sys | `v00`      | call system function (more further down) | `sys &PRINT`        |
-| 0x0b   | hlt | `000`      | halt / stop execution                    | `hlt`               |
+```
+fcmp 2.3 3.1
+
+<=>
+
+lda 2.3
+fsub a 3.1
+fisgn a
+fti a
+sta R
+```
+
+The conditional jump instructions read from the `R` register.
+
+For unconditional jumps, use `jmp`.
+For conditional jumps, first use the correct `cmp` instruction,
+then use the `jeq`, `jne`, `jgt`, `jge`, `jlt` or `jle` instructions to jump based on the comparison result.
+
+| Opcode | Asm  | Parameters | Operation                                | Example       |
+|--------|------|------------|------------------------------------------|---------------|
+| 0x00   | hlt  | `00`       | halt / stop execution                    | `hlt`         |
+| 0x01   | nop  | `00`       | no operation                             | `nop`         |
+| 0x02   | jmp  | `v0`       | jump to address                          | `jmp :label`  |
+| 0x03   | jeq  | `v0`       | jump if equal                            | `jeq :branch` |
+| 0x04   | jne  | `v0`       | jump if not equal                        | `jne :branch` |
+| 0x05   | jgt  | `v0`       | jump if greater than                     | `jgt :branch` |
+| 0x06   | jge  | `v0`       | jump if greater than or equal to         | `jge :branch` |
+| 0x07   | jlt  | `v0`       | jump if less than                        | `jlt :branch` |
+| 0x08   | jle  | `v0`       | jump if less than or equal to            | `jle :branch` |
+| 0x09   | cmp  | `vv`       | Compare signed                           | `cmp a -5`    |
+| 0x0a   | fcmp | `vv`       | Compare floating point                   | `fcmp a 0.5`  |
+| 0x0b   | ucmp | `vv`       | Compare unsigned                         | `ucmp a 0`    |
+| 0x0c   | call | `v0`       | call function                            | `call :fun`   |
+| 0x0d   | ret  | `00`       | return from function                     | `ret`         |
+| 0x0e   | sys  | `v0`       | call system function (more further down) | `sys &PRINT`  |
 
 ##### Calling Convention
 
@@ -145,7 +169,7 @@ The calling convention of TX8 is very similar to [CDECL](https://en.wikibooks.or
 To properly call a function / subroutine, the caller must follow these steps:
 
 - push all function parameters onto the stack in right-to-left order
-- use a `cal` instruction to call the function
+- use a `call` instruction to call the function
 - clean the stack (add the byte size of all parameters to the stack pointer)
 
 The callee must follow these steps:
@@ -159,93 +183,157 @@ The callee does not have to preserve any register values.
 
 #### Loading and Storing
 
-The shortcuts for registers are for convenience, `mov` can be used for everything.
-`mov` moves a different amount of bytes according to its parameters:
+The shortcuts for registers (`lda`, `stc`, ...) are for convenience, `ld` can be used for everything.
+`ld` moves a different amount of bytes according to its parameters:
 
-- `mov register something` moves as many bytes as the register has (A=4, As=2, Ab=1) or how many the other parameter might have, whichever is lower
-- `mov address register` moves as many bytes as the register has (A=4, As=2, Ab=1)
-- `mov address address` moves one byte
-- `mov address constant` moves as many bytes as the constant has
+- `ld register something` moves as many bytes as the register has (A=4, As=2, Ab=1) or how many the other parameter might have, whichever is lower
+- `ld address register` moves as many bytes as the register has (A=4, As=2, Ab=1)
+- `ld address address` moves one byte
+- `ld address constant` moves as many bytes as the constant has
 
-Use `mxv` to always move 4 bytes.
+Use `lw` to always move 4 bytes.
 
 Push and pop behave like this:
 
-- `psh register` pushes as many bytes as the register has (A=4, As=2, Ab=1)
-- `psh address` pushes 4 bytes
-- `psh constant` pushes as many bytes as the constant has (A=4, As=2, Ab=1)
+- `push register` pushes as many bytes as the register has (A=4, As=2, Ab=1)
+- `push address` pushes 4 bytes
+- `push constant` pushes as many bytes as the constant has (A=4, As=2, Ab=1)
 - `pop register` pops as many bytes as the register has (A=4, As=2, Ab=1)
 - `pop address` pops 4 bytes
 
-| Opcode | Asm | Parameters | Operation                                          | Example         |
-|--------|-----|------------|----------------------------------------------------|-----------------|
-| 0x10   | mov | `wv0`      | move value (parameter2) into parameter1 (p1 := p2) | `mov A 42`      |
-| 0x11   | mxv | `wv0`      | move 4 bytes from parameter2 into parameter1       | `mxv a #c01234` |
-| 0x12   | lda | `v00`      | load value into register A                         | `lda 42`        |
-| 0x13   | sta | `w00`      | store value from register A into parameter1        | `sta $2`        |
-| 0x14   | ldb | `v00`      | load value into register B                         | `ldb 55`        |
-| 0x15   | stb | `w00`      | store value from register B into parameter1        | `stb a`         |
-| 0x16   | ldc | `v00`      | load value into register C                         | `ldc $32`       |
-| 0x17   | stc | `w00`      | store value from register C into parameter1        | `stc #c01234`   |
-| 0x18   | ldd | `v00`      | load value into register D                         | `ldd @cb`       |
-| 0x19   | std | `w00`      | store value from register D into parameter1        | `std $-35`      |
-| 0x1a   | zer | `w00`      | zero out parameter1 (addresses 1 byte)             | `zer a`         |
-| 0x1b   | psh | `v00`      | push onto stack                                    | `psh a`         |
-| 0x1c   | pop | `w00`      | pop from stack                                     | `pop a`         |
+| Opcode | Asm  | Parameters | Operation                                             | Example        |
+|--------|------|------------|-------------------------------------------------------|----------------|
+| 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2)    | `ld A 42`      |
+| 0x11   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 | `lw a #c01234` |
+| 0x12   | lda  | `v0`       | load value into register A                            | `lda 42`       |
+| 0x13   | sta  | `w0`       | store value from register A into parameter1           | `sta $2`       |
+| 0x14   | ldb  | `v0`       | load value into register B                            | `ldb 55`       |
+| 0x15   | stb  | `w0`       | store value from register B into parameter1           | `stb a`        |
+| 0x16   | ldc  | `v0`       | load value into register C                            | `ldc $32`      |
+| 0x17   | stc  | `w0`       | store value from register C into parameter1           | `stc #c01234`  |
+| 0x18   | ldd  | `v0`       | load value into register D                            | `ldd @cb`      |
+| 0x19   | std  | `w0`       | store value from register D into parameter1           | `std $-35`     |
+| 0x1a   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                | `zero a`       |
+| 0x1b   | push | `v0`       | push onto stack                                       | `push a`       |
+| 0x1c   | pop  | `w0`       | pop from stack                                        | `pop a`        |
 
 #### Arithmetic
 
-All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5. When operating on registers, the number of
-bytes the operation influences is determined by that. When operating on addresses, 4 bytes will be influenced.
-Normal instructions operate on signed integers, if you have unsigned integers
-or floats, you have to use the respective special instructions.
+All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5.
+When operating on registers, the number of
+bytes the operation influences is determined by its suffix
+(none or `i` for 4 bytes, `s` for 2 bytes and `b` for 1 byte). When operating on addresses, 4 bytes will be influenced.
+Normal instructions operate on signed integers. If you have unsigned integers
+or floats, you have to use the specialized instructions.
 
-| Opcode | Asm | Parameters | Operation                                  | Example            |
-|--------|-----|------------|--------------------------------------------|--------------------|
-| 0x20   | inc | `w00`      | increment                                  | `inc a`            |
-| 0x21   | dec | `w00`      | decrement                                  | `dec $1`           |
-| 0x22   | add | `wv0`      | add                                        | `add a 5`          |
-| 0x23   | sub | `wv0`      | subtract                                   | `sub a 8`          |
-| 0x24   | mul | `wv0`      | multiply                                   | `mul a -2`         |
-| 0x25   | div | `wv0`      | divide (signed)                            | `div a 5`          |
-| 0x26   | mod | `wv0`      | remainder (signed)                         | `mod a 7`          |
-| 0x27   | and | `wv0`      | bitwise and                                | `and c 0b10011010` |
-| 0x28   | ora | `wv0`      | or                                         | `or c 0x7f`        |
-| 0x29   | not | `w00`      | not                                        | `not c`            |
-| 0x2a   | nnd | `wv0`      | nand                                       | `nand c d`         |
-| 0x2b   | xor | `wv0`      | xor                                        | `xor c d`          |
-| 0x2c   | shr | `wv0`      | bitshift right                             | `shr b 2`          |
-| 0x2d   | shl | `wv0`      | bitshift left                              | `shl b 1`          |
-| 0x2e   | ror | `wv0`      | bitrotate right                            | `ror b 3`          |
-| 0x2f   | rol | `wv0`      | bitrotate left                             | `rol b 7`          |
-| 0x30   | fin | `w00`      | floating point increment                   | `fin a`            |
-| 0x31   | fde | `w00`      | floating point decrement                   | `fde $1`           |
-| 0x32   | fad | `wv0`      | floating point add                         | `fad a 5.0`        |
-| 0x33   | fsu | `wv0`      | floating point subtract                    | `fsu a 8`          |
-| 0x34   | fmu | `wv0`      | floating point multiply                    | `fmu a -2.7924`    |
-| 0x35   | fdi | `wv0`      | floating point divide                      | `fdi a 5.2`        |
-| 0x36   | fmo | `wv0`      | floating point remainder                   | `fmo a 7`          |
-| 0x37   | itf | `w00`      | convert integer to floating point          | `itf a`            |
-| 0x38   | fti | `w00`      | convert floating point to integer          | `fti a`            |
-| 0x39   | max | `wvv`      | p1 := max(p2, p3)                          | `max a b 3`        |
-| 0x3a   | min | `wvv`      | p1 := min(p2, p3)                          | `min a b 3`        |
-| 0x3b   | fmx | `wvv`      | floating point max                         | `fmx a b 2.5`      |
-| 0x3c   | fmn | `wvv`      | floating point min                         | `fmn a b 2.5`      |
-| 0x3d   | sin | `w00`      | sine                                       | `sin a`            |
-| 0x3e   | cos | `w00`      | cosine                                     | `cos b`            |
-| 0x3f   | tan | `w00`      | tangent                                    | `tan b`            |
-| 0x40   | atn | `wvv`      | p1 := atan2(p2, p3)                        | `atn a b c`        |
-| 0x41   | sqt | `w00`      | square root                                | `sqt a`            |
-| 0x42   | abs | `w00`      | absolute value                             | `abs a`            |
-| 0x43   | fab | `w00`      | floating point absolute value              | `fab b`            |
-| 0x44   | rnd | `w00`      | p1 := pseudo random float between 0 and 1  | `rnd $0`           |
-| 0x45   | rsd | `v00`      | set random seed                            | `rsd 42`           |
-| 0x46   | umu | `wv0`      | unsigned multiply                          | `umu a b`          |
-| 0x47   | udi | `wv0`      | unsigned divide                            | `udi a b`          |
-| 0x48   | umx | `wvv`      | unsigned max                               | `umx a b 2`        |
-| 0x49   | umn | `wvv`      | unsigned min                               | `umn a b 0x42`     |
-| 0x4a   | utf | `w00`      | convert unsinged integer to floating point | `utf a`            |
-| 0x4b   | ftu | `w00`      | convert floating point to unsigned integer | `ftu a`            |
+##### Behaviour of the `R` register
+ 
+ - The `cmp`, `fcmp` and `ucmp` instructions set the `R` register to the result of the comparison. See [flow control](#flow-control).
+
+Not yet implemented:
+
+ - The `inc`, `dec`, `uinc`, `udec`, `add` and `sub` instructions set the `R` register to 1 if they overflow.
+ - The `mul` and `umul` instructions sets the `R` register to the top half of the 64-bit result.
+ - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
+ - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
+ - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value.
+ - The `slr`, `sar` and `sll` instructions set the `R` register to the shifted-out bits.
+ - The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
+
+##### Signed Integer Operations
+
+| Opcode | Asm  | Parameters | Operation         | Example    |
+|--------|------|------------|-------------------|------------|
+| 0x20   | inc  | `w0`       | increment         | `inc a`    |
+| 0x21   | dec  | `w0`       | decrement         | `dec $1`   |
+| 0x22   | add  | `wv`       | add               | `add a 5`  |
+| 0x23   | sub  | `wv`       | subtract          | `sub a 8`  |
+| 0x24   | mul  | `wv`       | multiply          | `mul a -2` |
+| 0x25   | div  | `wv`       | divide            | `div a 5`  |
+| 0x26   | mod  | `wv`       | remainder         | `mod a 7`  |
+| 0x27   | max  | `wv`       | p1 := max(p2, p3) | `max a 3`  |
+| 0x28   | min  | `wv`       | p1 := min(p2, p3) | `min a 3`  |
+| 0x29   | abs  | `w0`       | absolute value    | `abs a`    |
+| 0x2a   | sign | `w0`       | signum of p1      | `sign a`   |
+
+##### Bitwise Operations
+
+| Opcode | Asm  | Parameters | Operation                                                                      | Example            |
+|--------|------|------------|--------------------------------------------------------------------------------|--------------------|
+| 0x30   | and  | `wv`       | and                                                                            | `and c 0b10011010` |
+| 0x31   | or   | `wv`       | or                                                                             | `or c 0x7f`        |
+| 0x32   | not  | `w0`       | not                                                                            | `not c`            |
+| 0x33   | nand | `wv`       | nand                                                                           | `nand c d`         |
+| 0x34   | xor  | `wv`       | xor                                                                            | `xor c d`          |
+| 0x35   | slr  | `wv`       | shift logical right                                                            | `slr b 2`          |
+| 0x36   | sar  | `wv`       | shift arithmetic right                                                         | `sar b 1`          |
+| 0x37   | sll  | `wv`       | shift logical left                                                             | `sll b 1`          |
+| 0x38   | ror  | `wv`       | rotate right                                                                   | `ror b 3`          |
+| 0x39   | rol  | `wv`       | rotate left                                                                    | `rol b 7`          |
+| 0x3a   | set  | `wv`       | set the p2'th bit of p1 (nop if p2 > size of destination)                      | `set a 5`          |
+| 0x3b   | clr  | `wv`       | clear the p2'th bit of p1 (nop if p2 > size of destination)                    | `clr a 7`          |
+| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1 (nop if p2 > size of destination)                   | `test a 7`         |
+| 0x3d   | test | `vv`       | test the p2'th bit of p1 (write it into `R`) (nop if p2 > size of destination) | `test a 3`         |
+
+Note that shifting by more than 32 bits produces a zero result (or -1 / 0xffffffff if
+you are arithmetically shifting a negative integer).
+
+##### Floating Point Operations
+
+| Opcode | Asm   | Parameters   | Operation                                | Example          |
+|--------|-------|--------------|------------------------------------------|------------------|
+| 0x40   | finc  | `w0`         | floating point increment                 | `finc a`         |
+| 0x41   | fdec  | `w0`         | floating point decrement                 | `fdec $1`        |
+| 0x42   | fadd  | `wv`         | floating point add                       | `fadd a 5.0`     |
+| 0x43   | fsub  | `wv`         | floating point subtract                  | `fsub a 8`       |
+| 0x44   | fmul  | `wv`         | floating point multiply                  | `fmul a -2.7924` |
+| 0x45   | fdiv  | `wv`         | floating point divide                    | `fdiv a 5.2`     |
+| 0x46   | fmod  | `wv`         | floating point remainder                 | `fmod a 7`       |
+| 0x47   | fmax  | `wv`         | floating point max                       | `fmax a 2.5`     |
+| 0x48   | fmin  | `wv`         | floating point min                       | `fmin a 2.5`     |
+| 0x49   | fabs  | `w0`         | floating point absolute value            | `fabs b`         |
+| 0x4a   | fsign | `w0`         | floating point signum (-1.0 / 0.0 / 1.0) | `fsign b`        |
+| 0x4b   | sin   | `w0`         | sine                                     | `sin a`          |
+| 0x4c   | cos   | `w0`         | cosine                                   | `cos b`          |
+| 0x4d   | tan   | `w0`         | tangent                                  | `tan b`          |
+| 0x4e   | asin  | `w0`         | arc sine                                 | `asin a`         |
+| 0x4f   | acos  | `w0`         | arc cosine                               | `acos b`         |
+| 0x50   | atan  | `w0`         | arc tangent                              | `atan b`         |
+| 0x51   | atan2 | `wv`         | p1 := atan2(p1, p2)                      | `atan2 a b`      |
+| 0x52   | sqrt  | `w0`         | square root                              | `sqrt a`         |
+| 0x53   | pow   | `wv`         | power (p1 := p1 ^ p2)                    | `pow a b`        |
+| 0x54   | exp   | `w0`         | exponential (p1 := exp(p1))              | `exp a`          |
+| 0x55   | log   | `w0`         | natural logarithm (p1 := ln(p1))         | `log a`          |
+| 0x56   | log2  | `w0`         | base 2 logarithm                         | `log2 a`         |
+| 0x57   | log10 | `w0`         | base 10 logarithm                        | `log10 a`        |
+
+Beware that floating point operations do not behave as expected when using integer immediates.
+They are **not** converted to floating point values, instead their underlying bits are reinterpreted
+as a floating point value, leading to unexpected behaviour. Therefore, always use floating point
+immediates like `1.5`.
+
+##### Unsigned Integer Operations
+
+| Opcode | Asm   | Parameters | Operation                                  | Example       |
+|--------|-------|------------|--------------------------------------------|---------------|
+| 0x60   | umul  | `wv`       | unsigned multiply                          | `umul a b`    |
+| 0x61   | udiv  | `wv`       | unsigned divide                            | `udiv a b`    |
+| 0x62   | umod  | `wv`       | unsigned remainder                         | `umod a b`    |
+| 0x63   | umax  | `wv`       | unsigned max                               | `umax a 2`    |
+| 0x64   | umin  | `wv`       | unsigned min                               | `umin a 0x42` |
+
+##### Miscellaneous Operations
+
+| Opcode | Asm   | Parameters | Operation                                          | Example    |
+|--------|-------|------------|----------------------------------------------------|------------|
+| 0x70   | rand  | `w0`       | p1 := pseudo random float between 0 and 1          | `rand $0`  |
+| 0x71   | rseed | `v0`       | set random seed                                    | `rseed 42` |
+| 0x72   | itf   | `w0`       | convert integer to floating point                  | `itf a`    |
+| 0x73   | fti   | `w0`       | convert floating point to integer                  | `fti a`    |
+| 0x74   | utf   | `w0`       | convert unsinged integer to floating point         | `utf a`    |
+| 0x75   | ftu   | `w0`       | convert floating point to unsigned integer         | `ftu a`    |
+| 0x76   | ei    | `00`       | enable interrupts (for future use, currently nop)  | `ei`       |
+| 0x77   | di    | `00`       | disable interrupts (for future use, currently nop) | `di`       |
 
 ## Binary Files
 

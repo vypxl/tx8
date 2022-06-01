@@ -72,7 +72,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/arithmetic_test.cpp test/misc_test.cpp)
+add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/signed_arithmetic_test.cpp test/integration_test.cpp test/bitwise_operations_test.cpp test/float_arithmetic_test.cpp test/unsigned_arithmetic_test.cpp test/miscellaneous_test.cpp)
 target_include_directories(tx8-test PRIVATE deps)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 

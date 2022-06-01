@@ -164,10 +164,6 @@ void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
             inst->p2.value.u = tx_asm_assembler_convert_label(as, inst->p2.value.u);
             inst->p2.mode    = tx_param_constant32;
         }
-        if (inst->p3.mode == tx_asm_param_label_id) {
-            inst->p3.value.u = tx_asm_assembler_convert_label(as, inst->p3.value.u);
-            inst->p3.mode    = tx_param_constant32;
-        }
     tx_asm_LL_FOREACH_END
 }
 
