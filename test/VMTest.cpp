@@ -21,36 +21,33 @@ void VMTest::TearDown() {
     nums.clear();
 }
 
-void VMTest::append_num(void* vm, tx_uint32 value, tx_NumType type) {
-    VMTest*            real_vm = (VMTest*)vm;
-    tx_num32_with_type val;
-    val.num.u = value;
-    val.type  = type;
-    real_vm->nums.push_back(val);
+void VMTest::append_num(void* vm, tx_num32_variant value) {
+    auto* real_vm = (VMTest*)vm;
+    real_vm->nums.push_back(value);
 }
 
 void VMTest::append_uint(tx_CPU* cpu, void* vm) {
-    VMTest::append_num(vm, tx_cpu_top32(cpu), tx_NumType::TX_NUM_UINT32);
+    VMTest::append_num(vm, tx_cpu_top32(cpu));
 }
 
 void VMTest::append_int(tx_CPU* cpu, void* vm) {
-    VMTest::append_num(vm, tx_cpu_top32(cpu), tx_NumType::TX_NUM_INT32);
+    tx_num32 v = { .u = tx_cpu_top32(cpu) };
+    VMTest::append_num(vm, v.i);
 }
 
 void VMTest::append_float(tx_CPU* cpu, void* vm) {
-    VMTest::append_num(vm, tx_cpu_top32(cpu), tx_NumType::TX_NUM_FLOAT32);
+    tx_num32 v = { .u = tx_cpu_top32(cpu) };
+    VMTest::append_num(vm, v.f);
 }
 
-void VMTest::run_and_compare_str(std::string code, const std::string out, const std::string err) {
+void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
 
     EXPECT_STREQ(tx_log_get_str(), out.c_str());
     ASSERT_STREQ(tx_log_get_str_err(), err.c_str());
 }
 
-void VMTest::run_and_compare_num(std::string             code,
-                               std::vector<std::variant<tx_uint32, tx_int32, tx_float32>> expecteds,
-                               std::string             err) {
+void VMTest::run_and_compare_num(const std::string& code, const std::vector<tx_num32_variant>& expecteds, const std::string& err) {
     if (!run_code(code)) return;
     ASSERT_STREQ(tx_log_get_str_err(), err.c_str());
 
@@ -60,23 +57,18 @@ void VMTest::run_and_compare_num(std::string             code,
         return;
     }
 
-    for (size_t i = 0; i < nums.size(); i++)
-        if (nums[i].type == tx_NumType::TX_NUM_UINT32) {
-            tx_uint32 result = nums[i].num.u;
-            tx_uint32 expected = std::get<tx_uint32>(expecteds[i]);
-            EXPECT_EQ(result, expected) << "At index " << i;
-        } else if (nums[i].type == tx_NumType::TX_NUM_INT32) {
-            tx_int32 result = nums[i].num.i;
-            tx_int32 expected = std::get<tx_int32>(expecteds[i]);
-            EXPECT_EQ(result, expected) << "At index " << i;
-        } else if (nums[i].type == tx_NumType::TX_NUM_FLOAT32) {
-            tx_float32 result = nums[i].num.f;
-            tx_float32 expected = std::get<tx_float32>(expecteds[i]);
-            if (std::isnan(result) && std::isnan(expected))
-                SUCCEED();
-            else
-                EXPECT_FLOAT_EQ(result, expected) << "At index " << i;
+    for (size_t i = 0; i < nums.size(); i++) {
+        auto a = nums[i];
+        auto b = expecteds[i];
+        if (std::holds_alternative<tx_uint32>(a) || std::holds_alternative<tx_int32>(a)) {
+            EXPECT_EQ(a, b);
+        } else /* tx_float32 */ {
+            tx_float32 x = std::get<tx_float32>(a);
+            tx_float32 y = std::get<tx_float32>(b);
+            if (std::isnan(x) && std::isnan(y)) SUCCEED();
+            else EXPECT_FLOAT_EQ(x, y) << "At index " << i;
         }
+    }
 }
 
 void VMTest::run_binary() {
@@ -94,7 +86,7 @@ void VMTest::run_binary() {
     tx_run_cpu(&cpu);
 }
 
-bool VMTest::run_code(const std::string s) {
+bool VMTest::run_code(const std::string& s) {
     int asm_err = tx_asm_run_assembler_buffer(&as, (char*)s.c_str(), (int)s.length());
     if (asm_err != 0) {
         ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx_log_get_str_err();
@@ -102,10 +94,10 @@ bool VMTest::run_code(const std::string s) {
     }
 
     if ((bool)tx_asm_yydebug) {
-        printf("labels:\n");
+        std::cout << "labels:" << std::endl;
         tx_asm_assembler_print_labels(&as);
 
-        printf("\ninstructions:\n");
+        std::cout << std::endl << "instructions" << std::endl;
         tx_asm_assembler_print_instructions(&as);
     }
 
