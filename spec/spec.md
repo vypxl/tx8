@@ -330,7 +330,7 @@ immediates like `1.5`.
 | 0x71   | rseed | `v0`       | set random seed                                    | `rseed 42` |
 | 0x72   | itf   | `w0`       | convert integer to floating point                  | `itf a`    |
 | 0x73   | fti   | `w0`       | convert floating point to integer                  | `fti a`    |
-| 0x74   | utf   | `w0`       | convert unsinged integer to floating point         | `utf a`    |
+| 0x74   | utf   | `w0`       | convert unsigned integer to floating point         | `utf a`    |
 | 0x75   | ftu   | `w0`       | convert floating point to unsigned integer         | `ftu a`    |
 | 0x76   | ei    | `00`       | enable interrupts (for future use, currently nop)  | `ei`       |
 | 0x77   | di    | `00`       | disable interrupts (for future use, currently nop) | `di`       |
