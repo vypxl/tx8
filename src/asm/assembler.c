@@ -21,8 +21,8 @@ extern void* tx_asm_yy_scan_bytes (const char * yybytes, int _yybytes_len);
 tx_asm_Assembler* tx_asm_yyasm;
 
 void tx_asm_init_assembler(tx_asm_Assembler* as) {
-    as->labels        = NULL;
-    as->instructions  = NULL;
+    tx_array_label_init(&(as->labels), 0xffff);
+    tx_array_instruction_init(&(as->instructions), 0xffff);
     as->position      = 0;
     as->last_label_id = 1;
     as->error         = 0;
@@ -52,10 +52,11 @@ bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
         return false;
     }
     tx_uint8 buf[tx_INSTRUCTION_MAX_LENGTH];
-    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+    for (unsigned i = 0; i < as->instructions.front; i++) {
+        tx_Instruction* inst = as->instructions.data + i;
         tx_asm_instruction_generate_binary(inst, buf);
         fwrite(buf, tx_asm_instruction_length(inst), 1, output);
-    tx_asm_LL_FOREACH_END
+    }
 
     return true;
 }
@@ -68,17 +69,18 @@ bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest) 
 
     tx_uint32 pos = 0;
 
-    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+    for (unsigned i = 0; i < as->instructions.front; i++) {
+        tx_Instruction* inst = as->instructions.data + i;
         tx_asm_instruction_generate_binary(inst, rom_dest + pos);
         pos += tx_asm_instruction_length(inst);
-    tx_asm_LL_FOREACH_END
+    }
 
     return true;
 }
 
 void tx_asm_destroy_assembler(tx_asm_Assembler* as) {
-    tx_asm_LL_destroy(as->labels);
-    tx_asm_LL_destroy(as->instructions);
+    tx_array_label_destroy(&as->labels);
+    tx_array_instruction_destroy(&as->instructions);
 }
 
 void tx_asm_error(tx_asm_Assembler* as, char* format, ...) {
@@ -92,31 +94,34 @@ void tx_asm_error(tx_asm_Assembler* as, char* format, ...) {
 
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, char* name) {
     // search for an existing label with the same name and return its id if found
-    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
+    for (unsigned i = 0; i < as->labels.front; i++) {
+        tx_Label* label = as->labels.data + i;
         if (strcmp(name, label->name) == 0) return label->id;
-    tx_asm_LL_FOREACH_END
+    }
 
     // create a new label
-    tx_Label* label = malloc(sizeof(tx_Label));
-    label->name         = strdup(name);
-    label->id           = ++(as->last_label_id);
-    label->position     = tx_asm_INVALID_LABEL_ADDRESS;
+    tx_Label label;
+    label.name     = strdup(name);
+    label.id       = ++(as->last_label_id);
+    label.position = tx_asm_INVALID_LABEL_ADDRESS;
 
     // insert the new label into the list
-    tx_asm_LL_append(&(as->labels), label);
+    tx_array_label_insert(&(as->labels), label);
 
     // return the new id
-    return label->id;
+    return label.id;
 }
 
 // returns the id of the label whose position was set
 tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) {
     // find label that matches the name
-    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
+    for (unsigned i = 0; i < as->labels.front; i++) {
+        tx_Label* label = as->labels.data + i;
         if (strcmp(name, label->name) == 0) {
             // error if the matched label already has a position set
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS)
-                tx_asm_error(as, "Cannot create two or more labels with the same name '%s'\n", name);
+                tx_asm_error(
+                    as, "Cannot create two or more labels with the same name '%s'\n", name);
             else {
                 // set position of found label
                 // TODO fix position offset hack
@@ -124,7 +129,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) 
                 return label->id;
             }
         }
-    tx_asm_LL_FOREACH_END
+    }
 
     // error if no match was found
     tx_asm_error(as, "No label '%s' to set position to\n", name);
@@ -132,7 +137,8 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) 
 }
 
 tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
-    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
+    for (unsigned i = 0; i < as->labels.front; i++) {
+        tx_Label* label = as->labels.data + i;
         if (label->id == id) {
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS) return label->position;
 
@@ -140,22 +146,21 @@ tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
             tx_asm_error(as, "Label '%s' has no corresponding location", label->name);
             return 0;
         }
-    tx_asm_LL_FOREACH_END
+    }
 
     tx_asm_error(as, "No label with id %d found", id);
     return 0;
 }
 
 void tx_asm_assembler_add_instruction(tx_asm_Assembler* as, tx_Instruction inst) {
-    tx_Instruction* _inst = malloc(sizeof(tx_Instruction));
-    memcpy(_inst, &inst, sizeof(tx_Instruction));
-    _inst->len = tx_asm_instruction_length(_inst);
-    tx_asm_LL_append(&(as->instructions), _inst);
-    as->position += _inst->len;
+    inst.len = tx_asm_instruction_length(&inst);
+    tx_array_instruction_insert(&(as->instructions), inst);
+    as->position += inst.len;
 }
 
 void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
-    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+    for (unsigned i = 0; i < as->instructions.front; i++) {
+        tx_Instruction* inst = as->instructions.data + i;
         if (inst->params.p1.mode == tx_param_label) {
             inst->params.p1.value.u = tx_asm_assembler_convert_label(as, inst->params.p1.value.u);
             inst->params.p1.mode    = tx_param_constant32;
@@ -164,20 +169,22 @@ void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
             inst->params.p2.value.u = tx_asm_assembler_convert_label(as, inst->params.p2.value.u);
             inst->params.p2.mode    = tx_param_constant32;
         }
-    tx_asm_LL_FOREACH_END
+    }
 }
 
 void tx_asm_assembler_print_instructions(tx_asm_Assembler* as) {
     tx_uint32 pos = 0;
-    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+    for (unsigned i = 0; i < as->instructions.front; i++) {
+        tx_Instruction* inst = as->instructions.data + i;
         tx_log("[#%04x:%02x] ", pos, tx_asm_instruction_length(inst));
         pos += tx_asm_instruction_length(inst);
         tx_asm_print_instruction(inst);
-    tx_asm_LL_FOREACH_END
+    }
 }
 
 void tx_asm_assembler_print_labels(tx_asm_Assembler* as) {
-    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
+    for (unsigned i = 0; i < as->labels.front; i++) {
+        tx_Label* label = as->labels.data + i;
         tx_log(":%s [%x] = #%x\n", label->name, label->id, label->position);
-    tx_asm_LL_FOREACH_END
+    }
 }

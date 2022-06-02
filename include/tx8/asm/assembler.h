@@ -14,11 +14,14 @@
 extern "C" {
 #endif
 
+tx_MAKE_ARRAY_TYPE(tx_Label, label);
+tx_MAKE_ARRAY_TYPE(tx_Instruction, instruction);
+
 /// @brief Struct to store the state of an assembler.
 /// @details It stores all found labels and instructions.
 typedef struct tx_asm_Assembler {
-    tx_asm_LL* labels;
-    tx_asm_LL* instructions;
+    tx_Array_label labels;
+    tx_Array_instruction instructions;
     tx_uint32  position;
     tx_uint32  last_label_id;
     tx_uint8   error;
