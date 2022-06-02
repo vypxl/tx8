@@ -46,35 +46,34 @@ int tx_asm_run_assembler_buffer(tx_asm_Assembler* as, char* buf, int size) {
     return as->error;
 }
 
-void tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
+bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
     if (as->error != 0) {
         tx_log_err("Assembler encountered an error, did not write binary file.\n");
-        return;
+        return false;
     }
     tx_uint8 buf[tx_INSTRUCTION_MAX_LENGTH];
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, as->instructions)
+    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
         tx_asm_instruction_generate_binary(inst, buf);
         fwrite(buf, tx_asm_instruction_length(inst), 1, output);
     tx_asm_LL_FOREACH_END
+
+    return true;
 }
 
-tx_uint8* tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint32* out_size) {
+bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest) {
     if (as->error != 0) {
         tx_log_err("Assembler encountered an error, did not generate binary.\n");
-        return NULL;
+        return false;
     }
-
-    *out_size     = as->position;
-    tx_uint8* buf = malloc(as->position);
 
     tx_uint32 pos = 0;
 
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, as->instructions)
-        tx_asm_instruction_generate_binary(inst, buf + pos);
+    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+        tx_asm_instruction_generate_binary(inst, rom_dest + pos);
         pos += tx_asm_instruction_length(inst);
     tx_asm_LL_FOREACH_END
 
-    return buf;
+    return true;
 }
 
 void tx_asm_destroy_assembler(tx_asm_Assembler* as) {
@@ -93,12 +92,12 @@ void tx_asm_error(tx_asm_Assembler* as, char* format, ...) {
 
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, char* name) {
     // search for an existing label with the same name and return its id if found
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, as->labels)
+    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
         if (strcmp(name, label->name) == 0) return label->id;
     tx_asm_LL_FOREACH_END
 
     // create a new label
-    tx_asm_Label* label = malloc(sizeof(tx_asm_Label));
+    tx_Label* label = malloc(sizeof(tx_Label));
     label->name         = strdup(name);
     label->id           = ++(as->last_label_id);
     label->position     = tx_asm_INVALID_LABEL_ADDRESS;
@@ -113,7 +112,7 @@ tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, char* name) {
 // returns the id of the label whose position was set
 tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) {
     // find label that matches the name
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, as->labels)
+    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
         if (strcmp(name, label->name) == 0) {
             // error if the matched label already has a position set
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS)
@@ -133,7 +132,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) 
 }
 
 tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, as->labels)
+    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
         if (label->id == id) {
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS) return label->position;
 
@@ -147,37 +146,38 @@ tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
     return 0;
 }
 
-void tx_asm_assembler_add_instruction(tx_asm_Assembler* as, tx_asm_Instruction inst) {
-    tx_asm_Instruction* _inst = malloc(sizeof(tx_asm_Instruction));
-    memcpy(_inst, &inst, sizeof(tx_asm_Instruction));
+void tx_asm_assembler_add_instruction(tx_asm_Assembler* as, tx_Instruction inst) {
+    tx_Instruction* _inst = malloc(sizeof(tx_Instruction));
+    memcpy(_inst, &inst, sizeof(tx_Instruction));
+    _inst->len = tx_asm_instruction_length(_inst);
     tx_asm_LL_append(&(as->instructions), _inst);
-    as->position += tx_asm_instruction_length(_inst);
+    as->position += _inst->len;
 }
 
 void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, as->instructions)
-        if (inst->p1.mode == tx_asm_param_label_id) {
-            inst->p1.value.u = tx_asm_assembler_convert_label(as, inst->p1.value.u);
-            inst->p1.mode    = tx_param_constant32;
+    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+        if (inst->params.p1.mode == tx_param_label) {
+            inst->params.p1.value.u = tx_asm_assembler_convert_label(as, inst->params.p1.value.u);
+            inst->params.p1.mode    = tx_param_constant32;
         }
-        if (inst->p2.mode == tx_asm_param_label_id) {
-            inst->p2.value.u = tx_asm_assembler_convert_label(as, inst->p2.value.u);
-            inst->p2.mode    = tx_param_constant32;
+        if (inst->params.p2.mode == tx_param_label) {
+            inst->params.p2.value.u = tx_asm_assembler_convert_label(as, inst->params.p2.value.u);
+            inst->params.p2.mode    = tx_param_constant32;
         }
     tx_asm_LL_FOREACH_END
 }
 
 void tx_asm_assembler_print_instructions(tx_asm_Assembler* as) {
     tx_uint32 pos = 0;
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Instruction*, inst, as->instructions)
-        tx_log("[#%04x:%02x]", pos, tx_asm_instruction_length(inst));
+    tx_asm_LL_FOREACH_BEGIN(tx_Instruction*, inst, as->instructions)
+        tx_log("[#%04x:%02x] ", pos, tx_asm_instruction_length(inst));
         pos += tx_asm_instruction_length(inst);
         tx_asm_print_instruction(inst);
     tx_asm_LL_FOREACH_END
 }
 
 void tx_asm_assembler_print_labels(tx_asm_Assembler* as) {
-    tx_asm_LL_FOREACH_BEGIN(tx_asm_Label*, label, as->labels)
+    tx_asm_LL_FOREACH_BEGIN(tx_Label*, label, as->labels)
         tx_log(":%s [%x] = #%x\n", label->name, label->id, label->position);
     tx_asm_LL_FOREACH_END
 }

@@ -7,6 +7,11 @@ extern int tx_asm_yydebug;
 VMTest::VMTest() {
     tx_log_init_str();
     tx_log_init_str_err();
+
+    if (tx_asm_yydebug) {
+        tx_log_init_stdout();
+        tx_log_init_stderr();
+    }
 }
 
 VMTest::~VMTest() { tx_log_reset(); }
@@ -72,16 +77,16 @@ void VMTest::run_and_compare_num(const std::string& code, const std::vector<tx_n
 }
 
 void VMTest::run_binary() {
-    tx_uint32 rom_size;
-    tx_uint8* rom = tx_asm_assembler_generate_binary(&as, &rom_size);
+    tx_uint32 rom_size = tx_asm_assembler_get_binary_size(&as);
+    auto rom = std::vector<tx_uint8>(rom_size);
+    tx_asm_assembler_generate_binary(&as, rom.data());
 
-    tx_init_cpu(&cpu, rom, rom_size);
+    tx_init_cpu(&cpu, rom.data(), rom_size);
     tx_cpu_use_stdlib(&cpu);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_uint", VMTest::append_uint, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_int", VMTest::append_int, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_float", VMTest::append_float, this);
     cpu.debug = (bool)tx_asm_yydebug;
-    free(rom);
 
     tx_run_cpu(&cpu);
 }
@@ -94,10 +99,10 @@ bool VMTest::run_code(const std::string& s) {
     }
 
     if ((bool)tx_asm_yydebug) {
-        std::cout << "labels:" << std::endl;
+        tx_log("labels:\n");
         tx_asm_assembler_print_labels(&as);
 
-        std::cout << std::endl << "instructions" << std::endl;
+        tx_log("\ninstructions:\n");
         tx_asm_assembler_print_instructions(&as);
     }
 

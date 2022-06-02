@@ -87,9 +87,9 @@ void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void*
 void tx_cpu_exec_sysfunc(tx_CPU* cpu, tx_uint32 hashed_name);
 
 /// Get the raw numerical value of a parameter using its mode
-tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);
+tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_Parameter param);
 /// Get the absolute address specified by a parameter using its mode (fails if the parameter does not represent an address)
-tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode);
+tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_Parameter param);
 
 /// Update the program counter to the specified new location
 void tx_cpu_jump(tx_CPU* cpu, tx_uint32 location);

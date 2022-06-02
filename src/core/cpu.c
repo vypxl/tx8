@@ -113,18 +113,22 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
 
     tx_mem_addr param_start = pc + 1 + tx_param_mode_bytes[pcount];
 
-    tx_uint32 p1 = tx_cpu_mem_read32(cpu, param_start) & tx_param_masks[mode_p1];
-    tx_uint32 p2 =
+    tx_uint32 value_p1 = tx_cpu_mem_read32(cpu, param_start) & tx_param_masks[mode_p1];
+    tx_uint32 value_p2 =
         tx_cpu_mem_read32(cpu, param_start + tx_param_sizes[mode_p1]) & tx_param_masks[mode_p2];
 
     // clang-format off
     tx_Instruction inst = {
         .opcode     = (tx_Opcode)p[0],
-        .parameters = {
-            .mode_p1 = mode_p1,
-            .mode_p2 = mode_p2,
-            .p1 = p1,
-            .p2 = p2,
+        .params = {
+            .p1 = {
+                .mode = mode_p1,
+                .value  = { .u = value_p1 }
+            },
+            .p2 = {
+                .mode = mode_p2,
+                .value  = { .u = value_p2 }
+            }
         },
         .len = 1 + tx_param_mode_bytes[pcount] + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]
     };
@@ -134,7 +138,7 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
 }
 
 void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
-    tx_cpu_op_function[instruction.opcode](cpu, &(instruction.parameters));
+    tx_cpu_op_function[instruction.opcode](cpu, &(instruction.params));
 }
 
 void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void* data) {
@@ -165,31 +169,29 @@ void tx_cpu_exec_sys_func(tx_CPU* cpu, tx_uint32 hashed_name) {
 }
 
 // Returns the numerical value of a parameter
-tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode) {
-    switch (mode) {
-        case tx_param_unused: return 0; break;
+tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_Parameter param) {
+    switch (param.mode) {
+        case tx_param_unused: return 0;
         case tx_param_constant8:
         case tx_param_constant16:
-        case tx_param_constant32: return param; break;
-        case tx_param_absolute_address: return tx_cpu_mem_read32(cpu, param); break;
-        case tx_param_relative_address: return tx_cpu_mem_read32_rel(cpu, param); break;
-        case tx_param_register: return tx_cpu_reg_read(cpu, (tx_uint8)param); break;
+        case tx_param_constant32: return param.value.u;
+        case tx_param_absolute_address: return tx_cpu_mem_read32(cpu, param.value.u);
+        case tx_param_relative_address: return tx_cpu_mem_read32_rel(cpu, param.value.u);
+        case tx_param_register: return tx_cpu_reg_read(cpu, (tx_Register) param.value.u);
         case tx_param_register_address:
-            return tx_cpu_mem_read32(cpu, tx_cpu_reg_read(cpu, (tx_uint8)param));
-            break;
-        default: return 0; break;
+            return tx_cpu_mem_read32(cpu, tx_cpu_reg_read(cpu, (tx_Register) param.value.u));
+        default: return 0;
     }
 }
 
-tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_uint32 param, tx_ParamMode mode) {
-    switch (mode) {
-        case tx_param_absolute_address: return param; break;
-        case tx_param_relative_address: return cpu->o + *((tx_int32*)(&param)); break;
-        case tx_param_register_address: return tx_cpu_reg_read(cpu, (tx_uint8)param); break;
+tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_Parameter param) {
+    switch (param.mode) {
+        case tx_param_absolute_address: return param.value.u;
+        case tx_param_relative_address: return cpu->o + param.value.u;
+        case tx_param_register_address: return tx_cpu_reg_read(cpu, (tx_Register) param.value.u);
         default:
             tx_cpu_error(cpu, "Parameter is not an address");
             return tx_MEM_SIZE;
-            break;
     }
 }
 
@@ -313,10 +315,10 @@ void tx_cpu_mem_write_n(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value, tx_u
 }
 
 // local conveniences macros
-#define PARAMV(which) tx_cpu_get_param_value(cpu, params->p##which, params->mode_p##which)
-#define PARAMA(which) tx_cpu_get_param_address(cpu, params->p##which, params->mode_p##which)
+#define PARAMV(which) tx_cpu_get_param_value(cpu, params->p##which)
+#define PARAMA(which) tx_cpu_get_param_address(cpu, params->p##which)
 #define CHECK_WRITABLE(name) \
-    if (!tx_param_iswritable(params->mode_p1)) { \
+    if (!tx_param_iswritable(params->p1.mode)) { \
         tx_cpu_error(cpu, "Destination of " #name " is not writable"); \
         return; \
     }
@@ -370,16 +372,16 @@ void tx_cpu_op_ld(tx_CPU* cpu, tx_Parameters* params) {
     tx_uint32 val = PARAMV(2);
 
     // register <- value
-    if (tx_param_isregister(params->mode_p1)) tx_cpu_reg_write(cpu, params->p1, val);
+    if (tx_param_isregister(params->p1.mode)) tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, val);
     // address <- address
-    else if (tx_param_isaddress(params->mode_p2))
+    else if (tx_param_isaddress(params->p2.mode))
         tx_cpu_mem_write8(cpu, PARAMA(1), (tx_uint8)val);
     // address <- register
-    else if (tx_param_isregister(params->mode_p2))
-        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_register_size(params->p2));
+    else if (tx_param_isregister(params->p2.mode))
+        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_register_size((tx_Register) params->p2.value.u));
     // address <- constant
     else
-        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_param_value_size(params->p2, params->mode_p2));
+        tx_cpu_mem_write_n(cpu, PARAMA(1), val, tx_param_value_size(params->p2));
 }
 
 void tx_cpu_op_lw(tx_CPU* cpu, tx_Parameters* params) {
@@ -387,10 +389,10 @@ void tx_cpu_op_lw(tx_CPU* cpu, tx_Parameters* params) {
 
     tx_uint32 val = PARAMV(2);
 
-    if (tx_param_isregister(params->mode_p1)) {
-        if (tx_register_size(params->p1) != 4) tx_cpu_error(cpu, ERR_CANNOT_LOAD_WORD);
+    if (tx_param_isregister(params->p1.mode)) {
+        if (tx_register_size((tx_Register) params->p1.value.u) != 4) tx_cpu_error(cpu, ERR_CANNOT_LOAD_WORD);
         else
-            tx_cpu_reg_write(cpu, params->p1, val);
+            tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, val);
     } else {
         tx_cpu_mem_write32(cpu, PARAMA(1), val);
     }
@@ -414,14 +416,14 @@ DEFINE_LDX_STX(d)
 void tx_cpu_op_zero(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("zero")
 
-    if (tx_param_isregister(params->mode_p1)) tx_cpu_reg_write(cpu, params->p1, 0);
+    if (tx_param_isregister(params->p1.mode)) tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, 0);
     else
         tx_cpu_mem_write32(cpu, PARAMA(1), 0);
 }
 
 void tx_cpu_op_push(tx_CPU* cpu, tx_Parameters* params) {
     tx_uint32 val = PARAMV(1);
-    switch (tx_param_value_size(params->p1, params->mode_p1)) {
+    switch (tx_param_value_size(params->p1)) {
         case 1: tx_cpu_push8(cpu, (tx_uint8)val); break;
         case 2: tx_cpu_push16(cpu, (tx_uint16)val); break;
         case 4: tx_cpu_push32(cpu, val); break;
@@ -432,15 +434,15 @@ void tx_cpu_op_push(tx_CPU* cpu, tx_Parameters* params) {
 void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("pop")
 
-    if (tx_param_isregister(params->mode_p1)) {
-        switch (tx_register_size(params->p1)) {
-            case 0: tx_cpu_reg_write(cpu, params->p1, tx_cpu_pop32(cpu)); break;
-            case 1: tx_cpu_reg_write(cpu, params->p1, tx_cpu_pop16(cpu)); break;
-            case 2: tx_cpu_reg_write(cpu, params->p1, tx_cpu_pop8(cpu)); break;
+    if (tx_param_isregister(params->p1.mode)) {
+        switch (tx_register_size((tx_Register) params->p1.value.u)) {
+            case 0: tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, tx_cpu_pop32(cpu)); break;
+            case 1: tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, tx_cpu_pop16(cpu)); break;
+            case 2: tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, tx_cpu_pop8(cpu)); break;
             default: break;
         }
     } else
-        tx_cpu_mem_write32(cpu, params->p1, tx_cpu_pop32(cpu));
+        tx_cpu_mem_write32(cpu, params->p1.value.u, tx_cpu_pop32(cpu));
 }
 
 // Macros for defining arithmetic operations
@@ -455,7 +457,7 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
     tx_num32 result;
 
 #define AR_OP_END \
-    if (tx_param_isregister(params->mode_p1)) tx_cpu_reg_write(cpu, params->p1, result.u); \
+    if (tx_param_isregister(params->p1.mode)) tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, result.u); \
     else \
         tx_cpu_mem_write32(cpu, PARAMA(1), result.u);
 
@@ -687,5 +689,3 @@ void tx_cpu_op_di(tx_CPU* cpu, tx_Parameters* params) { }
 void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {
     tx_log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
 }
-
-// TODO toggle bit

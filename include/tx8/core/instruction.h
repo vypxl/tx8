@@ -117,6 +117,46 @@ typedef enum tx_Opcode {
     tx_op_invalid = 0xff
 } tx_Opcode;
 
+/// List of tx8 instruction parameter modes
+typedef enum tx_ParamMode {
+    tx_param_unused           = 0x0,
+    tx_param_constant8        = 0x1,
+    tx_param_constant16       = 0x2,
+    tx_param_constant32       = 0x3,
+    tx_param_absolute_address = 0x4,
+    tx_param_relative_address = 0x5,
+    tx_param_register         = 0x6,
+    tx_param_register_address = 0x7,
+
+    tx_param_label = 0xf, /// Only used by the assembler
+} tx_ParamMode;
+
+/// Struct representing an instruction parameters
+typedef struct tx_Parameter {
+    tx_ParamMode mode;
+    tx_num32     value;
+} tx_Parameter;
+
+/// Struct holding the two parameters of an instruction for convenience
+typedef struct tx_Parameters {
+    tx_Parameter p1;
+    tx_Parameter p2;
+} tx_Parameters;
+
+/// Struct representing a single instruction with opcode, parameters and a length in bytes (binary length)
+typedef struct tx_Instruction {
+    tx_Opcode     opcode;
+    tx_Parameters params;
+    tx_uint8      len;
+} tx_Instruction;
+
+/// Struct representing a label, consisting of a string name, an id and an absolute address
+typedef struct tx_Label {
+    char*     name;
+    tx_uint32 id;
+    tx_uint32 position;
+} tx_Label;
+
 // clang-format off
 /// Mapping of tx8 opcodes to their respective human readable names
 static const char tx_op_names[256][6] = {
@@ -266,31 +306,18 @@ static inline tx_uint8 tx_register_size(tx_Register reg) {
     }
 }
 
-/// List of tx8 instruction parameter modes
-typedef enum tx_ParamMode {
-    tx_param_unused           = 0x0,
-    tx_param_constant8        = 0x1,
-    tx_param_constant16       = 0x2,
-    tx_param_constant32       = 0x3,
-    tx_param_absolute_address = 0x4,
-    tx_param_relative_address = 0x5,
-    tx_param_register         = 0x6,
-    tx_param_register_address = 0x7
-} tx_ParamMode;
-
 /// Get the size of a tx8 instruction parameter in bytes
-static inline tx_uint8 tx_param_value_size(tx_uint32 param, tx_ParamMode mode) {
-    switch (mode) {
-        case tx_param_constant8: return 1; break;
-        case tx_param_constant16: return 2; break;
+static inline tx_uint8 tx_param_value_size(tx_Parameter param) {
+    switch (param.mode) {
+        case tx_param_constant8: return 1;
+        case tx_param_constant16: return 2;
         case tx_param_constant32:
         case tx_param_absolute_address:
         case tx_param_relative_address:
         case tx_param_register_address: return 4;
-        case tx_param_register: return tx_register_size((tx_Register) param);
-        default: return 0; break;
+        case tx_param_register: return tx_register_size((tx_Register) param.value.u);
+        default: return 0;
     }
-    return 0;
 }
 
 /// Check if a parameter represents a writable destination by its mode
@@ -356,19 +383,6 @@ static const tx_uint8 tx_param_count[256] = {
 
 /// Mapping of parameter counts to number of parameter mode bytes in a binary instruction
 static const tx_uint8 tx_param_mode_bytes[3] = {0, 1, 1};
-
-/// Struct representing the three possible parameters to an instruction
-typedef struct tx_Parameters {
-    tx_ParamMode mode_p1, mode_p2;
-    tx_uint32    p1, p2;
-} tx_Parameters;
-
-/// Struct representing a single instruction with opcode, parameters and a length in bytes (binary length)
-typedef struct tx_Instruction {
-    tx_Opcode     opcode;
-    tx_Parameters parameters;
-    tx_uint8      len;
-} tx_Instruction;
 
 /// The maximum length of a binary instruction in bytes
 #define tx_INSTRUCTION_MAX_LENGTH 0xa

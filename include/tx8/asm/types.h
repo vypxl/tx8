@@ -13,45 +13,23 @@
 extern "C" {
 #endif
 
-/// Struct representing a parameter to an instruction, consisting of value and mode
-typedef struct tx_asm_Parameter {
-    tx_num32 value;
-    tx_uint8 mode;
-} tx_asm_Parameter;
-
-/// Struct representing an instruction with opcode and parameters
-typedef struct tx_asm_Instruction {
-    tx_Opcode        opcode;
-    tx_asm_Parameter p1, p2;
-} tx_asm_Instruction;
-
-/// Struct representing a label, consisting of a string name, an id and an absolute position in the resulting binary
-typedef struct tx_asm_Label {
-    char*     name;
-    tx_uint32 id;
-    tx_uint32 position;
-} tx_asm_Label;
-
 /// A simple representation of a linked list
 typedef struct tx_asm_LL {
     void*             item;
     struct tx_asm_LL* next;
 } tx_asm_LL;
 
-/// A custom parameter mode to be used as a marker for label ids to be converted to their absolute positions
-static const tx_uint8 tx_asm_param_label_id = 0xf1;
-
 /// Pretty print a parameter
-void tx_asm_print_parameter(tx_asm_Parameter* p);
+void tx_asm_print_parameter(tx_Parameter* p);
 /// Write the binary representation of the given parameter to the buffer (size of the buffer should be at least 4 bytes)
-tx_uint8 tx_asm_parameter_generate_binary(tx_asm_Parameter* p, tx_uint8* buf);
+tx_uint8 tx_asm_parameter_generate_binary(tx_Parameter* p, tx_uint8* buf);
 
 /// Get the length of the binary representation of the instruction in bytes
-tx_uint32 tx_asm_instruction_length(tx_asm_Instruction* inst);
+tx_uint32 tx_asm_instruction_length(tx_Instruction* inst);
 /// Pretty print an instruction
-void tx_asm_print_instruction(tx_asm_Instruction* inst);
+void tx_asm_print_instruction(tx_Instruction* inst);
 /// Write the binary representation of the given instruction to the buffer (size of the buffer should be at least tx_INSTRUCTION_MAX_LENGTH)
-void tx_asm_instruction_generate_binary(tx_asm_Instruction* inst, tx_uint8* buf);
+void tx_asm_instruction_generate_binary(tx_Instruction* inst, tx_uint8* buf);
 
 /// Free all resources allocated by the linked list. Also frees all items!
 void tx_asm_LL_destroy(tx_asm_LL* ll);
