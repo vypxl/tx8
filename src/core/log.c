@@ -36,21 +36,21 @@ void tx_log_destroy() {
     }
 }
 
-void tx_log(char* format, ...) {
+void tx_log(const char* format, ...) {
     va_list args;
     va_start(args, format);
     tx_logv(format, args);
     va_end(args);
 }
 
-void tx_log_err(char* format, ...) {
+void tx_log_err(const char* format, ...) {
     va_list args;
     va_start(args, format);
     tx_logv_err(format, args);
     va_end(args);
 }
 
-void tx_logv(char* format, va_list args) {
+void tx_logv(const char* format, va_list args) {
     va_list argptr;
     if (__tx_log_stdout) {
         va_copy(argptr, args);
@@ -74,7 +74,7 @@ void tx_logv(char* format, va_list args) {
     }
 }
 
-void tx_logv_err(char* format, va_list args) {
+void tx_logv_err(const char* format, va_list args) {
     va_list argptr;
     if (__tx_log_stderr) {
         va_copy(argptr, args);

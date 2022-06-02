@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-typedef void (*tx_logfunc_ptr)(char* format, va_list args);
+typedef void (*tx_logfunc_ptr)(const char* format, va_list args);
 
 /// Reset the logger to its initial state (also calls destroy)
 void tx_log_reset();
@@ -28,14 +28,14 @@ void tx_log_reset();
 void tx_log_destroy();
 
 /// Issue a normal log
-void tx_log(char* format, ...);
+void tx_log(const char* format, ...);
 /// Issue an error log
-void tx_log_err(char* format, ...);
+void tx_log_err(const char* format, ...);
 
 /// Issue a normal log
-void tx_logv(char* format, va_list argptr);
+void tx_logv(const char* format, va_list argptr);
 /// Issue an error log
-void tx_logv_err(char* format, va_list argptr);
+void tx_logv_err(const char* format, va_list argptr);
 
 #ifdef __cplusplus
 }
