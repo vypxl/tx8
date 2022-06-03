@@ -13,15 +13,11 @@
 extern "C" {
 #endif
 
-/// Pretty print a parameter
-void tx_asm_print_parameter(tx_Parameter* p);
 /// Write the binary representation of the given parameter to the buffer (size of the buffer should be at least 4 bytes)
 tx_uint8 tx_asm_parameter_generate_binary(tx_Parameter* p, tx_uint8* buf);
 
-/// Get the length of the binary representation of the instruction in bytes
-tx_uint32 tx_asm_instruction_length(tx_Instruction* inst);
-/// Pretty print an instruction
-void tx_asm_print_instruction(tx_Instruction* inst);
+/// Recalculate the `len` field of the instruction (binary representation of the instruction in bytes) and return it
+tx_uint32 tx_asm_instruction_calculate_length(tx_Instruction* inst);
 /// Write the binary representation of the given instruction to the buffer (size of the buffer should be at least tx_INSTRUCTION_MAX_LENGTH)
 void tx_asm_instruction_generate_binary(tx_Instruction* inst, tx_uint8* buf);
 

@@ -70,8 +70,10 @@ void tx_run_cpu(tx_CPU* cpu) {
 
         current_instruction = tx_parse_instruction(cpu, cpu->p);
 
-        if (cpu->debug && current_instruction.opcode != tx_op_nop)
-            tx_debug_print_instruction(cpu, &current_instruction);
+        if (cpu->debug && current_instruction.opcode != tx_op_nop) {
+            tx_debug_print_pc(cpu);
+            tx_debug_print_instruction(&current_instruction);
+        }
         tx_cpu_exec_instruction(cpu, current_instruction);
 
         // do not increment p if instruction changes p
@@ -89,7 +91,8 @@ void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
     va_end(argptr);
     tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
     tx_log_err("\nCaused by instruction:\n");
-    tx_debug_print_raw_instruction(cpu, &current_instruction);
+    tx_debug_print_pc(cpu);
+    tx_debug_print_instruction(&current_instruction);
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {

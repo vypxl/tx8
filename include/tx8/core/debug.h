@@ -7,18 +7,26 @@
 
 #include "tx8/core/instruction.h"
 
-#include <bits/types/FILE.h>
 #include <tx8/core/cpu.h>
+#include <tx8/core/log.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/// Print an instruction amongst its position in memory and its parameter values
-void tx_debug_print_instruction(tx_CPU* cpu, tx_Instruction* inst);
+/// Pretty print a parameter
+void tx_debug_print_parameter(tx_Parameter* p);
+/// Print an instruction amongst its parameter values
+void tx_debug_print_instruction(tx_Instruction* inst);
 
-/// Print an instruction to stdout amongst its position in memory and its parameters
-void tx_debug_print_raw_instruction(tx_CPU* cpu, tx_Instruction* inst);
+/// Print an instruction to stdout amongst and its parameters in their uninterpreted raw form and their modes
+void tx_debug_print_raw_instruction(tx_Instruction* inst);
+
+/// Prints the current program counter without at newline
+/// To be used before other debug functions
+static inline void tx_debug_print_pc(tx_CPU* cpu) {
+    tx_log_err("[#%x] ", cpu->p);
+}
 
 #ifdef __cplusplus
 }

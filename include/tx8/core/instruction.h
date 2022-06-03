@@ -161,37 +161,37 @@ typedef struct tx_Label {
 /// Mapping of tx8 opcodes to their respective human readable names
 static const char tx_op_names[256][6] = {
     // 0x0
-    "hlt",   "nop",   "jmp",   "jeq",   "jne",   "jgt",   "jge",   "jlt",   "jle",   "cmp",   "fcmp",  "ucmp",  "call",  "ret",   "sys",   "INV",
+    "hlt",   "nop",   "jmp",   "jeq",   "jne",   "jgt",   "jge",   "jlt",   "jle",   "cmp",   "fcmp",  "ucmp",  "call",  "ret",   "sys",   "IN_0f",
     // 0x1
-    "ld",    "lw",    "lda",   "sta",   "ldb",   "stb",   "ldc",   "stc",   "ldd",   "std",   "zero",  "push",  "pop",   "INV",   "INV",   "INV",
+    "ld",    "lw",    "lda",   "sta",   "ldb",   "stb",   "ldc",   "stc",   "ldd",   "std",   "zero",  "push",  "pop",   "IN_1d", "IN_1e", "IN_1f",
     // 0x2
-    "inc",   "dec",   "add",   "sub",   "mul",   "div",   "mod",   "max",   "min",   "abs",   "sign",  "INV",   "INV",   "INV",   "INV",   "INV",
+    "inc",   "dec",   "add",   "sub",   "mul",   "div",   "mod",   "max",   "min",   "abs",   "sign",  "IN_2b", "IN_2c", "IN_2d", "IN_2e", "IN_2f",
     // 0x3
-    "and",   "or",    "not",   "nand",  "xor",   "slr",   "sar",   "sll",   "ror",   "rol",   "set",   "clr",   "tgl", "test",    "INV",   "INV",
+    "and",   "or",    "not",   "nand",  "xor",   "slr",   "sar",   "sll",   "ror",   "rol",   "set",   "clr",   "tgl",  "test",   "IN_3e", "IN_3f",
     // 0x4
-    "finc",  "fdec",  "fadd",  "fsub",  "fmul",  "fdiv",  "fmod",  "fmax",  "fmin",  "fabs",  "fsign", "sin",   "cos",   "tan",   "asin",  "acos",
+    "finc",  "fdec",  "fadd",  "fsub",  "fmul",  "fdiv",  "fmod",  "fmax",  "fmin",  "fabs",  "fsign", "sin",   "cos",   "tan",   "asin",   "acos",
     // 0x5
-    "atan",  "atan2", "sqrt",  "pow",   "exp",   "log",   "log2",  "log10", "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "atan",  "atan2", "sqrt",  "pow",   "exp",   "log",   "log2",  "log10", "IN_58", "IN_59", "IN_5a", "IN_5b", "IN_5c", "IN_5d", "IN_5e", "IN_5f",
     // 0x6
-    "umul",  "udiv",  "umod",  "umax",  "umin",  "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "umul",  "udiv",  "umod",  "umax",  "umin",  "IN_65", "IN_66", "IN_67", "IN_68", "IN_69", "IN_6a", "IN_6b", "IN_6c", "IN_6d", "IN_6e", "IN_6f",
     // 0x7
-    "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "IN_76", "IN_77", "IN_78", "IN_79", "IN_7a", "IN_7b", "IN_7c", "IN_7d", "IN_7e", "IN_7f",
     // 0x8
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_80", "IN_81", "IN_82", "IN_83", "IN_84", "IN_85", "IN_86", "IN_87", "IN_88", "IN_89", "IN_8a", "IN_8b", "IN_8c", "IN_8d", "IN_8e", "IN_8f",
     // 0x9
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_90", "IN_91", "IN_92", "IN_93", "IN_94", "IN_95", "IN_96", "IN_97", "IN_98", "IN_99", "IN_9a", "IN_9b", "IN_9c", "IN_9d", "IN_9e", "IN_9f",
     // 0xa
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_a0", "IN_a1", "IN_a2", "IN_a3", "IN_a4", "IN_a5", "IN_a6", "IN_a7", "IN_a8", "IN_a9", "IN_aa", "IN_ab", "IN_ac", "IN_ad", "IN_ae", "IN_af",
     // 0xb
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_b0", "IN_b1", "IN_b2", "IN_b3", "IN_b4", "IN_b5", "IN_b6", "IN_b7", "IN_b8", "IN_b9", "IN_ba", "IN_bb", "IN_bc", "IN_bd", "IN_be", "IN_bf",
     // 0xc
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_c0", "IN_c1", "IN_c2", "IN_c3", "IN_c4", "IN_c5", "IN_c6", "IN_c7", "IN_c8", "IN_c9", "IN_ca", "IN_cb", "IN_cc", "IN_cd", "IN_ce", "IN_cf",
     // 0xd
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_d0", "IN_d1", "IN_d2", "IN_d3", "IN_d4", "IN_d5", "IN_d6", "IN_d7", "IN_d8", "IN_d9", "IN_da", "IN_db", "IN_dc", "IN_dd", "IN_de", "IN_df",
     // 0xe
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",
+    "IN_e0", "IN_e1", "IN_e2", "IN_e3", "IN_e4", "IN_e5", "IN_e6", "IN_e7", "IN_e8", "IN_e9", "IN_ea", "IN_eb", "IN_ec", "IN_ed", "IN_ee", "IN_ef",
     // 0xf
-    "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV",   "INV"
+    "IN_f0", "IN_f1", "IN_f2", "IN_f3", "IN_f4", "IN_f5", "IN_f6", "IN_f7", "IN_f8", "IN_f9", "IN_fa", "IN_fb", "IN_fc", "IN_fd", "IN_fe", "IN_ff",
 };
 // clang-format on
 
@@ -336,7 +336,7 @@ static inline bool tx_param_isaddress(tx_ParamMode which) {
 static inline bool tx_param_isregister(tx_ParamMode which) { return which == tx_param_register; };
 
 /// Mapping of parameter modes to their byte size in tx8 binary
-static const tx_uint8  tx_param_sizes[0x8] = {0, 1, 2, 4, 3, 3, 1, 1};
+static const tx_uint8  tx_param_sizes[0x10] = {0, 1, 2, 4, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4};
 /// Masks to truncate a parameter value to its meaningful bytes (indexed by parameter mode)
 static const tx_uint32 tx_param_masks[0x8] = {
     0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};

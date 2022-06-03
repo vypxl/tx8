@@ -247,8 +247,8 @@ hlt
 )EOF";
     run_and_compare_num(s,
                         {0, 0, 3, 1337, -7, -3, 7},
-                        "Exception: Division by zero\nCaused by instruction:\n#4000a0: 25 (div) 0 "
-                        "0 (modes: 6 3)\n");
+                        "Exception: Division by zero\nCaused by instruction:\n"
+                        "[#4000a0] div a <0x0 | 0 | 0.00000>\n");
 }
 
 TEST_F(VMTest, mod) {
@@ -297,8 +297,8 @@ hlt
 )EOF";
     run_and_compare_num(s,
                         {2, 0, 2, 0, -1, -1, 1},
-                        "Exception: Division by zero\nCaused by instruction:\n#4000a0: 26 (mod) 0 "
-                        "0 (modes: 6 3)\n");
+                        "Exception: Division by zero\nCaused by instruction:\n"
+                        "[#4000a0] mod a <0x0 | 0 | 0.00000>\n");
 }
 
 #pragma clang diagnostic pop

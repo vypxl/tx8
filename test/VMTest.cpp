@@ -99,10 +99,10 @@ bool VMTest::run_code(const std::string& s) {
     }
 
     if ((bool)tx_asm_yydebug) {
-        tx_log("labels:\n");
+        tx_log_err("labels:\n");
         tx_asm_assembler_print_labels(&as);
 
-        tx_log("\ninstructions:\n");
+        tx_log_err("\ninstructions:\n");
         tx_asm_assembler_print_instructions(&as);
     }
 

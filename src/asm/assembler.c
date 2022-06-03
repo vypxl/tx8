@@ -2,6 +2,7 @@
 
 #include "tx8/asm/types.h"
 #include "tx8/core/cpu.h"
+#include "tx8/core/debug.h"
 #include "tx8/core/log.h"
 
 #include <stdarg.h>
@@ -55,7 +56,7 @@ bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
     for (unsigned i = 0; i < as->instructions.front; i++) {
         tx_Instruction* inst = as->instructions.data + i;
         tx_asm_instruction_generate_binary(inst, buf);
-        fwrite(buf, tx_asm_instruction_length(inst), 1, output);
+        fwrite(buf, inst->len, 1, output);
     }
 
     return true;
@@ -72,7 +73,7 @@ bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest) 
     for (unsigned i = 0; i < as->instructions.front; i++) {
         tx_Instruction* inst = as->instructions.data + i;
         tx_asm_instruction_generate_binary(inst, rom_dest + pos);
-        pos += tx_asm_instruction_length(inst);
+        pos += inst->len;
     }
 
     return true;
@@ -153,7 +154,7 @@ tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
 }
 
 void tx_asm_assembler_add_instruction(tx_asm_Assembler* as, tx_Instruction inst) {
-    inst.len = tx_asm_instruction_length(&inst);
+    tx_asm_instruction_calculate_length(&inst);
     tx_array_instruction_insert(&(as->instructions), inst);
     as->position += inst.len;
 }
@@ -176,15 +177,15 @@ void tx_asm_assembler_print_instructions(tx_asm_Assembler* as) {
     tx_uint32 pos = 0;
     for (unsigned i = 0; i < as->instructions.front; i++) {
         tx_Instruction* inst = as->instructions.data + i;
-        tx_log("[#%04x:%02x] ", pos, tx_asm_instruction_length(inst));
-        pos += tx_asm_instruction_length(inst);
-        tx_asm_print_instruction(inst);
+        tx_log_err("[asm] [#%04x:%02x] ", pos, inst->len);
+        pos += inst->len;
+        tx_debug_print_instruction(inst);
     }
 }
 
 void tx_asm_assembler_print_labels(tx_asm_Assembler* as) {
     for (unsigned i = 0; i < as->labels.front; i++) {
         tx_Label* label = as->labels.data + i;
-        tx_log(":%s [%x] = #%x\n", label->name, label->id, label->position);
+        tx_log_err("[asm] :%s [%x] = #%x\n", label->name, label->id, label->position);
     }
 }
