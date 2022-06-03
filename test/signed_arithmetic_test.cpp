@@ -2,7 +2,7 @@
 #pragma ide diagnostic ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
-TEST_F(VMTest, inc) {
+TEST_F(Signed, inc) {
     std::string s = R"EOF(
 lda 0
 inc a
@@ -24,7 +24,7 @@ hlt
     run_and_compare_num(s, {1u, 0u, INT_MIN});
 }
 
-TEST_F(VMTest, dec) {
+TEST_F(Signed, dec) {
     std::string s = R"EOF(
 lda 0
 dec a
@@ -45,7 +45,7 @@ hlt
     run_and_compare_num(s, {-1, -2, 0});
 }
 
-TEST_F(VMTest, add) {
+TEST_F(Signed, add) {
     std::string s = R"EOF(
 lda 2
 add a 3
@@ -97,7 +97,7 @@ hlt
     run_and_compare_num(s, {5u, 0u, 0u, 0xfffffffeu, 2, 2, -2, -3, -9});
 }
 
-TEST_F(VMTest, sub) {
+TEST_F(Signed, sub) {
     std::string s = R"EOF(
 lda 2
 sub a 3
@@ -149,7 +149,7 @@ hlt
     run_and_compare_num(s, {0xffffffffu, 0x1fu, 0xdead0000u, 0u, 6, -4, -8, 3, -1});
 }
 
-TEST_F(VMTest, mul) {
+TEST_F(Signed, mul) {
     std::string s = R"EOF(
 lda 2
 mul a 3
@@ -201,7 +201,7 @@ hlt
     run_and_compare_num(s, {6u, 0u, 0u, 0u, 0xffffffffu, 1u, -77, -385, 385});
 }
 
-TEST_F(VMTest, div) {
+TEST_F(Signed, div) {
     std::string s = R"EOF(
 lda 2
 div a 3
@@ -251,7 +251,7 @@ hlt
                         "[#4000a0] div a <0x0 | 0 | 0.00000>\n");
 }
 
-TEST_F(VMTest, mod) {
+TEST_F(Signed, mod) {
     std::string s = R"EOF(
 lda 2
 mod a 3

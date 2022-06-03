@@ -2,7 +2,7 @@
 #pragma ide diagnostic ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
-TEST_F(VMTest, finc) {
+TEST_F(Float, finc) {
     std::string s = R"EOF(
 lda 0.0
 finc a
@@ -24,7 +24,7 @@ hlt
     run_and_compare_num(s, {1.0f, 0.0f, 1235.567f});
 }
 
-TEST_F(VMTest, fdec) {
+TEST_F(Float, fdec) {
     std::string s = R"EOF(
 lda 0.0
 fdec a
@@ -45,7 +45,7 @@ hlt
     run_and_compare_num(s, {-1.0f, 0.0f, 1233.567f});
 }
 
-TEST_F(VMTest, fadd) {
+TEST_F(Float, fadd) {
     std::string s = R"EOF(
 lda 15.62
 fadd a 0.0
@@ -77,7 +77,7 @@ hlt
     run_and_compare_num(s, {15.62f, 0.0f, -24.68f, 44.44f, 44.44f});
 }
 
-TEST_F(VMTest, fsub) {
+TEST_F(Float, fsub) {
     std::string s = R"EOF(
 lda 15.62
 fsub a 0.0
@@ -109,7 +109,7 @@ hlt
     run_and_compare_num(s, {{15.62f, 0.0f, 0.0f, 66.66f, -66.66f}});
 }
 
-TEST_F(VMTest, fmul) {
+TEST_F(Float, fmul) {
     std::string s = R"EOF(
 lda 1.0
 fmul a 5.5
@@ -146,7 +146,7 @@ hlt
     run_and_compare_num(s, {{5.5f, 0.0f, -3.75f, -12.0f, 15.0f, 1.0f}});
 }
 
-TEST_F(VMTest, fdiv) {
+TEST_F(Float, fdiv) {
     std::string s = R"EOF(
 lda 1.0
 fdiv a 5.0
@@ -195,7 +195,7 @@ hlt
                          std::numeric_limits<float>::quiet_NaN()});
 }
 
-TEST_F(VMTest, fmod) {
+TEST_F(Float, fmod) {
     std::string s = R"EOF(
 lda 1.0
 fmod a 5.0

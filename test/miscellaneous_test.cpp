@@ -2,7 +2,7 @@
 #pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
-TEST_F(VMTest, itf) {
+TEST_F(Miscellaneous, itf) {
     std::string s = R"EOF(
 lda 0
 itf a
@@ -24,7 +24,7 @@ hlt
     run_and_compare_num(s, {0.0f, 1337.0f, -5.0f});
 }
 
-TEST_F(VMTest, fti) {
+TEST_F(Miscellaneous, fti) {
     std::string s = R"EOF(
 lda 0.0
 fti a

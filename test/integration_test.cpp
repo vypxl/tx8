@@ -1,6 +1,6 @@
 #include "VMTest.hpp"
 
-TEST_F(VMTest, HelloWorld) {
+TEST_F(Integration, HelloWorld) {
     std::string s = R"EOF(
 ld o 0xc03000
 

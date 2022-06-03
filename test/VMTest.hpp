@@ -38,3 +38,10 @@ class VMTest : public ::testing::Test {
 
     bool run_code(const std::string& s);
 };
+
+class Signed : public VMTest {};
+class Bitwise : public VMTest {};
+class Float : public VMTest {};
+class Unsigned : public VMTest {};
+class Miscellaneous : public VMTest {};
+class Integration : public VMTest {};

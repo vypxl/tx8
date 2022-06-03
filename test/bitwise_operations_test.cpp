@@ -2,7 +2,7 @@
 #pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
-TEST_F(VMTest, and) {
+TEST_F(Bitwise, and) {
     std::string s = R"EOF(
 lda 0xffffffff
 and a 0xffffffff
@@ -44,7 +44,7 @@ hlt
     run_and_compare_num(s, {0xffffffffu, 0xfffffffeu, 0u, 0u, 1057, 0xbeefu, 384});
 }
 
-TEST_F(VMTest, or) {
+TEST_F(Bitwise, or) {
     std::string s = R"EOF(
 lda 0xffffffff
 or a 0xffffffff
@@ -87,7 +87,7 @@ hlt
         s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
 }
 
-TEST_F(VMTest, not ) {
+TEST_F(Bitwise, not ) {
     std::string s = R"EOF(
 lda 0xffffffff
 not a
@@ -114,7 +114,7 @@ hlt
     run_and_compare_num(s, {0u, 0u, 0xffffffffu, 0x21524110u});
 }
 
-TEST_F(VMTest, nand) {
+TEST_F(Bitwise, nand) {
     std::string s = R"EOF(
 lda 0xffffffff
 nand a 0xffffffff
@@ -156,7 +156,7 @@ hlt
     run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, -1058, 0xffff4110u, -385});
 }
 
-TEST_F(VMTest, xor) {
+TEST_F(Bitwise, xor) {
     std::string s = R"EOF(
 lda 0xffffffff
 xor a 0xffffffff
@@ -198,7 +198,7 @@ hlt
     run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, 6554, 0xdead4110u, -491});
 }
 
-TEST_F(VMTest, slr) {
+TEST_F(Bitwise, slr) {
     std::string s = R"EOF(
 lda 0
 slr a 1
@@ -235,7 +235,7 @@ hlt
     run_and_compare_num(s, {0u, 0u, 0x7fu, 0x6f56u, 0u, 0u});
 }
 
-TEST_F(VMTest, sll) {
+TEST_F(Bitwise, sll) {
     std::string s = R"EOF(
 lda 0
 sll a 1
@@ -272,7 +272,7 @@ hlt
     run_and_compare_num(s, {0u, 2u, 0x1feu, 0x7dde0000u, 0u, 0u});
 }
 
-TEST_F(VMTest, ror) {
+TEST_F(Bitwise, ror) {
     std::string s = R"EOF(
 lda 0
 ror a 1
@@ -305,7 +305,7 @@ hlt
     run_and_compare_num(s, {0u, 0x56781234u, 0xfcf9dfffu, 0x2u, 0xdeadbeefu});
 }
 
-TEST_F(VMTest, rol) {
+TEST_F(Bitwise, rol) {
     std::string s = R"EOF(
 lda 0
 rol a 1
