@@ -9,7 +9,6 @@
 #include <khash.h>
 #include <math.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -89,6 +88,14 @@ void tx_run_cpu(tx_CPU* cpu) {
     }
 }
 
+void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...) {
+    va_list argptr;
+    va_start(argptr, format);
+    tx_log_err(format, argptr);
+    cpu->halted = true;
+    va_end(argptr);
+}
+
 void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
@@ -107,7 +114,7 @@ tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
 
 tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
     if (pc > tx_MEM_SIZE - tx_INSTRUCTION_MAX_LENGTH - 1 || pc < 0) {
-        tx_cpu_error(cpu, ERR_INVALID_PC);
+        tx_cpu_error_raw(cpu, ERR_INVALID_PC);
         tx_Instruction nop = {0};
         nop.opcode         = tx_op_nop;
         nop.len            = 1;

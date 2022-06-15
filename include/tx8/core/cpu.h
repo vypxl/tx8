@@ -42,7 +42,7 @@ typedef struct tx_sysfunc {
 } tx_sysfunc;
 
 /// \private
-KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc, 1, kh_int_hash_func, kh_int_hash_equal);
+KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc, 1, kh_int_hash_func, kh_int_hash_equal); // NOLINT
 
 /// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
 struct tx_CPU {
@@ -74,6 +74,9 @@ void tx_destroy_cpu(tx_CPU* cpu);
 /// Execute instructions until an error occurs or a hlt instruction is reached
 void tx_run_cpu(tx_CPU* cpu);
 /// Print an error message and halt the cpu (sets `halted` to true)
+void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...);
+/// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
+/// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
 void tx_cpu_error(tx_CPU* cpu, char* format, ...);
 /// Get a random 32bit value using the random seed
 tx_uint32 tx_cpu_rand(tx_CPU* cpu);
