@@ -68,6 +68,12 @@ void tx_run_cpu(tx_CPU* cpu) {
             break;
         }
 
+        // TODO: implement properly upon implementing interrupts
+        if (cpu->stopped) {
+            cpu->halted = true;
+            break;
+        }
+
         current_instruction = tx_parse_instruction(cpu, cpu->p);
 
         if (cpu->debug && current_instruction.opcode != tx_op_nop) {
@@ -687,6 +693,7 @@ void tx_cpu_op_ftu(tx_CPU* cpu, tx_Parameters* params) {
 }
 void tx_cpu_op_ei(tx_CPU* cpu, tx_Parameters* params) { }
 void tx_cpu_op_di(tx_CPU* cpu, tx_Parameters* params) { }
+void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params) { cpu->stopped = true; }
 
 // Invalid operation
 void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {

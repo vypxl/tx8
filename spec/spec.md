@@ -324,16 +324,17 @@ immediates like `1.5`.
 
 ##### Miscellaneous Operations
 
-| Opcode | Asm   | Parameters | Operation                                          | Example    |
-|--------|-------|------------|----------------------------------------------------|------------|
-| 0x70   | rand  | `w0`       | p1 := pseudo random float between 0 and 1          | `rand $0`  |
-| 0x71   | rseed | `v0`       | set random seed                                    | `rseed 42` |
-| 0x72   | itf   | `w0`       | convert integer to floating point                  | `itf a`    |
-| 0x73   | fti   | `w0`       | convert floating point to integer                  | `fti a`    |
-| 0x74   | utf   | `w0`       | convert unsigned integer to floating point         | `utf a`    |
-| 0x75   | ftu   | `w0`       | convert floating point to unsigned integer         | `ftu a`    |
-| 0x76   | ei    | `00`       | enable interrupts (for future use, currently nop)  | `ei`       |
-| 0x77   | di    | `00`       | disable interrupts (for future use, currently nop) | `di`       |
+| Opcode | Asm   | Parameters | Operation                                                                              | Example    |
+|--------|-------|------------|----------------------------------------------------------------------------------------|------------|
+| 0x70   | rand  | `w0`       | p1 := pseudo random float between 0 and 1                                              | `rand $0`  |
+| 0x71   | rseed | `v0`       | set random seed                                                                        | `rseed 42` |
+| 0x72   | itf   | `w0`       | convert integer to floating point                                                      | `itf a`    |
+| 0x73   | fti   | `w0`       | convert floating point to integer                                                      | `fti a`    |
+| 0x74   | utf   | `w0`       | convert unsigned integer to floating point                                             | `utf a`    |
+| 0x75   | ftu   | `w0`       | convert floating point to unsigned integer                                             | `ftu a`    |
+| 0x76   | ei    | `00`       | enable interrupts (for future use, currently nop)                                      | `ei`       |
+| 0x77   | di    | `00`       | disable interrupts (for future use, currently nop)                                     | `di`       |
+| 0x78   | stop  | `00`       | stop execution until an interrupt occurs (for future use, currently equivalent to hlt) | `stop`     |
 
 ## Binary Files
 

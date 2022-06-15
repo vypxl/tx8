@@ -59,8 +59,10 @@ struct tx_CPU {
     khash_t(tx_sysfunc) * sys_func_table;
     /// Random seed
     tx_uint32 rseed;
-    /// If the cpu is currently halted (stopped execution)
+    /// If the cpu is currently halted (finished execution)
     bool halted;
+    /// If the cpu is currently idle and waiting for an interrupt
+    bool stopped;
     /// If debug information should be printed
     bool debug;
 };
@@ -255,6 +257,7 @@ void tx_cpu_op_utf(tx_CPU* cpu, tx_Parameters* params);
 void tx_cpu_op_ftu(tx_CPU* cpu, tx_Parameters* params);
 void tx_cpu_op_ei(tx_CPU* cpu, tx_Parameters* params);
 void tx_cpu_op_di(tx_CPU* cpu, tx_Parameters* params);
+void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params);
 
 
 /// Opcode handler function for invalid opcodes
@@ -280,7 +283,7 @@ static const tx_OpFunction tx_cpu_op_function[256] = {
     // 0x6
     &tx_cpu_op_umul, &tx_cpu_op_udiv, &tx_cpu_op_umod, &tx_cpu_op_umax, &tx_cpu_op_umin, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
     // 0x7
-    &tx_cpu_op_rand, &tx_cpu_op_rseed, &tx_cpu_op_itf, &tx_cpu_op_fti, &tx_cpu_op_utf, &tx_cpu_op_ftu, &tx_cpu_op_ei, &tx_cpu_op_di, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
+    &tx_cpu_op_rand, &tx_cpu_op_rseed, &tx_cpu_op_itf, &tx_cpu_op_fti, &tx_cpu_op_utf, &tx_cpu_op_ftu, &tx_cpu_op_ei, &tx_cpu_op_di, &tx_cpu_op_stop, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
     // 0x8
     &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
     // 0x9

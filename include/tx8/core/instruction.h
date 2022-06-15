@@ -114,6 +114,7 @@ typedef enum tx_Opcode {
     tx_op_ftu   = 0x75,
     tx_op_ei    = 0x76,
     tx_op_di    = 0x77,
+    tx_op_stop  = 0x78,
     tx_op_invalid = 0xff
 } tx_Opcode;
 
@@ -175,7 +176,7 @@ static const char tx_op_names[256][6] = {
     // 0x6
     "umul",  "udiv",  "umod",  "umax",  "umin",  "IN_65", "IN_66", "IN_67", "IN_68", "IN_69", "IN_6a", "IN_6b", "IN_6c", "IN_6d", "IN_6e", "IN_6f",
     // 0x7
-    "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "IN_76", "IN_77", "IN_78", "IN_79", "IN_7a", "IN_7b", "IN_7c", "IN_7d", "IN_7e", "IN_7f",
+    "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "ei",    "di",    "stop",  "IN_79", "IN_7a", "IN_7b", "IN_7c", "IN_7d", "IN_7e", "IN_7f",
     // 0x8
     "IN_80", "IN_81", "IN_82", "IN_83", "IN_84", "IN_85", "IN_86", "IN_87", "IN_88", "IN_89", "IN_8a", "IN_8b", "IN_8c", "IN_8d", "IN_8e", "IN_8f",
     // 0x9

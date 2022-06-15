@@ -29,7 +29,7 @@ int fileno(FILE *stream);
 %option noinput
 %option nounput
 
-OP0         hlt|nop|ret
+OP0         hlt|nop|ret|ei|di|stop
 OP1         jmp|jeq|jne|jgt|jge|jlt|jle|call|sys|lda|sta|ldb|stb|ldc|stc|ldd|std|zero|push|pop|inc|dec|abs|sign|not|finc|fdec|fabs|fsign|sin|cos|tan|asin|acos|atan|sqrt|exp|log|log2|log10|rand|rseed|itf|fti|utf|ftu
 OP2         cmp|fcmp|ucmp|ld|lw|add|sub|mul|div|mod|max|min|and|or|nand|xor|slr|sar|sll|ror|rol|set|clr|tgl|test|fadd|fsub|fmul|fdiv|fmod|fmax|fmin|atan2|pow|umul|udiv|umax|umin
 IDENTIFIER  [a-zA-Z][a-zA-Z0-9_\-]*
