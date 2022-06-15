@@ -301,4 +301,108 @@ hlt
                         "[#4000a0] mod a <0x0 | 0 | 0.00000>\n");
 }
 
+TEST_F(Signed, max) {
+    std::string s = R"EOF(
+lda 2
+max a 3
+push a
+sys &test_int ; 3
+
+lda -5
+max a 5
+push a
+sys &test_int ; 5
+
+lda 0
+max a -9999
+push a
+sys &test_int ; 0
+
+lda 0xffffffff
+max a -1
+push a
+sys &test_int ; -1
+
+hlt
+)EOF";
+    run_and_compare_num(s, {3, 5, 0, -1});
+}
+
+TEST_F(Signed, min) {
+    std::string s = R"EOF(
+
+lda 2
+min a 3
+push a
+sys &test_int ; 2
+
+lda -5
+min a 5
+push a
+sys &test_int ; -5
+
+lda 0
+min a -9999
+push a
+sys &test_int ; -9999
+
+lda 0xffffffff
+min a -1
+push a
+sys &test_int ; -1
+
+hlt
+)EOF";
+    run_and_compare_num(s, {2, -5, -9999, -1});
+}
+
+TEST_F(Signed, abs) {
+    std::string s = R"EOF(
+lda -2
+abs a
+push a
+sys &test_int ; 2
+
+lda 0
+abs a
+push a
+sys &test_int ; 0
+
+lda 42
+abs a
+push a
+sys &test_int ; 42
+
+lda 0xffffffff
+abs a
+push a
+sys &test_int ; 1
+
+hlt
+)EOF";
+    run_and_compare_num(s, {2, 0, 42, 1});
+}
+
+TEST_F(Signed, sign) {
+    std::string s = R"EOF(
+lda -2
+sign a
+push a
+sys &test_int ; -1
+
+lda 0
+sign a
+push a
+sys &test_int ; 0
+
+lda 42
+sign a
+push a
+sys &test_int ; 1
+
+hlt
+)EOF";
+    run_and_compare_num(s, {-1, 0, 1});
+}
+
 #pragma clang diagnostic pop
