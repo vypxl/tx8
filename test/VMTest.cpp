@@ -65,13 +65,15 @@ void VMTest::run_and_compare_num(const std::string& code, const std::vector<tx_n
     for (size_t i = 0; i < nums.size(); i++) {
         auto a = nums[i];
         auto b = expecteds[i];
-        if (std::holds_alternative<tx_uint32>(a) || std::holds_alternative<tx_int32>(a)) {
-            EXPECT_EQ(a, b);
+        if (std::holds_alternative<tx_uint32>(a) || std::holds_alternative<tx_int32>(b)) {
+            auto actual = a;
+            auto expected = b;
+            EXPECT_EQ(actual, expected);
         } else /* tx_float32 */ {
-            tx_float32 x = std::get<tx_float32>(a);
-            tx_float32 y = std::get<tx_float32>(b);
-            if (std::isnan(x) && std::isnan(y)) SUCCEED();
-            else EXPECT_FLOAT_EQ(x, y) << "At index " << i;
+            tx_float32 actual = std::get<tx_float32>(a);
+            tx_float32 expected = std::get<tx_float32>(b);
+            if (std::isnan(actual) && std::isnan(expected)) SUCCEED();
+            else EXPECT_FLOAT_EQ(actual, expected) << "At index " << i;
         }
     }
 }
