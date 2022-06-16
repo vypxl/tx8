@@ -157,6 +157,11 @@ static inline void tx_cpu_write_r(tx_CPU* cpu, tx_uint32 value) {
     tx_cpu_reg_write(cpu, tx_reg_r, value);
 }
 
+/// Convenience function to set a bit in the r register to a value
+static inline void tx_cpu_set_r_bit(tx_CPU* cpu, tx_uint8 bit, tx_uint8 value) {
+    cpu->r = (cpu->r & ~(1u << bit)) | (value << bit);
+}
+
 // Convenience function to read the R register
 static inline tx_uint32 tx_cpu_read_r(tx_CPU* cpu) {
     return tx_cpu_reg_read(cpu, tx_reg_r);

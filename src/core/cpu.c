@@ -527,13 +527,76 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
         result.u = fun(a.u, b.u); \
     AR_OP_END
 
+#define R(x) tx_cpu_write_r(cpu, x)
+#define R_SIZES(one, half, full) \
+    if (tx_param_isregister(params->p1.mode)) { \
+        tx_Register reg = (tx_Register)params->p1.value.u; \
+        switch (reg & tx_REG_SIZE_MASK) { \
+            case tx_REG_SIZE_1: R((one)); break; \
+            case tx_REG_SIZE_2: R((half)); break; \
+            case tx_REG_SIZE_4: R((full)); break; \
+            default: break; \
+        } \
+    } else R((full))
+
+#define AR_OVF_OP(name) \
+    AR_OP_2_BEGIN(name) \
+    if (tx_param_isregister(params->p1.mode) && tx_register_size((tx_Register) params->p1.value.u) != 4) { \
+        switch (tx_register_size((tx_Register)params->p1.value.u)) { \
+            case 1: \
+                R(__builtin_##name##_overflow((tx_uint8) a.u, (tx_uint8) b.u, (tx_uint8*)(&result.u))); \
+                tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int8) a.i, (tx_int8) b.i, (tx_int8*)(&result.i))); \
+                break; \
+            case 2: \
+                R(__builtin_##name##_overflow((tx_uint16) a.u, (tx_uint16) b.u, (tx_uint16*)(&result.u))); \
+                tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int16) a.i, (tx_int16) b.i, (tx_int16*)(&result.i))); \
+                break; \
+            default: R(0); result.u = 0xdeadbeef; break; /* Just to suppress compiler warning */ \
+        } \
+    } else { \
+        R(__builtin_##name##_overflow(a.u, b.u, &result.u)); \
+        tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow(a.i, b.i, &result.i)); \
+    } \
+    AR_OP_END
+
+#define AR_OVF_MUL(name, type, vtype) \
+    AR_OP_2_BEGIN(name) \
+    type##64_t a_64 = a.vtype; \
+    type##64_t b_64 = b.vtype; \
+    type##64_t r_64 = a_64 * b_64; \
+    result.vtype = r_64; \
+    if (tx_param_isregister(params->p1.mode) && tx_register_size((tx_Register) params->p1.value.u) != 4) { \
+        switch (tx_register_size((tx_Register)params->p1.value.u)) { \
+            case 1: R((r_64 >> 8) & 0xff); break; \
+            case 2: R((r_64 >> 16) & 0xffff); break; \
+            default: R(0); \
+        } \
+    } else { \
+        R((r_64 >> 32) & 0xffffffff); \
+    } \
+    AR_OP_END
+
 // Actual arithmetic operations
 
-void tx_cpu_op_inc(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_1("inc", 1 +) }
-void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_1("dec", -1 +) }
-void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("add", +) }
-void tx_cpu_op_sub(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("sub", -) }
-void tx_cpu_op_mul(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_OP_2("mul", *) }
+void tx_cpu_op_inc(tx_CPU* cpu, tx_Parameters* params) {
+    AR_SIMPLE_OP_1("inc", 1 +);
+    R_SIZES(
+        ((result.i == INT32_MIN) << 1) | (result.u == 0),
+        ((result.i == INT16_MIN) << 1) | (result.u == 0),
+        ((result.i == INT8_MIN) << 1) | (result.u == 0)
+    );
+}
+void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) {
+    AR_SIMPLE_OP_1("dec", -1 +);
+    R_SIZES(
+        ((result.i == INT32_MAX) << 1) | (result.u == UINT32_MAX),
+        ((result.i == INT16_MAX) << 1) | (result.u == UINT16_MAX),
+        ((result.i == INT8_MAX) << 1) | (result.u == UINT8_MAX)
+    );
+}
+void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_OP(add) }
+void tx_cpu_op_sub(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_OP(sub) }
+void tx_cpu_op_mul(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_MUL(mul, int, i) }
 void tx_cpu_op_div(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("div")
         if (b.i == 0) {
@@ -542,6 +605,7 @@ void tx_cpu_op_div(tx_CPU* cpu, tx_Parameters* params) {
         }
         result.i = a.i / b.i;
     AR_OP_END
+    R(a.i % b.i);
 }
 void tx_cpu_op_mod(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("mod")
@@ -552,9 +616,18 @@ void tx_cpu_op_mod(tx_CPU* cpu, tx_Parameters* params) {
         result.i = a.i % b.i;
     AR_OP_END
 }
-void tx_cpu_op_max(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_OP_2("max", MAX) }
-void tx_cpu_op_min(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_OP_2("min", MIN) }
-void tx_cpu_op_abs(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_OP_1("abs", abs) }
+void tx_cpu_op_max(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_OP_2("max", MAX);
+    R(MIN(a.i, b.i));
+}
+void tx_cpu_op_min(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_OP_2("min", MIN);
+    R(MAX(a.i, b.i));
+}
+void tx_cpu_op_abs(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_OP_1("abs", abs);
+    R(SGN(a.i));
+}
 void tx_cpu_op_sign(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_OP_1("sign", SGN) }
 
 void tx_cpu_op_and(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("and", &) }
@@ -567,22 +640,25 @@ void tx_cpu_op_nand(tx_CPU* cpu, tx_Parameters* params) {
 }
 void tx_cpu_op_xor(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("xor", ^) }
 void tx_cpu_op_slr(tx_CPU* cpu, tx_Parameters* params) {
-    AR_OP_2_BEGIN("shr")
+    AR_OP_2_BEGIN("slr")
         if (b.u >= 32) result.u = 0;
         else result.u = a.u >> b.u;
     AR_OP_END
+    R((a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sar(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("sar")
         if (b.u >= 32) result.u = a.i < 0 ? -1 : 0;
         else result.i = a.i >> b.u;
     AR_OP_END
+    R((a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sll(tx_CPU* cpu, tx_Parameters* params) {
-    AR_OP_2_BEGIN("shl")
+    AR_OP_2_BEGIN("sll")
         if (b.u >= 32) result.u = 0;
         else result.u = a.u << b.u;
     AR_OP_END
+    R(a.u >> (32 - b.u));
 }
 void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
@@ -603,25 +679,27 @@ void tx_cpu_op_set(tx_CPU* cpu, tx_Parameters* params) {
         if (b.u > 31) return;
         result.u = a.u | (1u << b.u);
     AR_OP_END
+    R((a.u >> b.u) & 1u);
 }
 void tx_cpu_op_clr(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("clr")
         if (b.u > 31) return;
         result.u = a.u & ~(1u << b.u);
     AR_OP_END
+    R((a.u >> b.u) & 1u);
 }
 void tx_cpu_op_tgl(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("tgl")
         if (b.u > 31) return;
         result.u = a.u ^ (1u << b.u);
     AR_OP_END
+    R((a.u >> b.u) & 1u);
 }
 void tx_cpu_op_test(tx_CPU* cpu, tx_Parameters* params) {
-    CHECK_WRITABLE(name) \
     tx_num32 a = { .u = PARAMV(1) };
     tx_num32 b = { .u = PARAMV(2) };
     if (b.u > 31) return;
-    tx_cpu_write_r(cpu, (a.u >> b.u) & 1u);
+    R((a.u >> b.u) & 1u);
 }
 
 void tx_cpu_op_finc(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_1("finc", 1 +) }
@@ -631,9 +709,18 @@ void tx_cpu_op_fsub(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fsub"
 void tx_cpu_op_fmul(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fmul", *) }
 void tx_cpu_op_fdiv(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fdiv", /) }
 void tx_cpu_op_fmod(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmod", fmodf) }
-void tx_cpu_op_fmax(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmax", MAX) }
-void tx_cpu_op_fmin(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmin", MIN) }
-void tx_cpu_op_fabs(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("fabs", fabsf) }
+void tx_cpu_op_fmax(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_FOP_2("fmax", MAX);
+    R(MIN(a.f, b.f));
+}
+void tx_cpu_op_fmin(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_FOP_2("fmin", MIN);
+    R(MAX(a.f, b.f));
+}
+void tx_cpu_op_fabs(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_FOP_1("fabs", fabsf);
+    R(SGN(a.f));
+}
 void tx_cpu_op_fsign(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("fsign", SGN) }
 void tx_cpu_op_sin(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("sin", sinf) }
 void tx_cpu_op_cos(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("cos", cosf) }
@@ -649,7 +736,7 @@ void tx_cpu_op_log(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("log", log
 void tx_cpu_op_log2(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("log2", log2f) }
 void tx_cpu_op_log10(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("log10", log10f) }
 
-void tx_cpu_op_umul(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("umul", *) }
+void tx_cpu_op_umul(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_MUL(umul, uint, u); }
 void tx_cpu_op_udiv(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("udiv")
         if (b.u == 0) {
@@ -658,6 +745,7 @@ void tx_cpu_op_udiv(tx_CPU* cpu, tx_Parameters* params) {
         }
         result.u = a.u / b.u;
     AR_OP_END
+    R(a.u % b.u);
 }
 void tx_cpu_op_umod(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("umod")
@@ -668,8 +756,14 @@ void tx_cpu_op_umod(tx_CPU* cpu, tx_Parameters* params) {
         result.u = a.u % b.u;
     AR_OP_END
 }
-void tx_cpu_op_umax(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_UOP_2("umax", MAX) }
-void tx_cpu_op_umin(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_UOP_2("umin", MIN) }
+void tx_cpu_op_umax(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_UOP_2("umax", MAX);
+    R(MIN(a.u, b.u));
+}
+void tx_cpu_op_umin(tx_CPU* cpu, tx_Parameters* params) {
+    AR_FUN_UOP_2("umin", MIN);
+    R(MAX(a.u, b.u));
+}
 
 void tx_cpu_op_rand(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("rand")
@@ -706,3 +800,6 @@ void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params) { cpu->stopped = true; }
 void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {
     tx_log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
 }
+
+#undef R
+#undef R_SIZES

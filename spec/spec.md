@@ -44,6 +44,10 @@ Given the register `X`, the full register is available via `X` or `Xi`,
 the lower 2 bytes via `Xs` and the lowest byte via `Xb`.
 The names are case-insensitive.
 (You can memorize the suffixes by thinking of: `int`, `short` and `byte`)
+
+When reading from a smaller register in an operation that requires a 32-bit value, the value is zero-extended.
+When writing a larger value to a smaller register, the result is truncated.
+
 The available CPU registers are described here:
 
 - `A`,`B`,`C`,`D`: general purpose registers
@@ -139,11 +143,15 @@ fti a
 sta R
 ```
 
-The conditional jump instructions read from the `R` register.
+The conditional jump instructions read from the `R` register. They essentially compare the value in `R` to 0
+and jump if the comparison is true.
 
 For unconditional jumps, use `jmp`.
 For conditional jumps, first use the correct `cmp` instruction,
 then use the `jeq`, `jne`, `jgt`, `jge`, `jlt` or `jle` instructions to jump based on the comparison result.
+
+If you want to jump based on the result of a `test` bit test operation, use `jne` after `test` to jump if the
+tested bit was 1, `jeq` to jump if the tested bit was 0.
 
 | Opcode | Asm  | Parameters | Operation                                | Example       |
 |--------|------|------------|------------------------------------------|---------------|
@@ -220,20 +228,19 @@ Push and pop behave like this:
 #### Arithmetic
 
 All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5.
-When operating on registers, the number of
-bytes the operation influences is determined by its suffix
-(none or `i` for 4 bytes, `s` for 2 bytes and `b` for 1 byte). When operating on addresses, 4 bytes will be influenced.
+
+By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended.
+When a smaller register is the destination of an operation, the result is truncated to the size of the register.
+
 Normal instructions operate on signed integers. If you have unsigned integers
 or floats, you have to use the specialized instructions.
 
 ##### Behaviour of the `R` register
  
  - The `cmp`, `fcmp` and `ucmp` instructions set the `R` register to the result of the comparison. See [flow control](#flow-control).
-
-Not yet implemented:
-
- - The `inc`, `dec`, `uinc`, `udec`, `add` and `sub` instructions set the `R` register to 1 if they overflow.
- - The `mul` and `umul` instructions sets the `R` register to the top half of the 64-bit result.
+ - The `inc`, `dec`, `add` and `sub` instructions set the `R` register's lowest bit if there was an unsigned overflow,
+    and the second-lowest bit if there was a signed overflow.
+ - The `mul` and `umul` instructions sets the `R` register to the top half of the result.
  - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
  - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
  - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value.

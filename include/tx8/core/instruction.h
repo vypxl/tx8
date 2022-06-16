@@ -296,7 +296,7 @@ static inline tx_uint8 tx_reg_id_from_name(const char* name) {
 }
 
 /// Masks to truncate a tx8 cpu register value according to the register size
-static const tx_uint32 tx_register_mask[4] = {0xffffffff, 0xff, 0x0, 0xffffff};
+static const tx_uint32 tx_register_mask[3] = {0xffffffff, 0xff, 0xffff};
 /// Get the register size of a tx8 cpu register by its id
 static inline tx_uint8 tx_register_size(tx_Register reg) {
     switch (reg & tx_REG_SIZE_MASK) {
