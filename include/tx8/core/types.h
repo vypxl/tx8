@@ -6,18 +6,19 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef unsigned char  tx_uint8;
-typedef signed char    tx_int8;
-typedef unsigned short tx_uint16;
-typedef signed short   tx_int16;
-typedef unsigned int   tx_uint32;
-typedef signed int     tx_int32;
-typedef float          tx_float32;
+typedef uint8_t  tx_uint8;
+typedef int8_t   tx_int8;
+typedef uint16_t tx_uint16;
+typedef int16_t  tx_int16;
+typedef uint32_t tx_uint32;
+typedef int32_t  tx_int32;
+typedef float    tx_float32;
 
 typedef tx_uint32 tx_mem_addr;
 typedef tx_uint8* tx_mem_ptr;

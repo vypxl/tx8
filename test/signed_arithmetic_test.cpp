@@ -378,9 +378,16 @@ abs a
 push a
 sys &test_int ; 1
 
+; -(INT_MIN) == INT_MIN / abs(INT_MIN) == INT_MIN
+; See `man abs`
+lda -2147483648
+abs a
+push a
+sys &test_int ; -2147483648
+
 hlt
 )EOF";
-    run_and_compare_num(s, {2, 0, 42, 1});
+    run_and_compare_num(s, {2, 0, 42, 1, (INT32_MIN)});
 }
 
 TEST_F(Signed, sign) {

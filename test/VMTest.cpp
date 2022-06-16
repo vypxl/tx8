@@ -65,10 +65,19 @@ void VMTest::run_and_compare_num(const std::string& code, const std::vector<tx_n
     for (size_t i = 0; i < nums.size(); i++) {
         auto a = nums[i];
         auto b = expecteds[i];
-        if (std::holds_alternative<tx_uint32>(a) || std::holds_alternative<tx_int32>(b)) {
-            auto actual = a;
-            auto expected = b;
-            EXPECT_EQ(actual, expected);
+        if (std::holds_alternative<tx_uint32>(b) || std::holds_alternative<tx_int32>(b)) {
+            if (a != b) {
+                if (std::holds_alternative<tx_uint32>(b))
+                    ADD_FAILURE() << "Value 0x" << std::hex << std::get<tx_uint32>(a)
+                                  << " at index " << i << " does not match expected value 0x"
+                                  << std::hex << std::get<tx_uint32>(b) << ".";
+                else
+                    ADD_FAILURE() << "Value " << std::get<tx_int32>(a)
+                                  << " at index " << i << " does not match expected value "
+                                  << std::get<tx_int32>(b) << ".";
+            } else {
+                SUCCEED();
+            }
         } else /* tx_float32 */ {
             tx_float32 actual = std::get<tx_float32>(a);
             tx_float32 expected = std::get<tx_float32>(b);
