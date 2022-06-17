@@ -6,38 +6,31 @@ TEST_F(Bitwise, and) {
     std::string s = R"EOF(
 lda 0xffffffff
 and a 0xffffffff
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0xffffffff
 and a 0xfffffffe
-push a
-sys &test_uint ; 0xfffffffe
+sys &test_au ; 0xfffffffe
 
 lda 0xffffffff
 and a 0
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0
 and a 0xffffffff
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 1337
 and a 7331
-push a
-sys &test_int ; 1057
+sys &test_ai ; 1057
 
 lda 0xdeadbeef
 and a 0xffff
-push a
-sys &test_uint ; 0xbeef
+sys &test_au ; 0xbeef
 
 lda -5243
 and a 5520
-push a
-sys &test_int ; 384
+sys &test_ai ; 384
 
 hlt
 )EOF";
@@ -48,38 +41,31 @@ TEST_F(Bitwise, or) {
     std::string s = R"EOF(
 lda 0xffffffff
 or a 0xffffffff
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0xffffffff
 or a 0xfffffffe
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0xffffffff
 or a 0
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0
 or a 0xffffffff
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 1337
 or a 7331
-push a
-sys &test_int ; 7611
+sys &test_ai ; 7611
 
 lda 0xdeadbeef
 or a 0xffff
-push a
-sys &test_uint ; 0xdeadffff
+sys &test_au ; 0xdeadffff
 
 lda -5243
 or a 5520
-push a
-sys &test_int ; -107
+sys &test_ai ; -107
 
 hlt
 )EOF";
@@ -91,23 +77,19 @@ TEST_F(Bitwise, not ) {
     std::string s = R"EOF(
 lda 0xffffffff
 not a
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda -1
 not a
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0
 not a
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0xdeadbeef
 not a
-push a
-sys &test_uint ; 0x21524110
+sys &test_au ; 0x21524110
 
 hlt
 )EOF";
@@ -118,38 +100,31 @@ TEST_F(Bitwise, nand) {
     std::string s = R"EOF(
 lda 0xffffffff
 nand a 0xffffffff
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0xffffffff
 nand a 0xfffffffe
-push a
-sys &test_uint ; 1
+sys &test_au ; 1
 
 lda 0xffffffff
 nand a 0
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0
 nand a 0xffffffff
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 1337
 nand a 7331
-push a
-sys &test_int ; -1058
+sys &test_ai ; -1058
 
 lda 0xdeadbeef
 nand a 0xffff
-push a
-sys &test_uint ; 0xffff4110
+sys &test_au ; 0xffff4110
 
 lda -5243
 nand a 5520
-push a
-sys &test_int ; -385
+sys &test_ai ; -385
 
 hlt
 )EOF";
@@ -160,38 +135,31 @@ TEST_F(Bitwise, xor) {
     std::string s = R"EOF(
 lda 0xffffffff
 xor a 0xffffffff
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0xffffffff
 xor a 0xfffffffe
-push a
-sys &test_uint ; 1
+sys &test_au ; 1
 
 lda 0xffffffff
 xor a 0
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 0
 xor a 0xffffffff
-push a
-sys &test_uint ; 0xffffffff
+sys &test_au ; 0xffffffff
 
 lda 1337
 xor a 7331
-push a
-sys &test_int ; 6554
+sys &test_ai ; 6554
 
 lda 0xdeadbeef
 xor a 0xffff
-push a
-sys &test_uint ; 0xdead4110
+sys &test_au ; 0xdead4110
 
 lda -5243
 xor a 5520
-push a
-sys &test_int ; -491
+sys &test_ai ; -491
 
 hlt
 )EOF";
@@ -202,33 +170,27 @@ TEST_F(Bitwise, slr) {
     std::string s = R"EOF(
 lda 0
 slr a 1
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 1
 slr a 1
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0xff
 slr a 1
-push a
-sys &test_uint ; 0x7f
+sys &test_au ; 0x7f
 
 lda 0xdeadbeef
 slr a 17
-push a
-sys &test_uint ; 0x6f56
+sys &test_au ; 0x6f56
 
 lda 0xffffffff
 slr a 32
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0xffffffff
 slr a -4
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 hlt
 )EOF";
@@ -239,33 +201,27 @@ TEST_F(Bitwise, sll) {
     std::string s = R"EOF(
 lda 0
 sll a 1
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 1
 sll a 1
-push a
-sys &test_uint ; 2
+sys &test_au ; 2
 
 lda 0xff
 sll a 1
-push a
-sys &test_uint ; 0x1fe
+sys &test_au ; 0x1fe
 
 lda 0xdeadbeef
 sll a 17
-push a
-sys &test_uint ; 0x7dde0000
+sys &test_au ; 0x7dde0000
 
 lda 0xffffffff
 sll a 32
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0xffffffff
 sll a -4
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 hlt
 )EOF";
@@ -276,29 +232,24 @@ TEST_F(Bitwise, ror) {
     std::string s = R"EOF(
 lda 0
 ror a 1
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0x12345678
 ror a 16
-push a
-sys &test_uint ; 0x56781234
+sys &test_au ; 0x56781234
 
 lda -6194
 lda 0xffffe7ce
 ror a 19
-push a
-sys &test_uint ; fcf9dfff
+sys &test_au ; fcf9dfff
 
 lda 1
 ror a 31
-push a
-sys &test_uint ; 2
+sys &test_au ; 2
 
 lda 0xdeadbeef
 ror a 64
-push a
-sys &test_uint ; 0xdeadbeef
+sys &test_au ; 0xdeadbeef
 
 hlt
 )EOF";
@@ -309,28 +260,23 @@ TEST_F(Bitwise, rol) {
     std::string s = R"EOF(
 lda 0
 rol a 1
-push a
-sys &test_uint ; 0
+sys &test_au ; 0
 
 lda 0x12345678
 rol a 16
-push a
-sys &test_uint ; 0x56781234
+sys &test_au ; 0x56781234
 
 lda -6194
 rol a 19
-push a
-sys &test_uint ; 0x3e77ffff
+sys &test_au ; 0x3e77ffff
 
 lda 1
 rol a 31
-push a
-sys &test_uint ; 0x8000000
+sys &test_au ; 0x8000000
 
 lda 0xdeadbeef
 rol a 64
-push a
-sys &test_uint ; 0xdeadbeef
+sys &test_au ; 0xdeadbeef
 
 hlt
 )EOF";

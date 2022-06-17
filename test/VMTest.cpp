@@ -31,21 +31,38 @@ void VMTest::append_num(void* vm, tx_num32_variant value) {
     real_vm->nums.push_back(value);
 }
 
-void VMTest::append_uint(tx_CPU* cpu, void* vm) {
+void VMTest::test_uint(tx_CPU* cpu, void* vm) {
+    auto* real_vm = (VMTest*)vm;
     VMTest::append_num(vm, tx_cpu_top32(cpu));
 }
 
-void VMTest::append_int(tx_CPU* cpu, void* vm) {
+void VMTest::test_int(tx_CPU* cpu, void* vm) {
+    auto* real_vm = (VMTest*)vm;
     tx_num32 v = { .u = tx_cpu_top32(cpu) };
     VMTest::append_num(vm, v.i);
 }
 
-void VMTest::append_float(tx_CPU* cpu, void* vm) {
+void VMTest::test_float(tx_CPU* cpu, void* vm) {
+    auto* real_vm = (VMTest*)vm;
     tx_num32 v = { .u = tx_cpu_top32(cpu) };
     VMTest::append_num(vm, v.f);
 }
 
-void VMTest::append_r(tx_CPU* cpu, void* vm) {
+void VMTest::test_au(tx_CPU* cpu, void* vm) {
+    VMTest::append_num(vm, cpu->a);
+}
+
+void VMTest::test_ai(tx_CPU* cpu, void* vm) {
+    tx_num32 v = { .u = cpu->a };
+    VMTest::append_num(vm, v.i);
+}
+
+void VMTest::test_af(tx_CPU* cpu, void* vm) {
+    tx_num32 v = { .u = cpu->a };
+    VMTest::append_num(vm, v.f);
+}
+
+void VMTest::test_r(tx_CPU* cpu, void* vm) {
     VMTest::append_num(vm, cpu->r);
 }
 
@@ -98,10 +115,13 @@ void VMTest::run_binary() {
 
     tx_init_cpu(&cpu, rom.data(), rom_size);
     tx_cpu_use_stdlib(&cpu);
-    tx_cpu_register_sysfunc(&cpu, (char*)"test_uint", VMTest::append_uint, this);
-    tx_cpu_register_sysfunc(&cpu, (char*)"test_int", VMTest::append_int, this);
-    tx_cpu_register_sysfunc(&cpu, (char*)"test_float", VMTest::append_float, this);
-    tx_cpu_register_sysfunc(&cpu, (char*)"test_r", VMTest::append_r, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_uint", VMTest::test_uint, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_int", VMTest::test_int, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_float", VMTest::test_float, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_au", VMTest::test_au, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_ai", VMTest::test_ai, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_af", VMTest::test_af, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_r", VMTest::test_r, this);
     cpu.debug = (bool)tx_asm_yydebug;
 
     tx_run_cpu(&cpu);

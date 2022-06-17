@@ -6,18 +6,15 @@ TEST_F(Float, finc) {
     std::string s = R"EOF(
 lda 0.0
 finc a
-push a
-sys &test_float ; 1.0
+sys &test_af ; 1.0
 
 lda -1.0
 finc a
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda 1234.567
 finc a
-push a
-sys &test_float ; 1235.567
+sys &test_af ; 1235.567
 
 hlt
 )EOF";
@@ -28,18 +25,15 @@ TEST_F(Float, fdec) {
     std::string s = R"EOF(
 lda 0.0
 fdec a
-push a
-sys &test_float ; -1.0
+sys &test_af ; -1.0
 
 lda 1.0
 fdec a
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda 1234.567
 fdec a
-push a
-sys &test_float ; 1233.567
+sys &test_af ; 1233.567
 hlt
 )EOF";
     run_and_compare_num(s, {-1.0f, 0.0f, 1233.567f});
@@ -49,28 +43,23 @@ TEST_F(Float, fadd) {
     std::string s = R"EOF(
 lda 15.62
 fadd a 0.0
-push a
-sys &test_float ; 15.62
+sys &test_af ; 15.62
 
 lda 0.0
 fadd a 0.0
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda -12.34
 fadd a -12.34
-push a
-sys &test_float ; -24.68
+sys &test_af ; -24.68
 
 lda 55.55
 fadd a -11.11
-push a
-sys &test_float ; 44.44
+sys &test_af ; 44.44
 
 lda -11.11
 fadd a 55.55
-push a
-sys &test_float ; 44.44
+sys &test_af ; 44.44
 
 hlt
 )EOF";
@@ -81,28 +70,23 @@ TEST_F(Float, fsub) {
     std::string s = R"EOF(
 lda 15.62
 fsub a 0.0
-push a
-sys &test_float ; 15.62
+sys &test_af ; 15.62
 
 lda 0.0
 fsub a 0.0
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda -12.34
 fsub a -12.34
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda 55.55
 fsub a -11.11
-push a
-sys &test_float ; 66.66
+sys &test_af ; 66.66
 
 lda -11.11
 fsub a 55.55
-push a
-sys &test_float ; -66.66
+sys &test_af ; -66.66
 
 hlt
 )EOF";
@@ -113,33 +97,27 @@ TEST_F(Float, fmul) {
     std::string s = R"EOF(
 lda 1.0
 fmul a 5.5
-push a
-sys &test_float ; 5.5
+sys &test_af ; 5.5
 
 lda 0.0
 fmul a 1.5
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda 2.5
 fmul a -1.5
-push a
-sys &test_float ; -3.75
+sys &test_af ; -3.75
 
 lda -6.0
 fmul a 2.0
-push a
-sys &test_float ; -12.0
+sys &test_af ; -12.0
 
 lda -2.5
 fmul a -6.0
-push a
-sys &test_float ; 15.0
+sys &test_af ; 15.0
 
 lda -1.0
 fmul a -1.0
-push a
-sys &test_float ; 1.0
+sys &test_af ; 1.0
 
 hlt
 )EOF";
@@ -150,38 +128,31 @@ TEST_F(Float, fdiv) {
     std::string s = R"EOF(
 lda 1.0
 fdiv a 5.0
-push a
-sys &test_float ; 0.2
+sys &test_af ; 0.2
 
 lda 5.0
 fdiv a -0.2
-push a
-sys &test_float ; -25.0
+sys &test_af ; -25.0
 
 lda -1.0
 fdiv a 10.0
-push a
-sys &test_float ; -0.1
+sys &test_af ; -0.1
 
 lda -5.0
 fdiv a -10.0
-push a
-sys &test_float ; 0.5
+sys &test_af ; 0.5
 
 lda 0.0
 fdiv a 1.0
-push a
-sys &test_float ; 0.0
+sys &test_af ; 0.0
 
 lda 13.37
 fdiv a 0.0
-push a
-sys &test_float ; inf
+sys &test_af ; inf
 
 lda 0.0
 fdiv a 0.0
-push a
-sys &test_float ; nan
+sys &test_af ; nan
 
 hlt
 )EOF";
@@ -199,28 +170,23 @@ TEST_F(Float, fmod) {
     std::string s = R"EOF(
 lda 1.0
 fmod a 5.0
-push a
-sys &test_float ; 1.0
+sys &test_af ; 1.0
 
 lda 13.37
 fmod a 10.0
-push a
-sys &test_float ; 3.37
+sys &test_af ; 3.37
 
 lda 5.4
 fmod a -2.2
-push a
-sys &test_float ; 1.0
+sys &test_af ; 1.0
 
 lda -6.0
 fmod a 1.6
-push a
-sys &test_float ; -1.2
+sys &test_af ; -1.2
 
 lda 1.0
 fmod a 0.0
-push a
-sys &test_float ; nan
+sys &test_af ; nan
 
 hlt
 )EOF";
