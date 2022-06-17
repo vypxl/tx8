@@ -32,16 +32,17 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     }
 
     // initialize registers and memory
-    cpu->halted = 0;
-    cpu->debug  = 0;
-    cpu->a      = 0;
-    cpu->b      = 0;
-    cpu->c      = 0;
-    cpu->d      = 0;
-    cpu->o      = 0;
-    cpu->s      = tx_STACK_BEGIN;
-    cpu->p      = tx_ENTRY_POINT;
-    cpu->mem    = malloc(tx_MEM_SIZE);
+    cpu->halted  = 0;
+    cpu->stopped = 0;
+    cpu->debug   = 0;
+    cpu->a       = 0;
+    cpu->b       = 0;
+    cpu->c       = 0;
+    cpu->d       = 0;
+    cpu->o       = 0;
+    cpu->s       = tx_STACK_BEGIN;
+    cpu->p       = tx_ENTRY_POINT;
+    cpu->mem     = malloc(tx_MEM_SIZE);
 
     // initialize sys function table
     cpu->sys_func_table = kh_init(tx_sysfunc);
@@ -61,6 +62,7 @@ void tx_destroy_cpu(tx_CPU* cpu) {
 void tx_run_cpu(tx_CPU* cpu) {
     tx_Instruction current_instruction;
 
+    if (cpu->debug) tx_log_err("[cpu] Beginning execution...\n");
     while (!cpu->halted) {
         if (cpu->p > tx_MEM_SIZE - tx_INSTRUCTION_MAX_LENGTH - 1 || cpu->p < 0) {
             tx_cpu_error(cpu, ERR_INVALID_PC);
@@ -70,6 +72,7 @@ void tx_run_cpu(tx_CPU* cpu) {
         // TODO: implement properly upon implementing interrupts
         if (cpu->stopped) {
             cpu->halted = true;
+            if (cpu->debug) tx_log_err("[cpu] Stopped.\n");
             break;
         }
 
@@ -86,6 +89,7 @@ void tx_run_cpu(tx_CPU* cpu) {
         if (!(current_instruction.opcode >= tx_op_jmp && current_instruction.opcode <= tx_op_ret))
             cpu->p += current_instruction.len;
     }
+    if (cpu->debug) tx_log_err("[cpu] Halted.\n");
 }
 
 void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...) {
