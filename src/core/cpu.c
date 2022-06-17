@@ -431,6 +431,7 @@ DEFINE_LDX_STX(a)
 DEFINE_LDX_STX(b)
 DEFINE_LDX_STX(c)
 DEFINE_LDX_STX(d)
+
 #undef DEFINE_LDX_STX
 
 void tx_cpu_op_zero(tx_CPU* cpu, tx_Parameters* params) {
@@ -643,58 +644,68 @@ void tx_cpu_op_nand(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_END
 }
 void tx_cpu_op_xor(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_UOP_2("xor", ^) }
+
+#define BITMASK_5 0b11111u
+#define BIT_TRUNC if (tx_param_isregister(params->p1.mode)) { \
+        tx_Register reg = (tx_Register)params->p1.value.u; \
+        switch (reg & tx_REG_SIZE_MASK) { \
+            case tx_REG_SIZE_1: b.u &= 0b111u; break; \
+            case tx_REG_SIZE_2: b.u &= 0b1111u; break; \
+            case tx_REG_SIZE_4: b.u &= BITMASK_5; break; \
+            default: break; \
+        } \
+    } else b.u &= BITMASK_5;
+
 void tx_cpu_op_slr(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("slr")
-        if (b.u >= 32) result.u = 0;
-        else result.u = a.u >> b.u;
+        BIT_TRUNC;
+        result.u = a.u >> b.u;
     AR_OP_END
     R((a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sar(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("sar")
-        if (b.u >= 32) result.u = a.i < 0 ? -1 : 0;
-        else result.i = a.i >> b.u;
+        BIT_TRUNC;
+        result.i = a.i >> b.u;
     AR_OP_END
     R((a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sll(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("sll")
-        if (b.u >= 32) result.u = 0;
-        else result.u = a.u << b.u;
+        BIT_TRUNC;
+        result.u = a.u << b.u;
     AR_OP_END
     R(a.u >> (32 - b.u));
 }
 void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
-        const tx_uint32 mask = 31;
-        b.u &= mask;
-        result.u = (a.u >> b.u) | (a.u << ((-b.u) & mask));
+        BIT_TRUNC;
+        result.u = (a.u >> b.u) | (a.u << ((-b.u) & BITMASK_5));
     AR_OP_END
 }
 void tx_cpu_op_rol(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
-        const tx_uint32 mask = 31;
-        b.u &= mask;
-        result.u = (a.u << b.u) | (a.u >> ((-b.u) & mask));
+        BIT_TRUNC;
+        result.u = (a.u << b.u) | (a.u >> ((-b.u) & BITMASK_5));
     AR_OP_END
 }
 void tx_cpu_op_set(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("set")
-        if (b.u > 31) return;
+        BIT_TRUNC;
         result.u = a.u | (1u << b.u);
     AR_OP_END
     R((a.u >> b.u) & 1u);
 }
 void tx_cpu_op_clr(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("clr")
-        if (b.u > 31) return;
+        BIT_TRUNC;
         result.u = a.u & ~(1u << b.u);
     AR_OP_END
     R((a.u >> b.u) & 1u);
 }
 void tx_cpu_op_tgl(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("tgl")
-        if (b.u > 31) return;
+        BIT_TRUNC;
         result.u = a.u ^ (1u << b.u);
     AR_OP_END
     R((a.u >> b.u) & 1u);
@@ -702,9 +713,12 @@ void tx_cpu_op_tgl(tx_CPU* cpu, tx_Parameters* params) {
 void tx_cpu_op_test(tx_CPU* cpu, tx_Parameters* params) {
     tx_num32 a = { .u = PARAMV(1) };
     tx_num32 b = { .u = PARAMV(2) };
-    if (b.u > 31) return;
+    BIT_TRUNC;
     R((a.u >> b.u) & 1u);
 }
+
+#undef BITMASK_5
+#undef BIT_TRUNC
 
 void tx_cpu_op_finc(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_1("finc", 1 +) }
 void tx_cpu_op_fdec(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_1("fdec", -1 +) }
@@ -805,5 +819,38 @@ void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {
     tx_log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
 }
 
+#undef AR_OVF_OP
+#undef AR_OVF_MUL
+
 #undef R
 #undef R_SIZES
+
+#undef PARAMV
+#undef PARAMA
+#undef CHECK_WRITABLE
+
+#undef AR_OP_1_BEGIN
+#undef AR_OP_2_BEGIN
+#undef AR_OP_END
+#undef AR_SIMPLE_OP_1
+#undef AR_SIMPLE_OP_2
+#undef AR_SIMPLE_UOP_1
+#undef AR_SIMPLE_UOP_2
+#undef AR_SIMPLE_FOP_1
+#undef AR_SIMPLE_FOP_2
+#undef AR_FUN_OP_1
+#undef AR_FUN_OP_2
+#undef AR_FUN_FOP_1
+#undef AR_FUN_FOP_2
+#undef AR_FUN_UOP_2
+
+#undef ERR_ROM_TOO_LARGE
+#undef ERR_INVALID_PC
+#undef ERR_SYSFUNC_REREGISTER
+#undef ERR_SYSFUNC_REALLOC
+#undef ERR_SYSFUNC_NOT_FOUND
+#undef ERR_INVALID_REG_ID
+#undef ERR_INVALID_REG_SIZE
+#undef ERR_INVALID_MEM_WRITE_COUNT
+#undef ERR_CANNOT_LOAD_WORD
+#undef ERR_DIV_BY_ZERO

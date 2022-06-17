@@ -265,25 +265,25 @@ or floats, you have to use the specialized instructions.
 
 ##### Bitwise Operations
 
-| Opcode | Asm  | Parameters | Operation                                                                      | Example            |
-|--------|------|------------|--------------------------------------------------------------------------------|--------------------|
-| 0x30   | and  | `wv`       | and                                                                            | `and c 0b10011010` |
-| 0x31   | or   | `wv`       | or                                                                             | `or c 0x7f`        |
-| 0x32   | not  | `w0`       | not                                                                            | `not c`            |
-| 0x33   | nand | `wv`       | nand                                                                           | `nand c d`         |
-| 0x34   | xor  | `wv`       | xor                                                                            | `xor c d`          |
-| 0x35   | slr  | `wv`       | shift logical right                                                            | `slr b 2`          |
-| 0x36   | sar  | `wv`       | shift arithmetic right                                                         | `sar b 1`          |
-| 0x37   | sll  | `wv`       | shift logical left                                                             | `sll b 1`          |
-| 0x38   | ror  | `wv`       | rotate right                                                                   | `ror b 3`          |
-| 0x39   | rol  | `wv`       | rotate left                                                                    | `rol b 7`          |
-| 0x3a   | set  | `wv`       | set the p2'th bit of p1 (nop if p2 > size of destination)                      | `set a 5`          |
-| 0x3b   | clr  | `wv`       | clear the p2'th bit of p1 (nop if p2 > size of destination)                    | `clr a 7`          |
-| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1 (nop if p2 > size of destination)                   | `test a 7`         |
-| 0x3d   | test | `vv`       | test the p2'th bit of p1 (write it into `R`) (nop if p2 > size of destination) | `test a 3`         |
+| Opcode | Asm  | Parameters | Operation                                    | Example            |
+|--------|------|------------|----------------------------------------------|--------------------|
+| 0x30   | and  | `wv`       | and                                          | `and c 0b10011010` |
+| 0x31   | or   | `wv`       | or                                           | `or c 0x7f`        |
+| 0x32   | not  | `w0`       | not                                          | `not c`            |
+| 0x33   | nand | `wv`       | nand                                         | `nand c d`         |
+| 0x34   | xor  | `wv`       | xor                                          | `xor c d`          |
+| 0x35   | slr  | `wv`       | shift logical right                          | `slr b 2`          |
+| 0x36   | sar  | `wv`       | shift arithmetic right                       | `sar b 1`          |
+| 0x37   | sll  | `wv`       | shift logical left                           | `sll b 1`          |
+| 0x38   | ror  | `wv`       | rotate right                                 | `ror b 3`          |
+| 0x39   | rol  | `wv`       | rotate left                                  | `rol b 7`          |
+| 0x3a   | set  | `wv`       | set the p2'th bit of p1                      | `set a 5`          |
+| 0x3b   | clr  | `wv`       | clear the p2'th bit of p1                    | `clr a 7`          |
+| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1                   | `test a 7`         |
+| 0x3d   | test | `vv`       | test the p2'th bit of p1 (write it into `R`) | `test a 3`         |
 
-Note that shifting by more than 32 bits produces a zero result (or -1 / 0xffffffff if
-you are arithmetically shifting a negative integer).
+When shifting, only the lower 5 (4 / 3 with 16 / 8 bit destinations) bits of the shift amount are
+considered. Analogously, the bit position for `set`, `clr`, `tgl`, and `test` is also truncated.
 
 ##### Floating Point Operations
 
