@@ -15,6 +15,7 @@ class VMTest : public ::testing::Test {
     static void append_uint(tx_CPU* cpu, void* vm);
     static void append_int(tx_CPU* cpu, void* vm);
     static void append_float(tx_CPU* cpu, void* vm);
+    static void append_r(tx_CPU* cpu, void* vm);
 
   private:
     static void append_num(void* vm, tx_num32_variant value);

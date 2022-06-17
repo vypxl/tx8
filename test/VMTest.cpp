@@ -45,6 +45,10 @@ void VMTest::append_float(tx_CPU* cpu, void* vm) {
     VMTest::append_num(vm, v.f);
 }
 
+void VMTest::append_r(tx_CPU* cpu, void* vm) {
+    VMTest::append_num(vm, cpu->r);
+}
+
 void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
 
@@ -97,6 +101,7 @@ void VMTest::run_binary() {
     tx_cpu_register_sysfunc(&cpu, (char*)"test_uint", VMTest::append_uint, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_int", VMTest::append_int, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_float", VMTest::append_float, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_r", VMTest::append_r, this);
     cpu.debug = (bool)tx_asm_yydebug;
 
     tx_run_cpu(&cpu);
