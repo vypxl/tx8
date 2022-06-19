@@ -73,7 +73,7 @@ hlt
         s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
 }
 
-TEST_F(Bitwise, not ) {
+TEST_F(Bitwise, not) {
     std::string s = R"EOF(
 lda 0xffffffff
 not a
@@ -171,10 +171,12 @@ TEST_F(Bitwise, slr) {
 lda 0
 slr a 1
 sys &test_au ; 0
+sys &test_r ; 0
 
 lda 1
 slr a 1
 sys &test_au ; 0
+sys &test_r ; 1
 
 lda 0xff
 slr a 1
@@ -183,18 +185,57 @@ sys &test_au ; 0x7f
 lda 0xdeadbeef
 slr a 17
 sys &test_au ; 0x6f56
+sys &test_r ; 0x1eef
 
 lda 0xffffffff
-slr a 32
-sys &test_au ; 0
+slr a 32 ; (0 in the lowest 5 bits)
+sys &test_au ; 0xffffffff
+sys &test_r ; 0
 
 lda 0xffffffff
-slr a -4
-sys &test_au ; 0
+slr a -4 ; (== 0xfffffffc => 28 in the lowest 5 bits)
+sys &test_au ; 0xf
+sys &test_r ; 0xfffffff
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0u, 0x7fu, 0x6f56u, 0u, 0u});
+    run_and_compare_num(s, {0u, 0u, 0u, 1u, 0x7fu, 0x6f56u, 0x1beefu, 0xffffffffu, 0u, 0xfu, 0xfffffffu});
+}
+
+TEST_F(Bitwise, sar) {
+    std::string s = R"EOF(
+lda 0
+sar a 1
+sys &test_au ; 0
+sys &test_r ; 0
+
+lda 1
+sar a 1
+sys &test_au ; 0
+sys &test_r ; 1
+
+lda 0xff
+sar a 1
+sys &test_au ; 0x7f
+
+lda 0xdeadbeef
+sar a 17
+sys &test_au ; 0xffffef56
+sys &test_r ; 0x1eef
+
+lda 0xffffffff
+sar a 32 ; (0 in the lowest 5 bits)
+sys &test_au ; 0xffffffff
+sys &test_r ; 0
+
+lda 0xffffffff
+sar a -4 ; (== 0xfffffffc => 28 in the lowest 5 bits)
+sys &test_au ; 0xffffffff
+sys &test_r ; 0fffffff
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0u, 0u, 0u, 1u, 0x7fu, 0xffffef56u, 0x1beefu, 0xffffffffu, 0u, 0xffffffffu, 0xfffffffu});
 }
 
 TEST_F(Bitwise, sll) {
@@ -202,10 +243,12 @@ TEST_F(Bitwise, sll) {
 lda 0
 sll a 1
 sys &test_au ; 0
+sys &test_r ; 0
 
 lda 1
 sll a 1
 sys &test_au ; 2
+sys &test_r ; 0
 
 lda 0xff
 sll a 1
@@ -214,18 +257,21 @@ sys &test_au ; 0x1fe
 lda 0xdeadbeef
 sll a 17
 sys &test_au ; 0x7dde0000
+sys &test_r ; 0x1bd5b
 
 lda 0xffffffff
 sll a 32
-sys &test_au ; 0
+sys &test_au ; 0xffffffff
+sys &test_r ; 0
 
 lda 0xffffffff
-sll a -4
-sys &test_au ; 0
+sll a -4 ; (28 in the lowest 5 bits)
+sys &test_au ; 0xf0000000
+sys &test_r ; 0xfffffff
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 2u, 0x1feu, 0x7dde0000u, 0u, 0u});
+    run_and_compare_num(s, {0u, 0u, 2u, 0u, 0x1feu, 0x7dde0000u, 0x1bd5bu, 0xffffffffu, 0u, 0xf0000000u, 0xfffffffu});
 }
 
 TEST_F(Bitwise, ror) {
@@ -281,6 +327,99 @@ sys &test_au ; 0xdeadbeef
 hlt
 )EOF";
     run_and_compare_num(s, {0u, 0x56781234u, 0x3e77ffffu, 0x80000000u, 0xdeadbeefu});
+}
+
+TEST_F(Bitwise, set) {
+    std::string s = R"EOF(
+lda 0
+set a 1
+sys &test_au ; 2
+sys &test_r ; 0
+
+lda 0
+set a 31
+set a 31
+sys &test_au ; 0x80000000
+sys &test_r ; 1
+
+lda 5
+set a 3
+sys &test_au ; 0xd
+
+lda 0
+set a 32
+sys &test_au ; 1
+
+hlt
+)EOF";
+    run_and_compare_num(s, {2u, 0u, 0x80000000u, 1u, 0xdu, 1u});
+}
+
+TEST_F(Bitwise, clr) {
+    std::string s = R"EOF(
+lda 1
+clr a 1
+sys &test_au ; 1
+sys &test_r ; 0
+
+lda 0xffffffff
+clr a 31
+sys &test_au ; 0x7fffffff
+sys &test_r ; 1
+
+lda 0xd
+clr a 3
+sys &test_au ; 5
+
+lda 1
+clr a 32
+sys &test_au ; 0
+
+hlt
+)EOF";
+    run_and_compare_num(s, {1u, 0u, 0x7fffffffu, 1u, 5u, 0u});
+}
+
+TEST_F(Bitwise, tgl) {
+    std::string s = R"EOF(
+lda 1
+tgl a 1
+sys &test_au ; 3
+sys &test_r ; 0
+
+lda 0xffffffff
+tgl a 31
+sys &test_au ; 0x7fffffff
+sys &test_r ; 1
+
+lda 0xd
+tgl a 3
+sys &test_au ; 5
+
+lda 2
+tgl a 32
+sys &test_au ; 3
+
+hlt
+)EOF";
+    run_and_compare_num(s, {3u, 0u, 0x7fffffffu, 1u, 5u, 3u});
+}
+
+TEST_F(Bitwise, test) {
+    std::string s = R"EOF(
+lda 0xf00dbabe
+test a 0
+sys &test_r ; 0
+test a 31
+sys &test_r ; 1
+test a 32
+sys &test_r ; 0
+test a 6
+sys &test_r ; 0
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0u, 1u, 0u, 0u});
 }
 
 #pragma clang diagnostic pop
