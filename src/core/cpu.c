@@ -661,21 +661,21 @@ void tx_cpu_op_slr(tx_CPU* cpu, tx_Parameters* params) {
         BIT_TRUNC;
         result.u = a.u >> b.u;
     AR_OP_END
-    R((a.u << (32 - b.u)) >> (32 - b.u));
+    R(b.u == 0 ? 0 : (a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sar(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("sar")
         BIT_TRUNC;
         result.i = a.i >> b.u;
     AR_OP_END
-    R((a.u << (32 - b.u)) >> (32 - b.u));
+    R(b.u == 0 ? 0 : (a.u << (32 - b.u)) >> (32 - b.u));
 }
 void tx_cpu_op_sll(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("sll")
         BIT_TRUNC;
         result.u = a.u << b.u;
     AR_OP_END
-    R(a.u >> (32 - b.u));
+    R(b.u == 0 ? 0 : a.u >> (32 - b.u));
 }
 void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_2_BEGIN("ror")
