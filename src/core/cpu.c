@@ -47,6 +47,8 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     // initialize sys function table
     cpu->sys_func_table = kh_init(tx_sysfunc);
 
+    cpu->__initialized = true;
+
     // zero out all memory
     for (tx_uint32 i = 0; i < tx_MEM_SIZE; i++)
         cpu->mem[i] = 0;
@@ -55,8 +57,11 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
 }
 
 void tx_destroy_cpu(tx_CPU* cpu) {
+    if (!cpu->__initialized) return;
+
     free(cpu->mem);
     kh_destroy_tx_sysfunc(cpu->sys_func_table);
+    cpu->__initialized = false;
 }
 
 void tx_run_cpu(tx_CPU* cpu) {
