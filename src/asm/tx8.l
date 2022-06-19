@@ -39,9 +39,9 @@ INTEGER32   (0x[0-9a-f]{1,8}|0b[01]{1,32}|-?[0-9]+)(i|u|i32|u32)?
 FLOAT       -?[0-9]+\.[0-9]+
 ADDRESS     [0-9a-f]{1,6}
 REGISTER    a|b|c|d|r|o|s|p|ai|bi|ci|di|ri|oi|si|pi|as|bs|cs|ds|rs|os|ss|ps|ab|bb|cb|db|rb|ob|sb|pb|A|B|C|D|R|O|S|P|AI|BI|CI|DI|RI|OI|SI|PI|AS|BS|CS|DS|RS|OS|SS|PS|AB|BB|CB|DB|RB|OB|SB|PB|Ai|Bi|Ci|Di|Ri|Oi|Si|Pi|As|Bs|Cs|Ds|Rs|Os|Ss|Ps|Ab|Bb|Cb|Db|Rb|Ob|Sb|Pb
-SPACE       [ \t]+
+SPACE       ([ \t]+)|([ \t]*)(;.*)
 SEMI        [;]
-EOL         ([ \t]*)(;.*)?(\n|\r\n)
+EOL         \n|\r\n
 
 %%
 {SEMI}.*        ; // ignore comments
@@ -60,6 +60,6 @@ $-?{ADDRESS}    { tx_asm_yylval.i = tx_asm_hex(tx_asm_yytext + 1); return tx_asm
 {OP0}           { tx_asm_yylval.i = tx_opcode_from_name(tx_asm_yytext); return tx_asm_OPCODE0; }
 {OP1}           { tx_asm_yylval.i = tx_opcode_from_name(tx_asm_yytext); return tx_asm_OPCODE1; }
 {OP2}           { tx_asm_yylval.i = tx_opcode_from_name(tx_asm_yytext); return tx_asm_OPCODE2; }
-{EOL}           { return tx_asm_EOL; }
+{SPACE}?{EOL}   { return tx_asm_EOL; }
 .               { return tx_asm_yytext[0]; }
 %%

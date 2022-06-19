@@ -87,7 +87,6 @@ void tx_asm_destroy_assembler(tx_asm_Assembler* as) {
 void tx_asm_error(tx_asm_Assembler* as, char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
-    tx_log_err("Line %d: ", tx_asm_yylineno);
     tx_logv_err(format, argptr);
     as->error = 1;
     va_end(argptr);
