@@ -6,7 +6,6 @@
 #include "tx8/core/log.h"
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
 

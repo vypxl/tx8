@@ -1,9 +1,7 @@
 #include "tx8/asm/types.h"
 
-#include <stdlib.h>
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
-#include <tx8/core/log.h>
 
 tx_uint8 tx_asm_parameter_generate_binary(tx_Parameter* p, tx_uint8* buf) {
     switch (p->mode) {
