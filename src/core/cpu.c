@@ -589,19 +589,25 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
 // Actual arithmetic operations
 
 void tx_cpu_op_inc(tx_CPU* cpu, tx_Parameters* params) {
-    AR_SIMPLE_OP_1("inc", 1 +);
+    AR_OP_1_BEGIN(inc)
+        result.u = a.u;
+        result.u++;
+    AR_OP_END
     R_SIZES(
-        ((result.i == INT8_MIN) << 1) | (result.u == 0),
-        ((result.i == INT16_MIN) << 1) | (result.u == 0),
-        ((result.i == INT32_MIN) << 1) | (result.u == 0)
+        ((result.u == (tx_uint32) INT8_MIN) << 1) | (result.u == 0),
+        ((result.u == (tx_uint32) INT16_MIN) << 1) | (result.u == 0),
+        ((result.u == (tx_uint32) INT32_MIN) << 1) | (result.u == 0)
     );
 }
 void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) {
-    AR_SIMPLE_OP_1("dec", -1 +);
+    AR_OP_1_BEGIN(dec)
+        result.u = a.u;
+        result.u--;
+    AR_OP_END
     R_SIZES(
-        ((result.i == INT8_MAX) << 1) | (result.u == UINT8_MAX),
-        ((result.i == INT16_MAX) << 1) | (result.u == UINT16_MAX),
-        ((result.i == INT32_MAX) << 1) | (result.u == UINT32_MAX)
+        ((result.u == (tx_uint32) INT8_MAX) << 1) | (result.u == UINT8_MAX),
+        ((result.u == (tx_uint32) INT16_MAX) << 1) | (result.u == UINT16_MAX),
+        ((result.u == (tx_uint32) INT32_MAX) << 1) | (result.u == UINT32_MAX)
     );
 }
 void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_OP(add) }
