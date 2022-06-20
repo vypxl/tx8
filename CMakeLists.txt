@@ -43,23 +43,21 @@ target_link_libraries(tx8-asm PRIVATE tx8-core)
 
 # Custom commands for yacc / lex (actually bison/flex)
 add_custom_command(
-    OUTPUTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
+    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
             ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
     COMMAND bison
     ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d
          ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
-    TARGET tx8-asm
     BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
+    DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
 )
 
 add_custom_command(
-    OUTPUTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
+    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
     COMMAND flex
     ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
          ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
-    DEPENDS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
-    TARGET tx8-asm
-    MAIN_DEPENDENCY ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
+    DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
 )
 
 # Google test
