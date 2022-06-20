@@ -56,7 +56,8 @@ The available CPU registers are described here:
 - `S`: Stack pointer
 - `P`: Program counter / Instruction Pointer
 
-The program counter can have any value in the range 0..0xfffff0 to prevent parsing instruction outside of memory, because an instruction can be up to 15 bytes long.
+The program counter can have any value in the range 0..0xfffff0 to prevent parsing an instruction outside of memory,
+because an instruction can be up to 10 bytes long.
 
 ### Stack
 
@@ -99,8 +100,8 @@ An example binary instruction looks like this:
 
 ```plain
 asm: cmp a #0xc04023
-bin: op mm p1 p3 p3 p3
-     02 64 00 23 40 c0
+bin: op mm p1 p3 p3 p3 p3
+     02 64 00 23 40 c0 00
 ```
 
 Jump points should be used to jump to absolute addresses like this:
