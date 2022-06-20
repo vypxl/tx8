@@ -261,46 +261,47 @@ tx_uint32 tx_cpu_top32(tx_CPU* cpu) {
 tx_uint8* tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location) {
     return (location < tx_MEM_SIZE) ? cpu->mem + location : NULL;
 }
-tx_uint8* tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location) {
-    return (location < tx_MEM_SIZE) ? cpu->mem + cpu->o + location : NULL;
-}
 
 void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
     *tx_cpu_mem_get_ptr(cpu, location) = value;
 }
 void tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
-    *((tx_uint16*)tx_cpu_mem_get_ptr(cpu, location)) = value;
+    memcpy(tx_cpu_mem_get_ptr(cpu, location), &value, sizeof(tx_uint16));
 }
 void tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
-    *((tx_uint32*)tx_cpu_mem_get_ptr(cpu, location)) = value;
+    memcpy(tx_cpu_mem_get_ptr(cpu, location), &value, sizeof(tx_uint32));
 }
 tx_uint8 tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location) {
     return *tx_cpu_mem_get_ptr(cpu, location);
 }
 tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location) {
-    return *((tx_uint16*)tx_cpu_mem_get_ptr(cpu, location));
+    tx_uint16 value;
+    memcpy(&value, tx_cpu_mem_get_ptr(cpu, location), sizeof(tx_uint16));
+    return value;
 }
 tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location) {
-    return *((tx_uint32*)tx_cpu_mem_get_ptr(cpu, location));
+    tx_uint32 value;
+    memcpy(&value, tx_cpu_mem_get_ptr(cpu, location), sizeof(tx_uint32));
+    return value;
 }
 
 void tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value) {
-    *tx_cpu_mem_get_ptr_rel(cpu, location) = value;
+    tx_cpu_mem_write8(cpu, cpu->o + location, value);
 }
 void tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value) {
-    *((tx_uint16*)tx_cpu_mem_get_ptr_rel(cpu, location)) = value;
+    tx_cpu_mem_write16(cpu, cpu->o + location, value);
 }
 void tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value) {
-    *((tx_uint32*)tx_cpu_mem_get_ptr_rel(cpu, location)) = value;
+    tx_cpu_mem_write32(cpu, cpu->o + location, value);
 }
 tx_uint8 tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location) {
-    return *tx_cpu_mem_get_ptr_rel(cpu, location);
+    return tx_cpu_mem_read8(cpu, cpu->o + location);
 }
 tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location) {
-    return *((tx_uint16*)tx_cpu_mem_get_ptr_rel(cpu, location));
+    return tx_cpu_mem_read16(cpu, cpu->o + location);
 }
 tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location) {
-    return *((tx_uint32*)tx_cpu_mem_get_ptr_rel(cpu, location));
+    return tx_cpu_mem_read32(cpu, cpu->o + location);
 }
 
 void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value) {

@@ -121,8 +121,6 @@ tx_uint16 tx_cpu_top16(tx_CPU* cpu);
 tx_uint32 tx_cpu_top32(tx_CPU* cpu);
 /// Get a pointer to the specified location in tx8 cpu memory
 tx_mem_ptr tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location);
-/// Get a pointer to the specified location relative to the O register in tx8 cpu memory
-tx_mem_ptr tx_cpu_mem_get_ptr_rel(tx_CPU* cpu, tx_mem_addr location);
 /// Write an 8bit value to the specified memory location
 void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
 /// Write a 16bit value to the specified memory location
