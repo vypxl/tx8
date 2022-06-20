@@ -10,10 +10,10 @@ tx_uint8 tx_asm_parameter_generate_binary(tx_Parameter* p, tx_uint8* buf) {
         case tx_param_constant8:
         case tx_param_register:
         case tx_param_register_address: buf[0] = (tx_uint8)p->value.u; break;
-        case tx_param_constant16: ((tx_uint16*)(buf))[0] = (tx_uint16)p->value.u; break;
+        case tx_param_constant16: memcpy(buf, &(p->value.u), sizeof(tx_uint16)); break;
         case tx_param_constant32:
         case tx_param_absolute_address:
-        case tx_param_relative_address: ((tx_uint32*)(buf))[0] = (tx_uint32)p->value.u; break;
+        case tx_param_relative_address: memcpy(buf, &(p->value.u), sizeof(tx_uint32)); break;
         default: break;
     }
 
