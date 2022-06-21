@@ -244,7 +244,7 @@ or floats, you have to use the specialized instructions.
  - The `mul` and `umul` instructions sets the `R` register to the top half of the result.
  - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
  - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
- - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value.
+ - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data types).
  - The `slr`, `sar` and `sll` instructions set the `R` register to the shifted-out bits.
  - The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
 
