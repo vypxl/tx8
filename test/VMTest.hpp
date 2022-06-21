@@ -19,6 +19,7 @@ class VMTest : public ::testing::Test {
     static void test_ai(tx_CPU* cpu, void* vm);
     static void test_af(tx_CPU* cpu, void* vm);
     static void test_r(tx_CPU* cpu, void* vm);
+    static void test_rf(tx_CPU* cpu, void* vm);
 
   private:
     static void append_num(void* vm, tx_num32_variant value);

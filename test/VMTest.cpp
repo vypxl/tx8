@@ -66,6 +66,11 @@ void VMTest::test_r(tx_CPU* cpu, void* vm) {
     VMTest::append_num(vm, cpu->r);
 }
 
+void VMTest::test_rf(tx_CPU* cpu, void* vm) {
+    tx_num32 v = { .u = cpu->r };
+    VMTest::append_num(vm, v.f);
+}
+
 void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
 
@@ -122,6 +127,7 @@ void VMTest::run_binary() {
     tx_cpu_register_sysfunc(&cpu, (char*)"test_ai", VMTest::test_ai, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_af", VMTest::test_af, this);
     tx_cpu_register_sysfunc(&cpu, (char*)"test_r", VMTest::test_r, this);
+    tx_cpu_register_sysfunc(&cpu, (char*)"test_rf", VMTest::test_rf, this);
     cpu.debug = (bool)tx_asm_yydebug;
 
     tx_run_cpu(&cpu);
