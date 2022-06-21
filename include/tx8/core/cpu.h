@@ -288,7 +288,7 @@ static const tx_OpFunction tx_cpu_op_function[256] = {
     // 0x4
     &tx_cpu_op_finc, &tx_cpu_op_fdec, &tx_cpu_op_fadd, &tx_cpu_op_fsub, &tx_cpu_op_fmul, &tx_cpu_op_fdiv, &tx_cpu_op_fmod, &tx_cpu_op_fmax, &tx_cpu_op_fmin, &tx_cpu_op_fabs, &tx_cpu_op_fsign, &tx_cpu_op_sin, &tx_cpu_op_cos, &tx_cpu_op_tan, &tx_cpu_op_asin, &tx_cpu_op_acos,
     // 0x5
-    &tx_cpu_op_atan, &tx_cpu_op_atan2, &tx_cpu_op_sqrt, &tx_cpu_op_pow, &tx_cpu_op_exp, &tx_cpu_op_log, &tx_cpu_op_log2, &tx_cpu_op_log2, &tx_cpu_op_log10,  &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
+    &tx_cpu_op_atan, &tx_cpu_op_atan2, &tx_cpu_op_sqrt, &tx_cpu_op_pow, &tx_cpu_op_exp, &tx_cpu_op_log, &tx_cpu_op_log2, &tx_cpu_op_log10, &tx_cpu_op_inv,  &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
     // 0x6
     &tx_cpu_op_umul, &tx_cpu_op_udiv, &tx_cpu_op_umod, &tx_cpu_op_umax, &tx_cpu_op_umin, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
     // 0x7

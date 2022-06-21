@@ -539,6 +539,7 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
     AR_OP_END
 
 #define R(x) tx_cpu_write_r(cpu, x)
+#define RF(x) tx_num32 __rf = { .f = x }; tx_cpu_write_r(cpu, __rf.u)
 #define R_SIZES(one, half, full) \
     if (tx_param_isregister(params->p1.mode)) { \
         tx_Register reg = (tx_Register)params->p1.value.u; \
@@ -741,15 +742,15 @@ void tx_cpu_op_fdiv(tx_CPU* cpu, tx_Parameters* params) { AR_SIMPLE_FOP_2("fdiv"
 void tx_cpu_op_fmod(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_2("fmod", fmodf) }
 void tx_cpu_op_fmax(tx_CPU* cpu, tx_Parameters* params) {
     AR_FUN_FOP_2("fmax", MAX);
-    R(MIN(a.f, b.f));
+    RF(MIN(a.f, b.f));
 }
 void tx_cpu_op_fmin(tx_CPU* cpu, tx_Parameters* params) {
     AR_FUN_FOP_2("fmin", MIN);
-    R(MAX(a.f, b.f));
+    RF(MAX(a.f, b.f));
 }
 void tx_cpu_op_fabs(tx_CPU* cpu, tx_Parameters* params) {
     AR_FUN_FOP_1("fabs", fabsf);
-    R(SGN(a.f));
+    RF(SGN(a.f));
 }
 void tx_cpu_op_fsign(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("fsign", SGN) }
 void tx_cpu_op_sin(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("sin", sinf) }
