@@ -31,7 +31,7 @@ int fileno(FILE *stream);
 
 OP0         hlt|nop|ret|ei|di|stop
 OP1         jmp|jeq|jne|jgt|jge|jlt|jle|call|sys|lda|sta|ldb|stb|ldc|stc|ldd|std|zero|push|pop|inc|dec|abs|sign|not|finc|fdec|fabs|fsign|sin|cos|tan|asin|acos|atan|sqrt|exp|log|log2|log10|rand|rseed|itf|fti|utf|ftu
-OP2         cmp|fcmp|ucmp|ld|lw|add|sub|mul|div|mod|max|min|and|or|nand|xor|slr|sar|sll|ror|rol|set|clr|tgl|test|fadd|fsub|fmul|fdiv|fmod|fmax|fmin|atan2|pow|umul|udiv|umax|umin
+OP2         cmp|fcmp|ucmp|ld|lw|add|sub|mul|div|mod|max|min|and|or|nand|xor|slr|sar|sll|ror|rol|set|clr|tgl|test|fadd|fsub|fmul|fdiv|fmod|fmax|fmin|atan2|pow|umul|udiv|umod|umax|umin
 IDENTIFIER  [a-zA-Z][a-zA-Z0-9_\-]*
 INTEGER8    (0x[0-9a-f]{1,2}|0b[01]{1,8}|-?[0-9]+)(i8|u8)
 INTEGER16   (0x[0-9a-f]{1,4}|0b[01]{1,16}|-?[0-9]+)(i16|u16)
