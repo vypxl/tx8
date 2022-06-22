@@ -558,17 +558,17 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
         switch (tx_register_size((tx_Register)params->p1.value.u)) { \
             case 1: \
                 rval = __builtin_##name##_overflow((tx_uint8) a.u, (tx_uint8) b.u, (tx_uint8*)(&result.u)); \
-                tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int8) a.i, (tx_int8) b.i, (tx_int8*)(&result.i))); \
+                rval |= __builtin_##name##_overflow((tx_int8) a.i, (tx_int8) b.i, (tx_int8*)(&result.i)) << 1; \
                 break; \
             case 2: \
                 rval = __builtin_##name##_overflow((tx_uint16) a.u, (tx_uint16) b.u, (tx_uint16*)(&result.u)); \
-                tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int16) a.i, (tx_int16) b.i, (tx_int16*)(&result.i))); \
+                rval |= __builtin_##name##_overflow((tx_int16) a.i, (tx_int16) b.i, (tx_int16*)(&result.i)) << 1; \
                 break; \
             default: rval = 0; result.u = 0xdeadbeef; break; /* Just to suppress compiler warning */ \
         } \
     } else { \
         rval = __builtin_##name##_overflow(a.u, b.u, &result.u); \
-        tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow(a.i, b.i, &result.i)); \
+        rval |= __builtin_##name##_overflow(a.i, b.i, &result.i) << 1; \
     } \
     AR_OP_END \
     R(rval);
