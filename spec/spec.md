@@ -280,7 +280,7 @@ or floats, you have to use the specialized instructions.
 | 0x39   | rol  | `wv`       | rotate left                                  | `rol b 7`          |
 | 0x3a   | set  | `wv`       | set the p2'th bit of p1                      | `set a 5`          |
 | 0x3b   | clr  | `wv`       | clear the p2'th bit of p1                    | `clr a 7`          |
-| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1                   | `test a 7`         |
+| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1                   | `tgl a 7`          |
 | 0x3d   | test | `vv`       | test the p2'th bit of p1 (write it into `R`) | `test a 3`         |
 
 When shifting, only the lower 5 (4 / 3 with 16 / 8 bit destinations) bits of the shift amount are
@@ -319,6 +319,9 @@ Beware that floating point operations do not behave as expected when using integ
 They are **not** converted to floating point values, instead their underlying bits are reinterpreted
 as a floating point value, leading to unexpected behaviour. Therefore, always use floating point
 immediates like `1.5`.
+
+While it is possible to use floating point operations with smaller registers like `cb`,
+this usage results in undefined behaviour (there is no half/quarter precision float).
 
 ##### Unsigned Integer Operations
 
