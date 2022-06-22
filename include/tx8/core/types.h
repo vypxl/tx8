@@ -5,8 +5,8 @@
  */
 #pragma once
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,31 +35,31 @@ typedef union tx_num32 {
 
 /// Macro for defining a dynamic array type with init, insert and destroy functions
 #define tx_MAKE_ARRAY_TYPE(type, name) \
-typedef struct tx_Array_##name { \
-    type* data; \
-    size_t size; \
-    size_t front; \
-} tx_Array_##name; \
+    typedef struct tx_Array_##name { \
+        type*  data; \
+        size_t size; \
+        size_t front; \
+    } tx_Array_##name; \
 \
-static inline void tx_array_##name##_init(tx_Array_##name* a, tx_uint32 size) { \
-    a->data = (type*) malloc(size * sizeof(type)); \
-    a->front = 0; \
-    a->size = size; \
-} \
-\
-static inline void tx_array_##name##_insert(tx_Array_##name* a, type element) { \
-    if (a->front == a->size) { \
-        a->size *= 2; \
-        a->data = (type*) realloc(a->data, a->size * sizeof(type)); \
+    static inline void tx_array_##name##_init(tx_Array_##name* a, tx_uint32 size) { \
+        a->data  = (type*) malloc(size * sizeof(type)); \
+        a->front = 0; \
+        a->size  = size; \
     } \
-    a->data[a->front++] = element; \
-} \
 \
-static inline void tx_array_##name##_destroy(tx_Array_##name* a) { \
-    free(a->data); \
-    a->data = NULL; \
-    a->front = a->size = 0; \
-}
+    static inline void tx_array_##name##_insert(tx_Array_##name* a, type element) { \
+        if (a->front == a->size) { \
+            a->size *= 2; \
+            a->data = (type*) realloc(a->data, a->size * sizeof(type)); \
+        } \
+        a->data[a->front++] = element; \
+    } \
+\
+    static inline void tx_array_##name##_destroy(tx_Array_##name* a) { \
+        free(a->data); \
+        a->data  = NULL; \
+        a->front = a->size = 0; \
+    }
 
 #ifdef __cplusplus
 }

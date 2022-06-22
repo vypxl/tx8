@@ -11,10 +11,10 @@
  */
 #pragma once
 
+#include "kstring.h"
+
 #include <bits/types/FILE.h>
 #include <stddef.h>
-
-#include "kstring.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,12 +41,12 @@ void tx_logv_err(const char* format, va_list argptr);
 }
 #endif
 
-extern int __tx_log_stdout;
-extern int __tx_log_stderr;
-extern FILE* __tx_log_file;
-extern FILE* __tx_log_file_err;
-extern kstring_t* __tx_log_string;
-extern kstring_t* __tx_log_string_err;
+extern int            __tx_log_stdout;
+extern int            __tx_log_stderr;
+extern FILE*          __tx_log_file;
+extern FILE*          __tx_log_file_err;
+extern kstring_t*     __tx_log_string;
+extern kstring_t*     __tx_log_string_err;
 extern tx_logfunc_ptr __tx_log_func;
 extern tx_logfunc_ptr __tx_log_func_err;
 
@@ -67,29 +67,21 @@ inline void tx_log_clear_str_err() {
 }
 
 /// Normal logs go to stdout
-inline void tx_log_init_stdout() {
-    __tx_log_stdout = 1;
-}
+inline void tx_log_init_stdout() { __tx_log_stdout = 1; }
 
 /// Error logs go to stderr
-inline void tx_log_init_stderr() {
-    __tx_log_stderr = 1;
-}
+inline void tx_log_init_stderr() { __tx_log_stderr = 1; }
 
 /// Normal logs go to a file
-inline void tx_log_init_file(FILE* f) {
-    __tx_log_file = f;
-}
+inline void tx_log_init_file(FILE* f) { __tx_log_file = f; }
 
 /// Error logs go to a file
-inline void tx_log_init_file_err(FILE* f) {
-    __tx_log_file_err = f;
-}
+inline void tx_log_init_file_err(FILE* f) { __tx_log_file_err = f; }
 
 /// Normal logs go to a string
 inline void tx_log_init_str() {
     if (__tx_log_string == NULL) {
-        __tx_log_string = (kstring_t*) malloc(sizeof(kstring_t));
+        __tx_log_string    = (kstring_t*) malloc(sizeof(kstring_t));
         __tx_log_string->l = 0;
         __tx_log_string->m = 0;
         __tx_log_string->s = NULL;
@@ -100,7 +92,7 @@ inline void tx_log_init_str() {
 /// Error logs go to a string
 inline void tx_log_init_str_err() {
     if (__tx_log_string_err == NULL) {
-        __tx_log_string_err = (kstring_t*) malloc(sizeof(kstring_t));
+        __tx_log_string_err    = (kstring_t*) malloc(sizeof(kstring_t));
         __tx_log_string_err->l = 0;
         __tx_log_string_err->m = 0;
         __tx_log_string_err->s = NULL;
@@ -109,14 +101,10 @@ inline void tx_log_init_str_err() {
 }
 
 /// Normal logs call the given function
-inline void tx_log_init_func(tx_logfunc_ptr fun) {
-    __tx_log_func = fun;
-}
+inline void tx_log_init_func(tx_logfunc_ptr fun) { __tx_log_func = fun; }
 
 /// Error logs call the given function
-inline void tx_log_init_func_err(tx_logfunc_ptr fun) {
-    __tx_log_func_err = fun;
-}
+inline void tx_log_init_func_err(tx_logfunc_ptr fun) { __tx_log_func_err = fun; }
 
 /// Retrieve the saved error log string
 inline char* tx_log_get_str() {

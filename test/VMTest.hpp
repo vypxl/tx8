@@ -25,8 +25,8 @@ class VMTest : public ::testing::Test {
     static void append_num(void* vm, tx_num32_variant value);
 
   protected:
-    tx_asm_Assembler      as = {};
-    tx_CPU                cpu = {};
+    tx_asm_Assembler              as  = {};
+    tx_CPU                        cpu = {};
     std::vector<tx_num32_variant> nums;
 
     VMTest();
@@ -37,16 +37,18 @@ class VMTest : public ::testing::Test {
     void TearDown() override;
 
     void run_and_compare_str(const std::string& code, const std::string& out, const std::string& err = "");
-    void run_and_compare_num(const std::string& code, const std::vector<tx_num32_variant>& expected, const std::string& err = "");
+    void run_and_compare_num(const std::string&                   code,
+                             const std::vector<tx_num32_variant>& expected,
+                             const std::string&                   err = "");
 
     void run_binary();
 
     bool run_code(const std::string& s);
 };
 
-class Signed : public VMTest {};
-class Bitwise : public VMTest {};
-class Float : public VMTest {};
-class Unsigned : public VMTest {};
-class Miscellaneous : public VMTest {};
-class Integration : public VMTest {};
+class Signed : public VMTest { };
+class Bitwise : public VMTest { };
+class Float : public VMTest { };
+class Unsigned : public VMTest { };
+class Miscellaneous : public VMTest { };
+class Integration : public VMTest { };

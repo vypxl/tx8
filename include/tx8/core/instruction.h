@@ -115,6 +115,7 @@ typedef enum tx_Opcode {
     tx_op_ei    = 0x76,
     tx_op_di    = 0x77,
     tx_op_stop  = 0x78,
+
     tx_op_invalid = 0xff
 } tx_Opcode;
 
@@ -232,7 +233,7 @@ typedef enum tx_Register {
     tx_register_invalid = 0xff
 } tx_Register;
 
-// Constants for getting different attributs of a register id
+// Constants for getting different attributes of a register id
 #define tx_REG_SIZE_4    0x00u
 #define tx_REG_SIZE_1    0x10u
 #define tx_REG_SIZE_2    0x20u
@@ -323,8 +324,8 @@ static inline tx_uint8 tx_param_value_size(tx_Parameter param) {
 
 /// Check if a parameter represents a writable destination by its mode
 static inline bool tx_param_iswritable(tx_ParamMode which) {
-    return which == tx_param_register || which == tx_param_absolute_address
-           || which == tx_param_relative_address || which == tx_param_register_address;
+    return which == tx_param_register || which == tx_param_absolute_address || which == tx_param_relative_address
+           || which == tx_param_register_address;
 }
 
 /// Check if a parameter represents some memory address by its mode
@@ -337,10 +338,9 @@ static inline bool tx_param_isaddress(tx_ParamMode which) {
 static inline bool tx_param_isregister(tx_ParamMode which) { return which == tx_param_register; };
 
 /// Mapping of parameter modes to their byte size in tx8 binary
-static const tx_uint8  tx_param_sizes[0x10] = {0, 1, 2, 4, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4};
+static const tx_uint8 tx_param_sizes[0x10] = {0, 1, 2, 4, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4};
 /// Masks to truncate a parameter value to its meaningful bytes (indexed by parameter mode)
-static const tx_uint32 tx_param_masks[0x8] = {
-    0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};
+static const tx_uint32 tx_param_masks[0x8] = {0, 0xff, 0xffff, 0xffffffff, 0xffffff, 0xffffff, 0xff, 0xff};
 /// Mask to get the mode of parameter 2 in the first parameter mode byte
 #define tx_PARAM_MODE_2_MASK 0xfu
 

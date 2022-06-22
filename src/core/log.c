@@ -2,14 +2,14 @@
 
 #include <stdarg.h>
 
-int __tx_log_stdout = 0;
-int __tx_log_stderr = 0;
-FILE* __tx_log_file = NULL;
-FILE* __tx_log_file_err = NULL;
-kstring_t* __tx_log_string = NULL;
-kstring_t* __tx_log_string_err = NULL;
-tx_logfunc_ptr __tx_log_func = NULL;
-tx_logfunc_ptr __tx_log_func_err = NULL;
+int            __tx_log_stdout     = 0;
+int            __tx_log_stderr     = 0;
+FILE*          __tx_log_file       = NULL;
+FILE*          __tx_log_file_err   = NULL;
+kstring_t*     __tx_log_string     = NULL;
+kstring_t*     __tx_log_string_err = NULL;
+tx_logfunc_ptr __tx_log_func       = NULL;
+tx_logfunc_ptr __tx_log_func_err   = NULL;
 
 void tx_log_reset() {
     tx_log_destroy();
@@ -30,7 +30,7 @@ void tx_log_destroy() {
         free(__tx_log_string->s);
         free(__tx_log_string);
     }
-    if (__tx_log_string_err != NULL){
+    if (__tx_log_string_err != NULL) {
         free(__tx_log_string_err->s);
         free(__tx_log_string_err);
     }

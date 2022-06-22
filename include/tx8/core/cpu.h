@@ -40,7 +40,7 @@ typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu, void* data);
 /// A tx8 cpu system function
 typedef struct tx_sysfunc {
     tx_sysfunc_ptr func;
-    void* data;
+    void*          data;
 } tx_sysfunc;
 
 /// \private
@@ -156,9 +156,7 @@ tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which);
 void tx_cpu_mem_write_n(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value, tx_uint8 bytes);
 
 // Convenience function to set the R register
-static inline void tx_cpu_write_r(tx_CPU* cpu, tx_uint32 value) {
-    tx_cpu_reg_write(cpu, tx_reg_r, value);
-}
+static inline void tx_cpu_write_r(tx_CPU* cpu, tx_uint32 value) { tx_cpu_reg_write(cpu, tx_reg_r, value); }
 
 /// Convenience function to set a bit in the r register to a value
 static inline void tx_cpu_set_r_bit(tx_CPU* cpu, tx_uint8 bit, tx_uint8 value) {
@@ -166,9 +164,7 @@ static inline void tx_cpu_set_r_bit(tx_CPU* cpu, tx_uint8 bit, tx_uint8 value) {
 }
 
 // Convenience function to read the R register
-static inline tx_uint32 tx_cpu_read_r(tx_CPU* cpu) {
-    return tx_cpu_reg_read(cpu, tx_reg_r);
-}
+static inline tx_uint32 tx_cpu_read_r(tx_CPU* cpu) { return tx_cpu_reg_read(cpu, tx_reg_r); }
 
 // All opcode handler functions
 

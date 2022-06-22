@@ -1,6 +1,7 @@
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "readability-magic-numbers"
+#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
+
 #include <cmath>
 
 TEST_F(Float, finc) {
@@ -157,14 +158,16 @@ sys &test_af ; nan
 
 hlt
 )EOF";
-    run_and_compare_num(s,
-                        {0.2f,
-                         -25.0f,
-                         -0.1f,
-                         0.5f,
-                         0.0f,
-                         std::numeric_limits<float>::infinity(),
-                         std::numeric_limits<float>::quiet_NaN()});
+    run_and_compare_num(
+        s,
+        {0.2f,
+         -25.0f,
+         -0.1f,
+         0.5f,
+         0.0f,
+         std::numeric_limits<float>::infinity(),
+         std::numeric_limits<float>::quiet_NaN()}
+    );
 }
 
 TEST_F(Float, fmod) {
@@ -425,7 +428,10 @@ sys &test_af ; atan2(-7.0, -1.5)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) atan2(2.0, 2.0), (float) atan2(-1.5, 2.0), (float) atan2(2.0, -1.5), (float) atan2(-7.0, -1.5)});
+    run_and_compare_num(
+        s,
+        {(float) atan2(2.0, 2.0), (float) atan2(-1.5, 2.0), (float) atan2(2.0, -1.5), (float) atan2(-7.0, -1.5)}
+    );
 }
 
 TEST_F(Float, sqrt) {

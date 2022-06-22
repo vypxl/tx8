@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include <stdio.h>
-
 #include "tx8/asm/types.h"
+
+#include <stdio.h>
 #include <tx8/core/types.h>
 
 #ifdef __cplusplus
@@ -20,11 +20,11 @@ tx_MAKE_ARRAY_TYPE(tx_Instruction, instruction);
 /// @brief Struct to store the state of an assembler.
 /// @details It stores all found labels and instructions.
 typedef struct tx_asm_Assembler {
-    tx_Array_label labels;
+    tx_Array_label       labels;
     tx_Array_instruction instructions;
-    tx_uint32  position;
-    tx_uint32  last_label_id;
-    tx_uint8   error;
+    tx_uint32            position;
+    tx_uint32            last_label_id;
+    tx_uint8             error;
 } tx_asm_Assembler;
 
 /// Initialize the assembler
@@ -39,9 +39,7 @@ int tx_asm_run_assembler_buffer(tx_asm_Assembler* as, char* buf, int size);
 /// @returns true if the binary was successfully written, false otherwise
 bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output);
 /// Get the size of the binary the assembler would currently generate
-static inline tx_uint32 tx_asm_assembler_get_binary_size(tx_asm_Assembler* as) {
-    return as->position;
-}
+static inline tx_uint32 tx_asm_assembler_get_binary_size(tx_asm_Assembler* as) { return as->position; }
 /// Write the generated binary to a the buffer `rom_dest` (it must be at least `tx_asm_assembler_get_binary_size(as)` bytes long)
 /// @returns true if the binary generation was successful, false otherwise
 bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest);

@@ -14,7 +14,7 @@ extern int   tx_asm_yyerror(char* msg, ...);
 extern int   tx_asm_yyparse();
 extern FILE* tx_asm_yyin;
 extern int   tx_asm_yylineno;
-extern void* tx_asm_yy_scan_bytes (const char * yybytes, int _yybytes_len);
+extern void* tx_asm_yy_scan_bytes(const char* yybytes, int _yybytes_len);
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
@@ -119,8 +119,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, char* name) 
         if (strcmp(name, label->name) == 0) {
             // error if the matched label already has a position set
             if (label->position != tx_asm_INVALID_LABEL_ADDRESS)
-                tx_asm_error(
-                    as, "Cannot create two or more labels with the same name '%s'\n", name);
+                tx_asm_error(as, "Cannot create two or more labels with the same name '%s'\n", name);
             else {
                 // set position of found label
                 // TODO fix position offset hack

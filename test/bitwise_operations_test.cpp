@@ -69,11 +69,10 @@ sys &test_ai ; -107
 
 hlt
 )EOF";
-    run_and_compare_num(
-        s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
+    run_and_compare_num(s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
 }
 
-TEST_F(Bitwise, not) {
+TEST_F(Bitwise, not ) {
     std::string s = R"EOF(
 lda 0xffffffff
 not a

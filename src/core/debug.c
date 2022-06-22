@@ -4,10 +4,15 @@
 #include "tx8/core/log.h"
 
 void tx_debug_print_raw_instruction(tx_Instruction* inst) {
-    tx_log_err("%x (%s) %x %x (modes: %x %x)\n",
-            inst->opcode, tx_op_names[inst->opcode],
-            inst->params.p1.value.u, inst->params.p2.value.u,
-            inst->params.p1.mode, inst->params.p2.mode);
+    tx_log_err(
+        "%x (%s) %x %x (modes: %x %x)\n",
+        inst->opcode,
+        tx_op_names[inst->opcode],
+        inst->params.p1.value.u,
+        inst->params.p2.value.u,
+        inst->params.p1.mode,
+        inst->params.p2.mode
+    );
 }
 
 void tx_debug_print_instruction(tx_Instruction* inst) {

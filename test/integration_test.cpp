@@ -25,3 +25,16 @@ hlt
 )EOF";
     run_and_compare_str(s, "Hello world!\n");
 }
+
+TEST_F(Integration, SmallerRegisters) {
+    std::string s = R"EOF(
+lda 0x77fff
+add as 1
+ld a as
+sys &test_au ; 0x8000
+sys &test_r ; 2
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x8000u, 2u});
+}

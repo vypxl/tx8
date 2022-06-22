@@ -24,9 +24,7 @@ void tx_debug_print_raw_instruction(tx_Instruction* inst);
 
 /// Prints the current program counter without at newline
 /// To be used before other debug functions
-static inline void tx_debug_print_pc(tx_CPU* cpu) {
-    tx_log_err("[#%x] ", cpu->p);
-}
+static inline void tx_debug_print_pc(tx_CPU* cpu) { tx_log_err("[#%x] ", cpu->p); }
 
 #ifdef __cplusplus
 }
