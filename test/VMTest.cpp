@@ -95,11 +95,11 @@ void VMTest::run_and_compare_num(const std::string& code, const std::vector<tx_n
             if (a != b) {
                 if (std::holds_alternative<tx_uint32>(b))
                     ADD_FAILURE() << "Value 0x" << std::hex << std::get<tx_uint32>(a)
-                                  << " at index " << i << " does not match expected value 0x"
+                                  << " at index " << std::dec << i << " does not match expected value 0x"
                                   << std::hex << std::get<tx_uint32>(b) << ".";
                 else
                     ADD_FAILURE() << "Value " << std::get<tx_int32>(a)
-                                  << " at index " << i << " does not match expected value "
+                                  << " at index " << std::dec << i << " does not match expected value "
                                   << std::get<tx_int32>(b) << ".";
             } else {
                 SUCCEED();
