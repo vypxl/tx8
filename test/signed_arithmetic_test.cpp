@@ -12,7 +12,6 @@ sys &test_r ; 0 (no overflow)
 lda -1
 inc a
 sys &test_au ; 0
-sys &test_r ; 0b01 (unsigned overflow)
 
 lda 2147483647
 inc a
@@ -21,7 +20,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1u, 0u, 0u, 0b01u, INT32_MIN, 0b10u});
+    run_and_compare_num(s, {1u, 0u, 0u, INT32_MIN, 0b10u});
 }
 
 TEST_F(Signed, dec) {
@@ -29,7 +28,6 @@ TEST_F(Signed, dec) {
 lda 0
 dec a
 sys &test_ai ; -1
-sys &test_r ; 0b01 (unsigned overflow)
 
 lda -1
 dec a
@@ -43,7 +41,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {-1, 0b01u, -2, 0u, INT32_MAX, 0b10u});
+    run_and_compare_num(s, {-1, -2, 0u, INT32_MAX, 0b10u});
 }
 
 TEST_F(Signed, add) {
@@ -60,17 +58,14 @@ sys &test_r ; 0 (no overflow)
 lda 0xffffffff
 add a 1
 sys &test_au ; 0
-sys &test_r ; 0b01 (unsigned overflow)
 
 lda 0xffffffff
 add a 0xffffffff
 sys &test_au ; 0xfffffffe
-sys &test_r ; 0b01 (unsigned overflow)
 
 lda 4
 add a -2
 sys &test_ai ; 2
-sys &test_r ; 0b01 (unsigned overflow)
 
 lda -1
 add a 3
@@ -94,15 +89,14 @@ sys &test_r; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {5u, 0u, 0b0u, 0u, 0b1u, 0xfffffffeu, 0b1u, 2, 0b1u, 2, -2, -3, -9, 0b10u});
+    run_and_compare_num(s, {5u, 0u, 0u, 0u, 0xfffffffeu, 2, 2, -2, -3, -9, 0b10u});
 }
 
 TEST_F(Signed, sub) {
     std::string s = R"EOF(
 lda 2
 sub a 3
-sys &test_au ; 0xffffffff
-sys &test_r ; 0b01 (unsigned overflow)
+sys &test_ai ; -1
 
 lda 32
 sub a 1
@@ -144,7 +138,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0b1u, 0x1fu, 0b0u, 0xdead0000u, 0u, 6, -4, -8, 3, -1, 0x7ffffffbu, 0b10u});
+    run_and_compare_num(s, {-1, 0x1fu, 0b0u, 0xdead0000u, 0u, 6, -4, -8, 3, -1, 0x7ffffffbu, 0b10u});
 }
 
 TEST_F(Signed, mul) {
