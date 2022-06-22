@@ -35,6 +35,7 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     cpu->halted  = 0;
     cpu->stopped = 0;
     cpu->debug   = 0;
+    cpu->rseed   = tx_RAND_INITIAL_SEED;
     cpu->a       = 0;
     cpu->b       = 0;
     cpu->c       = 0;
@@ -118,7 +119,7 @@ void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
-    return (cpu->rseed = (cpu->rseed * 214013 + 2541011) & tx_RAND_MAX) >> 16; // NOLINT
+    return ((cpu->rseed = (cpu->rseed * 214013 + 2541011)) >> 16) & tx_RAND_MAX; // NOLINT
 }
 
 tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
@@ -485,8 +486,7 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
 
 #define AR_OP_END \
     if (tx_param_isregister(params->p1.mode)) tx_cpu_reg_write(cpu, (tx_Register) params->p1.value.u, result.u); \
-    else \
-        tx_cpu_mem_write32(cpu, PARAMA(1), result.u);
+    else tx_cpu_mem_write32(cpu, PARAMA(1), result.u);
 
 #define AR_SIMPLE_OP_1(name, op) \
     AR_OP_1_BEGIN(name) \
@@ -553,23 +553,25 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
 
 #define AR_OVF_OP(name) \
     AR_OP_2_BEGIN(name) \
+    tx_uint32 rval; \
     if (tx_param_isregister(params->p1.mode) && tx_register_size((tx_Register) params->p1.value.u) != 4) { \
         switch (tx_register_size((tx_Register)params->p1.value.u)) { \
             case 1: \
-                R(__builtin_##name##_overflow((tx_uint8) a.u, (tx_uint8) b.u, (tx_uint8*)(&result.u))); \
+                rval = __builtin_##name##_overflow((tx_uint8) a.u, (tx_uint8) b.u, (tx_uint8*)(&result.u)); \
                 tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int8) a.i, (tx_int8) b.i, (tx_int8*)(&result.i))); \
                 break; \
             case 2: \
-                R(__builtin_##name##_overflow((tx_uint16) a.u, (tx_uint16) b.u, (tx_uint16*)(&result.u))); \
+                rval = __builtin_##name##_overflow((tx_uint16) a.u, (tx_uint16) b.u, (tx_uint16*)(&result.u)); \
                 tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow((tx_int16) a.i, (tx_int16) b.i, (tx_int16*)(&result.i))); \
                 break; \
-            default: R(0); result.u = 0xdeadbeef; break; /* Just to suppress compiler warning */ \
+            default: rval = 0; result.u = 0xdeadbeef; break; /* Just to suppress compiler warning */ \
         } \
     } else { \
-        R(__builtin_##name##_overflow(a.u, b.u, &result.u)); \
+        rval = __builtin_##name##_overflow(a.u, b.u, &result.u); \
         tx_cpu_set_r_bit(cpu, 1, __builtin_##name##_overflow(a.i, b.i, &result.i)); \
     } \
-    AR_OP_END
+    AR_OP_END \
+    R(rval);
 
 #define AR_OVF_MUL(name, type, vtype) \
     AR_OP_2_BEGIN(name) \
@@ -577,16 +579,18 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
     type##64_t b_64 = b.vtype; \
     type##64_t r_64 = a_64 * b_64; \
     result.vtype = r_64; \
+    tx_uint32 rval; \
     if (tx_param_isregister(params->p1.mode) && tx_register_size((tx_Register) params->p1.value.u) != 4) { \
         switch (tx_register_size((tx_Register)params->p1.value.u)) { \
-            case 1: R((r_64 >> 8) & 0xff); break; \
-            case 2: R((r_64 >> 16) & 0xffff); break; \
-            default: R(0); \
+            case 1: rval = (r_64 >> 8) & 0xff; break; \
+            case 2: rval = (r_64 >> 16) & 0xffff; break; \
+            default: rval = 0; \
         } \
     } else { \
-        R((r_64 >> 32) & 0xffffffff); \
+        rval = (r_64 >> 32) & 0xffffffff; \
     } \
-    AR_OP_END
+    AR_OP_END \
+    R(rval);
 
 // Actual arithmetic operations
 
@@ -799,8 +803,10 @@ void tx_cpu_op_umin(tx_CPU* cpu, tx_Parameters* params) {
 void tx_cpu_op_rand(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE("rand")
         tx_num32 result;
-        result.f = ((tx_float32)tx_cpu_rand(cpu)) / ((tx_float32)tx_RAND_MAX);
+        tx_uint32 rand_val = tx_cpu_rand(cpu);
+        result.f = ((tx_float32)rand_val) / ((tx_float32)tx_RAND_MAX);
     AR_OP_END
+    R(rand_val);
 }
 void tx_cpu_op_rseed(tx_CPU* cpu, tx_Parameters* params) { cpu->rseed = PARAMV(1); }
 void tx_cpu_op_itf(tx_CPU* cpu, tx_Parameters* params) {

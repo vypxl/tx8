@@ -29,7 +29,9 @@ extern "C" {
 /// The number of tx8 cpu registers
 #define tx_REGISTER_COUNT 8
 /// The maximum value produced by tx_cpu_rand
-#define tx_RAND_MAX ((1U << 31U) - 1)
+#define tx_RAND_MAX 0x7fff
+/// The initial random seed
+#define tx_RAND_INITIAL_SEED 0x12345678
 
 typedef struct tx_CPU tx_CPU;
 /// A function pointer type alias for tx8 system functions callable by `sys` instructions
@@ -81,7 +83,7 @@ void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...);
 /// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
 /// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
 void tx_cpu_error(tx_CPU* cpu, char* format, ...);
-/// Get a random 32bit value using the random seed
+/// Get a random value using the random seed (range 0 - tx_RAND_MAX)
 tx_uint32 tx_cpu_rand(tx_CPU* cpu);
 
 /// Parse an instruction from the given memory address
