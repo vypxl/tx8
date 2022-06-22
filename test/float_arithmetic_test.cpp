@@ -554,11 +554,7 @@ log10 a
 sys &test_af ; log10(0.0)
 
 lda 3.14159
-push a
-sys &print_f32
 log10 a
-push a
-sys &print_f32
 sys &test_af ; log10(3.14159)
 
 hlt
