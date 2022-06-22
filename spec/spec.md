@@ -247,6 +247,19 @@ or floats, you have to use the specialized instructions.
  - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data types).
  - The `slr`, `sar` and `sll` instructions set the `R` register to the shifted-out bits.
  - The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
+ - The `rand` operation places the original random integer into the `R` register.
+
+Note that the R register assignment is done **after** the operation itself, this means if one specified the `R`
+register as the destination of an operation, the normal value is discarded and the residual value is found in `R`.
+
+Example:
+
+```asm
+ld r 1
+max r 2
+```
+
+This would result in the value `1` being stored in `R` and the value `2` being discarded.
 
 ##### Signed Integer Operations
 
@@ -346,6 +359,21 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 | 0x76   | ei    | `00`       | enable interrupts (for future use, currently nop)                                      | `ei`       |
 | 0x77   | di    | `00`       | disable interrupts (for future use, currently nop)                                     | `di`       |
 | 0x78   | stop  | `00`       | stop execution until an interrupt occurs (for future use, currently equivalent to hlt) | `stop`     |
+
+When converting floating point values to int or uint, the conversion behaves like a c-style cast. This means the
+fractional part is discarded, and if the magnitude of the float is too large for the receiving datatype, the result
+is undefined.
+
+###### The random number generator
+
+The `rand` operation uses a pseudo random number generator, specifically a
+[Linear congruential generator](https://en.wikipedia.org/wiki/Linear_congruential_generator) with a multiplier of
+`214013`, an increment of `2541011` and a modulo of `2^32`. The random range is `0 - 0x7fff` and the initial seed
+is `0x12345678`.
+
+This means the `rand` operation always produces the same sequence of numbers if the seed is not changed.
+Note that `rand` returns a random **float** between 0 and 1, not an integer. If you need the random integer,
+it is found in the `R` register. To get a random integer without affecting any other registers, use `rand r`.
 
 ## Binary Files
 
