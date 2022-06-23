@@ -69,7 +69,7 @@ struct tx_CPU {
     bool debug;
 
     /// If tx_init_cpu was called on this cpu
-    bool __initialized;
+    bool _initialized;
 };
 
 /// Initialize all cpu members and copy the rom into the memory

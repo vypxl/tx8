@@ -119,6 +119,11 @@ typedef enum tx_Opcode {
     tx_op_invalid = 0xff
 } tx_Opcode;
 
+/// Returns true if the instruction corresponding to the given opcode changes the program counter
+static inline bool tx_op_changes_p(tx_Opcode op) {
+    return (op >= tx_op_jmp && op <= tx_op_jle) || op == tx_op_call || op == tx_op_ret;
+}
+
 /// List of tx8 instruction parameter modes
 typedef enum tx_ParamMode {
     tx_param_unused           = 0x0,
