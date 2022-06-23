@@ -2,7 +2,6 @@
 #pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
-
 TEST_F(Unsigned, inc) {
     std::string s = R"EOF(
 lda 0xffffffff
@@ -104,9 +103,11 @@ udiv a 0
 
 hlt
 )EOF";
-    run_and_compare_num(s,
-                        {0xdeadbeefu, 0u, 0x200u, 277u, 1u},
-                        "Exception: Division by zero\nCaused by instruction:\n[#40004b] udiv a <0x0 | 0 | 0.00000>\n");
+    run_and_compare_num(
+        s,
+        {0xdeadbeefu, 0u, 0x200u, 277u, 1u},
+        "Exception: Division by zero\nCaused by instruction:\n[#40004b] udiv a <0x0 | 0 | 0.00000>\n"
+    );
 }
 
 TEST_F(Unsigned, umod) {
@@ -124,9 +125,11 @@ umod a 0
 
 hlt
 )EOF";
-    run_and_compare_num(s,
-                        {0x227fu, 0u},
-                        "Exception: Division by zero\nCaused by instruction:\n[#40002c] umod a <0x0 | 0 | 0.00000>\n");
+    run_and_compare_num(
+        s,
+        {0x227fu, 0u},
+        "Exception: Division by zero\nCaused by instruction:\n[#40002c] umod a <0x0 | 0 | 0.00000>\n"
+    );
 }
 
 TEST_F(Unsigned, umax) {

@@ -37,9 +37,11 @@ class VMTest : public ::testing::Test {
     void TearDown() override;
 
     void run_and_compare_str(const std::string& code, const std::string& out, const std::string& err = "");
-    void run_and_compare_num(const std::string&                   code,
-                             const std::vector<tx_num32_variant>& expected,
-                             const std::string&                   err = "");
+    void run_and_compare_num(
+        const std::string&                   code,
+        const std::vector<tx_num32_variant>& expected,
+        const std::string&                   err = ""
+    );
 
     void run_binary();
 
@@ -52,3 +54,4 @@ class Float : public VMTest { };
 class Unsigned : public VMTest { };
 class Miscellaneous : public VMTest { };
 class Integration : public VMTest { };
+class SmallRegisters : public VMTest { };

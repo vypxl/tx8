@@ -8,14 +8,14 @@ SET(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
 
 # Choose build type
 set(default_build_type "Debug")
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-      STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+            STRING "Choose the type of build." FORCE)
+    # Set the possible values of build type for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+            "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif ()
 
 
 find_library(MATH_LIBRARY m)
@@ -33,31 +33,31 @@ target_include_directories(tx8-core PRIVATE deps)
 target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY})
 
 add_library(tx8-asm SHARED
-    src/asm/types.c
-    src/asm/assembler.c
-    ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
-    ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c)
+        src/asm/types.c
+        src/asm/assembler.c
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c)
 target_compile_options(tx8-asm PRIVATE -Wall -Wextra -Werror)
 target_include_directories(tx8-asm PRIVATE deps)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
 
 # Custom commands for yacc / lex (actually bison/flex)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
-            ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
-    COMMAND bison
-    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d
-         ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
-    BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
+        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
+        COMMAND bison
+        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d
+        ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
+        BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
+        DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
 )
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
-    COMMAND flex
-    ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
-         ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
+        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
+        COMMAND flex
+        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
+        ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
+        DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
 )
 
 # Google test
@@ -73,7 +73,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/signed_arithmetic_test.cpp test/integration_test.cpp test/bitwise_operations_test.cpp test/float_arithmetic_test.cpp test/unsigned_arithmetic_test.cpp test/miscellaneous_test.cpp)
+add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/signed_arithmetic_test.cpp test/integration_test.cpp test/bitwise_operations_test.cpp test/float_arithmetic_test.cpp test/unsigned_arithmetic_test.cpp test/miscellaneous_test.cpp test/small_registers_test.cpp)
 target_include_directories(tx8-test PRIVATE deps)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 
