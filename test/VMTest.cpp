@@ -70,15 +70,17 @@ void VMTest::test_rf(tx_CPU* cpu, void* vm) {
 void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
 
-    EXPECT_STREQ(tx_log_get_str(), out.c_str());
-    ASSERT_STREQ(tx_log_get_str_err(), err.c_str());
+    EXPECT_EQ(tx_log_get_str(), out);
+    ASSERT_EQ(tx_log_get_str_err(), err);
 }
 
-void VMTest::run_and_compare_num(const std::string&                   code,
-                                 const std::vector<tx_num32_variant>& expecteds,
-                                 const std::string&                   err) {
+void VMTest::run_and_compare_num(
+    const std::string&                   code,
+    const std::vector<tx_num32_variant>& expecteds,
+    const std::string&                   err
+) {
     if (!run_code(code)) return;
-    ASSERT_STREQ(tx_log_get_str_err(), err.c_str());
+    ASSERT_EQ(tx_log_get_str_err(), err);
 
     if (nums.size() != expecteds.size()) {
         ADD_FAILURE() << "Counts of logged (" << nums.size() << ") and expected (" << expecteds.size()
@@ -104,8 +106,7 @@ void VMTest::run_and_compare_num(const std::string&                   code,
             tx_float32 actual   = std::get<tx_float32>(a);
             tx_float32 expected = std::get<tx_float32>(b);
             if (std::isnan(actual) && std::isnan(expected)) SUCCEED();
-            else
-                EXPECT_FLOAT_EQ(actual, expected) << "At index " << i;
+            else EXPECT_FLOAT_EQ(actual, expected) << "At index " << i;
         }
     }
 }

@@ -4,7 +4,8 @@ project(tx8 VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
-SET(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
+set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
+set(CMAKE_CXX_FLAGS -fmodules)
 
 # Choose build type
 set(default_build_type "Debug")
@@ -21,7 +22,6 @@ endif ()
 find_library(MATH_LIBRARY m)
 
 add_library(tx8-core SHARED
-        deps/kstring.c
         src/core/cpu.cpp
         src/core/debug.cpp
         src/core/stdlib.cpp
@@ -35,29 +35,29 @@ target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY})
 add_library(tx8-asm SHARED
         src/asm/types.cpp
         src/asm/assembler.cpp
-        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
-        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c)
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp)
 target_compile_options(tx8-asm PRIVATE -Wall -Wextra -Werror)
-target_include_directories(tx8-asm PRIVATE deps)
+target_include_directories(tx8-asm PRIVATE ${CMAKE_BINARY_DIR}/tmp_lexyacc)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
 
 # Custom commands for yacc / lex (actually bison/flex)
 add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c
-        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
+        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp
+        ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.hpp
         COMMAND bison
-        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.c --verbose -d
+        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp --verbose -d
         ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
         BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
         DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
 )
 
 add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
+        OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp
         COMMAND flex
-        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.yy.c
+        ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp
         ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
-        DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.tab.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.hpp
 )
 
 # Google test
@@ -74,7 +74,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(tx8-test test/main.cpp test/VMTest.cpp test/VMTest.hpp test/signed_arithmetic_test.cpp test/integration_test.cpp test/bitwise_operations_test.cpp test/float_arithmetic_test.cpp test/unsigned_arithmetic_test.cpp test/miscellaneous_test.cpp test/small_registers_test.cpp)
-target_include_directories(tx8-test PRIVATE deps)
+target_include_directories(tx8-test PRIVATE ${CMAKE_BINARY_DIR}/tmp_lexyacc)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 
 include(GoogleTest)

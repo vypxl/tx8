@@ -9,8 +9,8 @@
 #include "tx8/core/instruction.h"
 #include "tx8/core/types.h"
 
-#include <khash.h>
-#include <stdbool.h>
+#include <map>
+#include <string>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,9 +43,6 @@ typedef struct tx_sysfunc {
     void*          data;
 } tx_sysfunc;
 
-/// \private
-KHASH_INIT(tx_sysfunc, tx_uint32, tx_sysfunc, 1, kh_int_hash_func, kh_int_hash_equal); // NOLINT
-
 /// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
 struct tx_CPU {
     /// Pointer to the cpu memory
@@ -58,7 +55,7 @@ struct tx_CPU {
         tx_uint32 registers[tx_REGISTER_COUNT];
     };
     /// System function table
-    khash_t(tx_sysfunc) * sys_func_table;
+    std::map<tx_uint32, tx_sysfunc> sys_func_table;
     /// Random seed
     tx_uint32 rseed;
     /// If the cpu is currently halted (finished execution)

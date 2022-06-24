@@ -6,7 +6,6 @@
 #include "tx8/core/types.h"
 #include "tx8/core/util.h"
 
-#include <khash.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -50,7 +49,7 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     cpu->mem     = (tx_mem_ptr) malloc(tx_MEM_SIZE);
 
     // initialize sys function table
-    cpu->sys_func_table = kh_init(tx_sysfunc);
+    //    cpu->sys_func_table;
 
     cpu->_initialized = true;
 
@@ -64,7 +63,6 @@ void tx_destroy_cpu(tx_CPU* cpu) {
     if (!cpu->_initialized) return;
 
     free(cpu->mem);
-    kh_destroy_tx_sysfunc(cpu->sys_func_table);
     cpu->_initialized = false;
 }
 
@@ -148,12 +146,12 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
         .opcode     = (tx_Opcode)p[0],
         .params = {
             .p1 = {
+                .value  = { .u = value_p1 },
                 .mode = (tx_ParamMode) mode_p1,
-                .value  = { .u = value_p1 }
             },
             .p2 = {
+                .value  = { .u = value_p2 },
                 .mode = (tx_ParamMode) mode_p2,
-                .value  = { .u = value_p2 }
             }
         },
         .len = (tx_uint8) (1 + tx_param_mode_bytes[pcount] + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2])
@@ -168,21 +166,19 @@ void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
 }
 
 void tx_cpu_register_sysfunc(tx_CPU* cpu, const char* name, tx_sysfunc_ptr func, void* data) {
-    tx_int32  ret;
-    tx_uint32 pos = kh_put(tx_sysfunc, cpu->sys_func_table, tx_str_hash(name), &ret);
+    auto h = tx_str_hash(name);
 
     tx_sysfunc f = {.func = func, .data = data};
 
-    if (ret == 0) tx_cpu_error(cpu, ERR_SYSFUNC_REREGISTER, name);
-    else if (ret == -1) tx_cpu_error(cpu, ERR_SYSFUNC_REALLOC, name);
-    else kh_value(cpu->sys_func_table, pos) = f;
+    if (cpu->sys_func_table.contains(h)) tx_cpu_error(cpu, ERR_SYSFUNC_REREGISTER, name);
+    else cpu->sys_func_table[h] = f;
 }
 
 void tx_cpu_exec_sys_func(tx_CPU* cpu, tx_uint32 hashed_name) {
-    tx_uint32 key = kh_get(tx_sysfunc, cpu->sys_func_table, hashed_name);
-    if (key == kh_end(cpu->sys_func_table)) tx_cpu_error(cpu, ERR_SYSFUNC_NOT_FOUND, hashed_name);
+    auto it = cpu->sys_func_table.find(hashed_name);
+    if (it == cpu->sys_func_table.end()) tx_cpu_error(cpu, ERR_SYSFUNC_NOT_FOUND, hashed_name);
     else {
-        tx_sysfunc f = kh_value(cpu->sys_func_table, key);
+        tx_sysfunc f = it->second;
         f.func(cpu, f.data);
     }
 }

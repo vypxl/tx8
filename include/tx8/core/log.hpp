@@ -11,10 +11,10 @@
  */
 #pragma once
 
-#include "kstring.h"
-
 #include <bits/types/FILE.h>
-#include <stddef.h>
+#include <cstddef>
+#include <cstdio>
+#include <string>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,25 +45,19 @@ extern int            __tx_log_stdout;
 extern int            __tx_log_stderr;
 extern FILE*          __tx_log_file;
 extern FILE*          __tx_log_file_err;
-extern kstring_t*     __tx_log_string;
-extern kstring_t*     __tx_log_string_err;
+extern std::string*   __tx_log_string;
+extern std::string*   __tx_log_string_err;
 extern tx_logfunc_ptr __tx_log_func;
 extern tx_logfunc_ptr __tx_log_func_err;
 
 /// Discards the aggregated log string
 inline void tx_log_clear_str() {
-    if (__tx_log_string == NULL) return;
-    char* s = ks_release(__tx_log_string);
-    if (s != NULL) free(s);
-    kputs("", __tx_log_string);
+    if (__tx_log_string != nullptr) __tx_log_string->clear();
 }
 
 /// Discards the aggregated error log string
 inline void tx_log_clear_str_err() {
-    if (__tx_log_string_err == NULL) return;
-    char* s = ks_release(__tx_log_string_err);
-    if (s != NULL) free(s);
-    kputs("", __tx_log_string_err);
+    if (__tx_log_string_err != nullptr) __tx_log_string_err->clear();
 }
 
 /// Normal logs go to stdout
@@ -80,24 +74,14 @@ inline void tx_log_init_file_err(FILE* f) { __tx_log_file_err = f; }
 
 /// Normal logs go to a string
 inline void tx_log_init_str() {
-    if (__tx_log_string == NULL) {
-        __tx_log_string    = (kstring_t*) malloc(sizeof(kstring_t));
-        __tx_log_string->l = 0;
-        __tx_log_string->m = 0;
-        __tx_log_string->s = NULL;
-    }
-    tx_log_clear_str();
+    if (__tx_log_string == nullptr) __tx_log_string = new std::string();
+    else __tx_log_string->clear();
 }
 
 /// Error logs go to a string
 inline void tx_log_init_str_err() {
-    if (__tx_log_string_err == NULL) {
-        __tx_log_string_err    = (kstring_t*) malloc(sizeof(kstring_t));
-        __tx_log_string_err->l = 0;
-        __tx_log_string_err->m = 0;
-        __tx_log_string_err->s = NULL;
-    }
-    tx_log_clear_str_err();
+    if (__tx_log_string_err == nullptr) __tx_log_string_err = new std::string();
+    else __tx_log_string_err->clear();
 }
 
 /// Normal logs call the given function
@@ -107,13 +91,7 @@ inline void tx_log_init_func(tx_logfunc_ptr fun) { __tx_log_func = fun; }
 inline void tx_log_init_func_err(tx_logfunc_ptr fun) { __tx_log_func_err = fun; }
 
 /// Retrieve the saved error log string
-inline char* tx_log_get_str() {
-    if (__tx_log_string == NULL) return NULL;
-    return __tx_log_string->s;
-}
+inline std::string tx_log_get_str() { return *__tx_log_string; }
 
 /// Retrieve the saved error log string
-inline char* tx_log_get_str_err() {
-    if (__tx_log_string_err == NULL) return NULL;
-    return __tx_log_string_err->s;
-}
+inline std::string tx_log_get_str_err() { return *__tx_log_string_err; }

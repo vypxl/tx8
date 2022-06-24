@@ -140,8 +140,8 @@ typedef enum tx_ParamMode {
 
 /// Struct representing an instruction parameters
 typedef struct tx_Parameter {
-    tx_ParamMode mode;
     tx_num32     value;
+    tx_ParamMode mode;
 } tx_Parameter;
 
 /// Struct holding the two parameters of an instruction for convenience
