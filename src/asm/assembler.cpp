@@ -1,20 +1,17 @@
-#include "tx8/asm/assembler.h"
+#include "tx8/asm/assembler.hpp"
 
-#include "tx8/asm/types.h"
-#include "tx8/core/cpu.h"
-#include "tx8/core/debug.h"
-#include "tx8/core/log.h"
+#include "tx8/asm/types.hpp"
+#include "tx8/core/cpu.hpp"
+#include "tx8/core/debug.hpp"
+#include "tx8/core/log.hpp"
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
 
-char*        strdup(char* src);
-extern int   tx_asm_yyerror(char* msg, ...);
-extern int   tx_asm_yyparse();
-extern FILE* tx_asm_yyin;
-extern int   tx_asm_yylineno;
-extern void* tx_asm_yy_scan_bytes(const char* yybytes, int _yybytes_len);
+extern "C" int   tx_asm_yyparse();
+extern "C" FILE* tx_asm_yyin;
+extern "C" void* tx_asm_yy_scan_bytes(const char* yybytes, int _yybytes_len);
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
@@ -83,7 +80,7 @@ void tx_asm_destroy_assembler(tx_asm_Assembler* as) {
     tx_array_instruction_destroy(&as->instructions);
 }
 
-void tx_asm_error(tx_asm_Assembler* as, char* format, ...) {
+void tx_asm_error(tx_asm_Assembler* as, const char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
     tx_logv_err(format, argptr);

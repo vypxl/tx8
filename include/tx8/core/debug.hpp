@@ -7,8 +7,8 @@
 
 #include "tx8/core/instruction.h"
 
-#include <tx8/core/cpu.h>
-#include <tx8/core/log.h>
+#include <tx8/core/cpu.hpp>
+#include <tx8/core/log.hpp>
 
 #ifdef __cplusplus
 extern "C" {

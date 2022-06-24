@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tx8/asm/assembler.h"
-#include "tx8/core/cpu.h"
-#include "tx8/core/log.h"
-#include "tx8/core/stdlib.h"
+#include "tx8/asm/assembler.hpp"
+#include "tx8/core/cpu.hpp"
+#include "tx8/core/log.hpp"
+#include "tx8/core/stdlib.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>

@@ -21,7 +21,12 @@ extern "C" {
 #define CMP(a, b) (((b) < (a)) - ((a) < (b)))
 
 /// Calculate a hash value for a string
-#define tx_str_hash(str) kh_str_hash_func(str)
+static inline tx_uint32 tx_str_hash(const char* s) {
+    tx_uint32 h = (tx_uint32) *s;
+    if (h)
+        for (++s; *s; ++s) h = (h << 5) - h + (tx_uint32) *s;
+    return h;
+}
 
 #ifdef __cplusplus
 }

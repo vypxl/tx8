@@ -1,7 +1,7 @@
-#include "tx8/core/debug.h"
+#include "tx8/core/debug.hpp"
 
 #include "tx8/core/instruction.h"
-#include "tx8/core/log.h"
+#include "tx8/core/log.hpp"
 
 void tx_debug_print_raw_instruction(tx_Instruction* inst) {
     tx_log_err(

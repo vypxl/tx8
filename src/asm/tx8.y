@@ -1,13 +1,11 @@
 %code requires {
-#include "tx8/asm/types.h"
-
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>
 #include <tx8/core/util.h>
 }
 
 %{
-#include "tx8/asm/assembler.h"
+#include "tx8/asm/assembler.hpp"
 
 #include <stdio.h>
 

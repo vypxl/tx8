@@ -33,7 +33,6 @@ typedef union tx_num32 {
     tx_float32 f;
 } tx_num32;
 
-/// Macro for defining a dynamic array type with init, insert and destroy functions
 #define tx_MAKE_ARRAY_TYPE(type, name) \
     typedef struct tx_Array_##name { \
         type*  data; \

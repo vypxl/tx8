@@ -1,4 +1,4 @@
-#include "tx8/asm/types.h"
+#include "tx8/asm/types.hpp"
 
 #include <tx8/core/instruction.h>
 #include <tx8/core/types.h>

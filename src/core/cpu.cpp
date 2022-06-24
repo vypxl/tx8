@@ -1,8 +1,8 @@
-#include "tx8/core/cpu.h"
+#include "tx8/core/cpu.hpp"
 
-#include "tx8/core/debug.h"
+#include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.h"
-#include "tx8/core/log.h"
+#include "tx8/core/log.hpp"
 #include "tx8/core/types.h"
 #include "tx8/core/util.h"
 
@@ -47,7 +47,7 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size) {
     cpu->o       = 0;
     cpu->s       = tx_STACK_BEGIN;
     cpu->p       = tx_ENTRY_POINT;
-    cpu->mem     = malloc(tx_MEM_SIZE);
+    cpu->mem     = (tx_mem_ptr) malloc(tx_MEM_SIZE);
 
     // initialize sys function table
     cpu->sys_func_table = kh_init(tx_sysfunc);
@@ -99,7 +99,7 @@ void tx_run_cpu(tx_CPU* cpu) {
     if (cpu->debug) tx_log_err("[cpu] Halted.\n");
 }
 
-void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...) {
+void tx_cpu_error_raw(tx_CPU* cpu, const char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
     tx_log_err(format, argptr);
@@ -107,7 +107,7 @@ void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...) {
     va_end(argptr);
 }
 
-void tx_cpu_error(tx_CPU* cpu, char* format, ...) {
+void tx_cpu_error(tx_CPU* cpu, const char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
     tx_log_err(format, argptr);
@@ -126,7 +126,7 @@ tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
 tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
     if (pc > tx_MEM_SIZE - tx_INSTRUCTION_MAX_LENGTH - 1 || pc < 0) {
         tx_cpu_error_raw(cpu, ERR_INVALID_PC);
-        tx_Instruction nop = {0};
+        tx_Instruction nop = {};
         nop.opcode         = tx_op_nop;
         nop.len            = 1;
         return nop;
@@ -148,15 +148,15 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc) {
         .opcode     = (tx_Opcode)p[0],
         .params = {
             .p1 = {
-                .mode = mode_p1,
+                .mode = (tx_ParamMode) mode_p1,
                 .value  = { .u = value_p1 }
             },
             .p2 = {
-                .mode = mode_p2,
+                .mode = (tx_ParamMode) mode_p2,
                 .value  = { .u = value_p2 }
             }
         },
-        .len = 1 + tx_param_mode_bytes[pcount] + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2]
+        .len = (tx_uint8) (1 + tx_param_mode_bytes[pcount] + tx_param_sizes[mode_p1] + tx_param_sizes[mode_p2])
     };
     // clang-format on
 
@@ -167,7 +167,7 @@ void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
     tx_cpu_op_function[instruction.opcode](cpu, &(instruction.params));
 }
 
-void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void* data) {
+void tx_cpu_register_sysfunc(tx_CPU* cpu, const char* name, tx_sysfunc_ptr func, void* data) {
     tx_int32  ret;
     tx_uint32 pos = kh_put(tx_sysfunc, cpu->sys_func_table, tx_str_hash(name), &ret);
 
@@ -725,7 +725,7 @@ void tx_cpu_op_fmin(tx_CPU* cpu, tx_Parameters* params) {
 }
 void tx_cpu_op_fabs(tx_CPU* cpu, tx_Parameters* params) {
     AR_FUN_FOP_1("fabs", fabsf);
-    RF(SGN(a.f));
+    RF((tx_float32) SGN(a.f));
 }
 void tx_cpu_op_fsign(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("fsign", SGN) }
 void tx_cpu_op_sin(tx_CPU* cpu, tx_Parameters* params) { AR_FUN_FOP_1("sin", sinf) }

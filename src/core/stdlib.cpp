@@ -1,7 +1,7 @@
-#include "tx8/core/stdlib.h"
+#include "tx8/core/stdlib.hpp"
 
-#include "tx8/core/cpu.h"
-#include "tx8/core/log.h"
+#include "tx8/core/cpu.hpp"
+#include "tx8/core/log.hpp"
 
 #define f(name) void tx_stdlib_##name(tx_CPU* cpu, void* data)
 

@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "tx8/asm/types.h"
+#include "tx8/asm/types.hpp"
 
 #include <stdio.h>
 #include <tx8/core/types.h>
@@ -46,7 +46,7 @@ bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest);
 /// Free all resources allocated by the assembler
 void tx_asm_destroy_assembler(tx_asm_Assembler* as);
 /// Print an error message with the current line number from lex
-void tx_asm_error(tx_asm_Assembler* as, char* format, ...);
+void tx_asm_error(tx_asm_Assembler* as, const char* format, ...);
 
 /// Register a new label and return its id or the id of the already registered label with the same name
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, char* name);

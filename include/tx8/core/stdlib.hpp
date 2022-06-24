@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <tx8/core/cpu.h>
+#include <tx8/core/cpu.hpp>
 
 #ifdef __cplusplus
 extern "C" {

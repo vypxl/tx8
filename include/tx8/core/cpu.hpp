@@ -79,10 +79,10 @@ void tx_destroy_cpu(tx_CPU* cpu);
 /// Execute instructions until an error occurs or a hlt instruction is reached
 void tx_run_cpu(tx_CPU* cpu);
 /// Print an error message and halt the cpu (sets `halted` to true)
-void tx_cpu_error_raw(tx_CPU* cpu, char* format, ...);
+void tx_cpu_error_raw(tx_CPU* cpu, const char* format, ...);
 /// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
 /// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
-void tx_cpu_error(tx_CPU* cpu, char* format, ...);
+void tx_cpu_error(tx_CPU* cpu, const char* format, ...);
 /// Get a random value using the random seed (range 0 - tx_RAND_MAX)
 tx_uint32 tx_cpu_rand(tx_CPU* cpu);
 
@@ -92,7 +92,7 @@ tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
 void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
 
 /// Register the given function in the system function table
-void tx_cpu_register_sysfunc(tx_CPU* cpu, char* name, tx_sysfunc_ptr func, void* data);
+void tx_cpu_register_sysfunc(tx_CPU* cpu, const char* name, tx_sysfunc_ptr func, void* data);
 /// Execute the system function specified by its id (the hash of the string name)
 void tx_cpu_exec_sysfunc(tx_CPU* cpu, tx_uint32 hashed_name);
 
