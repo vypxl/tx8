@@ -45,6 +45,12 @@ the lower 2 bytes via `Xs` and the lowest byte via `Xb`.
 The names are case-insensitive.
 (You can memorize the suffixes by thinking of: `int`, `short` and `byte`)
 
+When mixing registers or other destinations of different sizes, the first parameter determines the size of the
+operation.
+This means when writing to `ab`, the operation is executed in 8-bit mode, the second parameter is truncated to 8-bit.
+On the other hand, when writing to `as`, or `ai` / `a`, the operation is executed in 16/32-bit mode and the second
+parameter is extended or truncated to the size of the first parameter.
+
 When reading from a smaller register in an operation that requires a 32-bit value, the value is zero-extended.
 When writing a larger value to a smaller register, the result is truncated.
 
@@ -130,7 +136,7 @@ Parameters are described like this: Three characters, one for each parameter:
 
 The comparison instructions `cmp`, `fcmp` and `ucmp` compare the first parameter to the second parameter
 and write the result of the comparison into the `R` register. This is equivalent to calculating the difference
-and storing its signum in `R` (as a signed integer). 
+and storing its signum in `R` (as a signed integer).
 
 ```
 fcmp 2.3 3.1
@@ -174,7 +180,8 @@ tested bit was 1, `jeq` to jump if the tested bit was 0.
 
 ##### Calling Convention
 
-The calling convention of TX8 is very similar to [CDECL](https://en.wikibooks.org/wiki/X86_Disassembly/Calling_Conventions#CDECL)
+The calling convention of TX8 is very similar
+to [CDECL](https://en.wikibooks.org/wiki/X86_Disassembly/Calling_Conventions#CDECL)
 To properly call a function / subroutine, the caller must follow these steps:
 
 - push all function parameters onto the stack in right-to-left order
@@ -195,7 +202,8 @@ The callee does not have to preserve any register values.
 The shortcuts for registers (`lda`, `stc`, ...) are for convenience, `ld` can be used for everything.
 `ld` moves a different amount of bytes according to its parameters:
 
-- `ld register something` moves as many bytes as the register has (A=4, As=2, Ab=1) or how many the other parameter might have, whichever is lower
+- `ld register something` moves as many bytes as the register has (A=4, As=2, Ab=1) or how many the other parameter
+  might have, whichever is lower
 - `ld address register` moves as many bytes as the register has (A=4, As=2, Ab=1)
 - `ld address address` moves one byte
 - `ld address constant` moves as many bytes as the constant has
@@ -237,17 +245,19 @@ Normal instructions operate on signed integers. If you have unsigned integers
 or floats, you have to use the specialized instructions.
 
 ##### Behaviour of the `R` register
- 
- - The `cmp`, `fcmp` and `ucmp` instructions set the `R` register to the result of the comparison. See [flow control](#flow-control).
- - The `inc`, `dec`, `add` and `sub` instructions set the `R` register's lowest bit if there was an unsigned overflow,
-    and the second-lowest bit if there was a signed overflow.
- - The `mul` and `umul` instructions sets the `R` register to the top half of the result.
- - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
- - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
- - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data types).
- - The `slr`, `sar` and `sll` instructions set the `R` register to the shifted-out bits.
- - The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
- - The `rand` operation places the original random integer into the `R` register.
+
+- The `cmp`, `fcmp` and `ucmp` instructions set the `R` register to the result of the comparison.
+  See [flow control](#flow-control).
+- The `inc`, `dec`, `add` and `sub` instructions set the `R` register's lowest bit if there was an unsigned overflow,
+  and the second-lowest bit if there was a signed overflow.
+- The `mul` and `umul` instructions sets the `R` register to the top half of the result.
+- The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
+- The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
+- The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data
+  types).
+- The `slr`, `sar` and `sll` instructions set the `R` register to the shifted-out bits.
+- The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
+- The `rand` operation places the original random integer into the `R` register.
 
 Note that the R register assignment is done **after** the operation itself, this means if one specified the `R`
 register as the destination of an operation, the normal value is discarded and the residual value is found in `R`.

@@ -447,6 +447,12 @@ void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params) {
     CHECK_WRITABLE(name) \
     tx_num32 a = {.u = PARAMV(1)}; \
     tx_num32 b = {.u = PARAMV(2)}; \
+    if (tx_param_isregister(params->p1.mode) && tx_register_size((tx_Register) params->p1.value.u) != 4) \
+        switch (params->p1.value.u & tx_REG_SIZE_MASK) { \
+            case tx_REG_SIZE_1: b.u &= 0xff; break; \
+            case tx_REG_SIZE_2: b.u &= 0xffff; \
+            default: break; \
+        } \
     tx_num32 result;
 
 #define AR_OP_END \
@@ -570,9 +576,9 @@ void tx_cpu_op_inc(tx_CPU* cpu, tx_Parameters* params) {
         result.u++;
     AR_OP_END
     R_SIZES(
-        ((result.u == (tx_uint32) INT8_MIN) << 1) | (result.u == 0),
-        ((result.u == (tx_uint32) INT16_MIN) << 1) | (result.u == 0),
-        ((result.u == (tx_uint32) INT32_MIN) << 1) | (result.u == 0)
+        (((tx_int8) (result.u) == INT8_MIN) << 1) | ((tx_uint8) result.u == 0),
+        (((tx_int16) (result.u) == INT16_MIN) << 1) | ((tx_uint16) result.u == 0),
+        ((result.i == INT32_MIN) << 1) | (result.u == 0)
     );
 }
 void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) {
@@ -581,9 +587,9 @@ void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params) {
         result.u--;
     AR_OP_END
     R_SIZES(
-        ((result.u == (tx_uint32) INT8_MAX) << 1) | (result.u == UINT8_MAX),
-        ((result.u == (tx_uint32) INT16_MAX) << 1) | (result.u == UINT16_MAX),
-        ((result.u == (tx_uint32) INT32_MAX) << 1) | (result.u == UINT32_MAX)
+        (((tx_int8) (result.i) == INT8_MAX) << 1) | ((tx_uint8) result.u == UINT8_MAX),
+        (((tx_int16) (result.i) == INT16_MAX) << 1) | ((tx_uint16) result.u == UINT16_MAX),
+        ((result.i == INT32_MAX) << 1) | (result.u == UINT32_MAX)
     );
 }
 void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params) { AR_OVF_OP(add) }
