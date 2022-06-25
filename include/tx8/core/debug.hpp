@@ -1,14 +1,12 @@
 /**
  * @file debug.h
  * @brief Everything related to the integrated debugger.
- * @details Unless noted otherwise, all functions use `tx_log_err` for printing.
+ * @details Unless noted otherwise, all functions use `tx::log_err` for printing.
  */
 #pragma once
 
 #include "tx8/core/instruction.h"
-
-#include <tx8/core/cpu.hpp>
-#include <tx8/core/log.hpp>
+#include "tx8/core/log.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +22,7 @@ void tx_debug_print_raw_instruction(tx_Instruction* inst);
 
 /// Prints the current program counter without at newline
 /// To be used before other debug functions
-static inline void tx_debug_print_pc(tx_CPU* cpu) { tx_log_err("[#%x] ", cpu->p); }
+#define tx_debug_print_pc(cpu) tx::log_err("[#%x] ", cpu->p);
 
 #ifdef __cplusplus
 }

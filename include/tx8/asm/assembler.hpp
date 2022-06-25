@@ -8,6 +8,7 @@
 
 #include "lexer.hpp"
 #include "tx8/asm/types.hpp"
+#include "tx8/core/log.hpp"
 #include "tx8_parser.hpp"
 
 #include <cstdio>
@@ -48,7 +49,11 @@ bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest);
 /// Free all resources allocated by the assembler
 void tx_asm_destroy_assembler(tx_asm_Assembler* as);
 /// Print an error message with the current line number from lex
-void tx_asm_error(tx_asm_Assembler* as, const char* format, ...);
+template <typename... Args>
+void tx_asm_error(tx_asm_Assembler* as, const char* format, Args... args) {
+    tx::log_err(format, args...);
+    as->error = 1;
+}
 
 /// Register a new label and return its id or the id of the already registered label with the same name
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, const std::string& name);

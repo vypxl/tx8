@@ -6,15 +6,12 @@
  */
 #pragma once
 
+#include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.h"
 #include "tx8/core/types.h"
 
 #include <map>
 #include <string>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /// The size of the tx8 memory in bytes
 #define tx_MEM_SIZE 0xffffffU
@@ -75,11 +72,6 @@ void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size);
 void tx_destroy_cpu(tx_CPU* cpu);
 /// Execute instructions until an error occurs or a hlt instruction is reached
 void tx_run_cpu(tx_CPU* cpu);
-/// Print an error message and halt the cpu (sets `halted` to true)
-void tx_cpu_error_raw(tx_CPU* cpu, const char* format, ...);
-/// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
-/// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
-void tx_cpu_error(tx_CPU* cpu, const char* format, ...);
 /// Get a random value using the random seed (range 0 - tx_RAND_MAX)
 tx_uint32 tx_cpu_rand(tx_CPU* cpu);
 
@@ -162,6 +154,24 @@ static inline void tx_cpu_set_r_bit(tx_CPU* cpu, tx_uint8 bit, tx_uint8 value) {
 
 // Convenience function to read the R register
 static inline tx_uint32 tx_cpu_read_r(tx_CPU* cpu) { return tx_cpu_reg_read(cpu, tx_reg_r); }
+
+/// Print an error message and halt the cpu (sets `halted` to true)
+template <typename... Args>
+void tx_cpu_error_raw(tx_CPU* cpu, const std::string& format, Args... args) {
+    tx::log_err(format, args...);
+    cpu->halted = true;
+}
+/// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
+/// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
+template <typename... Args>
+void tx_cpu_error(tx_CPU* cpu, const std::string& format, Args... args) {
+    tx_cpu_error_raw(cpu, format, args...);
+
+    tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
+    tx::log_err("\nCaused by instruction:\n");
+    tx_debug_print_pc(cpu);
+    tx_debug_print_instruction(&current_instruction);
+}
 
 // All opcode handler functions
 
@@ -306,7 +316,3 @@ static const tx_OpFunction tx_cpu_op_function[256] = {
     &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
 };
 // clang-format on
-
-#ifdef __cplusplus
-}
-#endif

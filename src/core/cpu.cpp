@@ -1,15 +1,12 @@
 #include "tx8/core/cpu.hpp"
 
-#include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.h"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.h"
 #include "tx8/core/util.h"
 
-#include <math.h>
-#include <stdarg.h>
+#include <cmath>
 #include <stdlib.h>
-#include <string.h>
 
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
@@ -69,7 +66,7 @@ void tx_destroy_cpu(tx_CPU* cpu) {
 void tx_run_cpu(tx_CPU* cpu) {
     tx_Instruction current_instruction;
 
-    if (cpu->debug) tx_log_err("[cpu] Beginning execution...\n");
+    if (cpu->debug) tx::log_err("[cpu] Beginning execution...\n");
     while (!cpu->halted) {
         if (cpu->p > tx_MEM_SIZE - tx_INSTRUCTION_MAX_LENGTH - 1 || cpu->p < 0) {
             tx_cpu_error(cpu, ERR_INVALID_PC);
@@ -79,7 +76,7 @@ void tx_run_cpu(tx_CPU* cpu) {
         // TODO: implement properly upon implementing interrupts
         if (cpu->stopped) {
             cpu->halted = true;
-            if (cpu->debug) tx_log_err("[cpu] Stopped.\n");
+            if (cpu->debug) tx::log_err("[cpu] Stopped.\n");
             break;
         }
 
@@ -94,27 +91,7 @@ void tx_run_cpu(tx_CPU* cpu) {
         // do not increment p if instruction changes p
         if (!tx_op_changes_p(current_instruction.opcode)) cpu->p += current_instruction.len;
     }
-    if (cpu->debug) tx_log_err("[cpu] Halted.\n");
-}
-
-void tx_cpu_error_raw(tx_CPU* cpu, const char* format, ...) {
-    va_list argptr;
-    va_start(argptr, format);
-    tx_log_err(format, argptr);
-    cpu->halted = true;
-    va_end(argptr);
-}
-
-void tx_cpu_error(tx_CPU* cpu, const char* format, ...) {
-    va_list argptr;
-    va_start(argptr, format);
-    tx_log_err(format, argptr);
-    cpu->halted = true;
-    va_end(argptr);
-    tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
-    tx_log_err("\nCaused by instruction:\n");
-    tx_debug_print_pc(cpu);
-    tx_debug_print_instruction(&current_instruction);
+    if (cpu->debug) tx::log_err("[cpu] Halted.\n");
 }
 
 tx_uint32 tx_cpu_rand(tx_CPU* cpu) {
@@ -801,7 +778,7 @@ void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params) { cpu->stopped = true; }
 
 // Invalid operation
 void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {
-    tx_log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
+    tx::log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
 }
 
 #undef AR_OVF_OP

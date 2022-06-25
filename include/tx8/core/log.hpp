@@ -12,86 +12,64 @@
 #pragma once
 
 #include <bits/types/FILE.h>
-#include <cstddef>
 #include <cstdio>
+#include <fmt/format.h>
 #include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+using tx_logfunc_ptr = void (*)(const std::string& s);
 
-typedef void (*tx_logfunc_ptr)(const char* format, va_list args);
+namespace tx {
+    class Log {
+      public:
+        /// Reset the logger to its initial state
+        void reset();
 
-/// Reset the logger to its initial state (also calls destroy)
-void tx_log_reset();
-/// Destroys all resources associated with the logger
-void tx_log_destroy();
+        Log();
+        ~Log();
 
-/// Issue a normal log
-void tx_log(const char* format, ...);
-/// Issue an error log
-void tx_log_err(const char* format, ...);
+        /// Issue log message
+        template <typename S, typename... Args>
+        void operator()(const S& format, Args&&... args) {
+            fmt::format_args fargs = fmt::make_format_args(std::forward<Args>(args)...);
+            std::string      s     = fmt::vformat(format, fargs);
 
-/// Issue a normal log
-void tx_logv(const char* format, va_list argptr);
-/// Issue an error log
-void tx_logv_err(const char* format, va_list argptr);
+            if (stream != nullptr) *stream << s;
+            if (str != nullptr) str->append(s.c_str());
 
-#ifdef __cplusplus
-}
-#endif
+            if (file != nullptr) fprintf(file, "%s", s.c_str());
+            if (func != nullptr) func(s);
+        }
 
-extern int            __tx_log_stdout;
-extern int            __tx_log_stderr;
-extern FILE*          __tx_log_file;
-extern FILE*          __tx_log_file_err;
-extern std::string*   __tx_log_string;
-extern std::string*   __tx_log_string_err;
-extern tx_logfunc_ptr __tx_log_func;
-extern tx_logfunc_ptr __tx_log_func_err;
+        /// Discards the aggregated log string
+        inline void clear_str() {
+            if (str != nullptr) str->clear();
+        }
 
-/// Discards the aggregated log string
-inline void tx_log_clear_str() {
-    if (__tx_log_string != nullptr) __tx_log_string->clear();
-}
+        /// Normal logs go to stream
+        inline void init_stream(std::ostream* strm) { stream = strm; }
 
-/// Discards the aggregated error log string
-inline void tx_log_clear_str_err() {
-    if (__tx_log_string_err != nullptr) __tx_log_string_err->clear();
-}
+        /// Normal logs go to a file
+        inline void init_file(FILE* f) { file = f; }
 
-/// Normal logs go to stdout
-inline void tx_log_init_stdout() { __tx_log_stdout = 1; }
+        /// Normal logs go to a string
+        inline void init_str() {
+            if (str == nullptr) str = new std::string();
+            else str->clear();
+        }
 
-/// Error logs go to stderr
-inline void tx_log_init_stderr() { __tx_log_stderr = 1; }
+        /// Normal logs call the given function
+        inline void init_func(tx_logfunc_ptr fun) { func = fun; }
 
-/// Normal logs go to a file
-inline void tx_log_init_file(FILE* f) { __tx_log_file = f; }
+        /// Retrieve the saved error log string
+        inline std::string get_str() { return *str; }
 
-/// Error logs go to a file
-inline void tx_log_init_file_err(FILE* f) { __tx_log_file_err = f; }
+      private:
+        std::ostream*  stream = nullptr;
+        FILE*          file   = nullptr;
+        std::string*   str    = nullptr;
+        tx_logfunc_ptr func   = nullptr;
+    };
 
-/// Normal logs go to a string
-inline void tx_log_init_str() {
-    if (__tx_log_string == nullptr) __tx_log_string = new std::string();
-    else __tx_log_string->clear();
-}
-
-/// Error logs go to a string
-inline void tx_log_init_str_err() {
-    if (__tx_log_string_err == nullptr) __tx_log_string_err = new std::string();
-    else __tx_log_string_err->clear();
-}
-
-/// Normal logs call the given function
-inline void tx_log_init_func(tx_logfunc_ptr fun) { __tx_log_func = fun; }
-
-/// Error logs call the given function
-inline void tx_log_init_func_err(tx_logfunc_ptr fun) { __tx_log_func_err = fun; }
-
-/// Retrieve the saved error log string
-inline std::string tx_log_get_str() { return *__tx_log_string; }
-
-/// Retrieve the saved error log string
-inline std::string tx_log_get_str_err() { return *__tx_log_string_err; }
+    extern Log log;
+    extern Log log_err;
+} // namespace tx

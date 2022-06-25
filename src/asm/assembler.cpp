@@ -53,7 +53,7 @@ int tx_asm_run_assembler_buffer(tx_asm_Assembler* as, char* buf, int size) {
 
 bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
     if (as->error != 0) {
-        tx_log_err("Assembler encountered an error, did not write binary file.\n");
+        tx::log_err("Assembler encountered an error, did not write binary file.\n");
         return false;
     }
     tx_uint8 buf[tx_INSTRUCTION_MAX_LENGTH];
@@ -67,7 +67,7 @@ bool tx_asm_assembler_write_binary_file(tx_asm_Assembler* as, FILE* output) {
 
 bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest) {
     if (as->error != 0) {
-        tx_log_err("Assembler encountered an error, did not generate binary.\n");
+        tx::log_err("Assembler encountered an error, did not generate binary.\n");
         return false;
     }
 
@@ -84,14 +84,6 @@ bool tx_asm_assembler_generate_binary(tx_asm_Assembler* as, tx_uint8* rom_dest) 
 void tx_asm_destroy_assembler(tx_asm_Assembler* as) {
     as->labels.clear();
     as->instructions.clear();
-}
-
-void tx_asm_error(tx_asm_Assembler* as, const char* format, ...) {
-    va_list argptr;
-    va_start(argptr, format);
-    tx_logv_err(format, argptr);
-    as->error = 1;
-    va_end(argptr);
 }
 
 tx_uint32 tx_asm_assembler_handle_label(tx_asm_Assembler* as, const std::string& name) {
@@ -172,12 +164,12 @@ void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
 void tx_asm_assembler_print_instructions(tx_asm_Assembler* as) {
     tx_uint32 pos = 0;
     for (auto& inst : as->instructions) {
-        tx_log_err("[asm] [#%04x:%02x] ", pos, inst.len);
+        tx::log_err("[asm] [#%04x:%02x] ", pos, inst.len);
         pos += inst.len;
         tx_debug_print_instruction(&inst);
     }
 }
 
 void tx_asm_assembler_print_labels(tx_asm_Assembler* as) {
-    for (auto& label : as->labels) { tx_log_err("[asm] :%s [%x] = #%x\n", label.name, label.id, label.position); }
+    for (auto& label : as->labels) { tx::log_err("[asm] :%s [%x] = #%x\n", label.name, label.id, label.position); }
 }

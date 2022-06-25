@@ -5,24 +5,27 @@
 extern int tx_asm_yydebug;
 
 VMTest::VMTest() {
-    tx_log_init_str();
-    tx_log_init_str_err();
+    tx::log.init_str();
+    tx::log_err.init_str();
 
     if (tx_asm_yydebug) {
-        tx_log_init_stdout();
-        tx_log_init_stderr();
+        tx::log.init_stream(&std::cout);
+        tx::log_err.init_stream(&std::cerr);
     }
 }
 
-VMTest::~VMTest() { tx_log_reset(); }
+VMTest::~VMTest() {
+    tx::log.reset();
+    tx::log_err.reset();
+}
 
 void VMTest::SetUp() { tx_asm_init_assembler(&as); }
 
 void VMTest::TearDown() {
     tx_asm_destroy_assembler(&as);
     tx_destroy_cpu(&cpu);
-    tx_log_clear_str();
-    tx_log_clear_str_err();
+    tx::log.clear_str();
+    tx::log_err.clear_str();
     nums.clear();
 }
 
@@ -31,20 +34,15 @@ void VMTest::append_num(void* vm, tx_num32_variant value) {
     real_vm->nums.push_back(value);
 }
 
-void VMTest::test_uint(tx_CPU* cpu, void* vm) {
-    auto* real_vm = (VMTest*) vm;
-    VMTest::append_num(vm, tx_cpu_top32(cpu));
-}
+void VMTest::test_uint(tx_CPU* cpu, void* vm) { VMTest::append_num(vm, tx_cpu_top32(cpu)); }
 
 void VMTest::test_int(tx_CPU* cpu, void* vm) {
-    auto*    real_vm = (VMTest*) vm;
-    tx_num32 v       = {.u = tx_cpu_top32(cpu)};
+    tx_num32 v = {.u = tx_cpu_top32(cpu)};
     VMTest::append_num(vm, v.i);
 }
 
 void VMTest::test_float(tx_CPU* cpu, void* vm) {
-    auto*    real_vm = (VMTest*) vm;
-    tx_num32 v       = {.u = tx_cpu_top32(cpu)};
+    tx_num32 v = {.u = tx_cpu_top32(cpu)};
     VMTest::append_num(vm, v.f);
 }
 
@@ -70,8 +68,8 @@ void VMTest::test_rf(tx_CPU* cpu, void* vm) {
 void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
 
-    EXPECT_EQ(tx_log_get_str(), out);
-    ASSERT_EQ(tx_log_get_str_err(), err);
+    EXPECT_EQ(tx::log.get_str(), out);
+    ASSERT_EQ(tx::log_err.get_str(), err);
 }
 
 void VMTest::run_and_compare_num(
@@ -80,7 +78,7 @@ void VMTest::run_and_compare_num(
     const std::string&                   err
 ) {
     if (!run_code(code)) return;
-    ASSERT_EQ(tx_log_get_str_err(), err);
+    ASSERT_EQ(tx::log_err.get_str(), err);
 
     if (nums.size() != expecteds.size()) {
         ADD_FAILURE() << "Counts of logged (" << nums.size() << ") and expected (" << expecteds.size()
@@ -134,15 +132,15 @@ void VMTest::run_binary() {
 bool VMTest::run_code(const std::string& s) {
     int asm_err = tx_asm_run_assembler_buffer(&as, (char*) s.c_str(), (int) s.length());
     if (asm_err != 0) {
-        ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx_log_get_str_err();
+        ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx::log_err.get_str();
         return false;
     }
 
     if ((bool) tx_asm_yydebug) {
-        tx_log_err("labels:\n");
+        tx::log_err("labels:\n");
         tx_asm_assembler_print_labels(&as);
 
-        tx_log_err("\ninstructions:\n");
+        tx::log_err("\ninstructions:\n");
         tx_asm_assembler_print_instructions(&as);
     }
 

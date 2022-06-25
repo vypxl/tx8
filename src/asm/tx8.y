@@ -10,6 +10,7 @@
     #include <tx8/core/types.h>
     #include <tx8/core/instruction.h>
     #include <tx8/core/util.h>
+    #include <sstream>
 
     namespace tx::parser {
         class Lexer;
@@ -79,5 +80,7 @@ parameter:   ALIAS                                   { tx_Parameter p = { .value
 %%
 
 void tx::parser::Parser::error(const tx::parser::location& loc, const std::string& str) {
-    tx_asm_error(tx_asm_yyasm, "Line %d: %s\n", loc, str.c_str());
+    std::stringstream ss;
+    ss << loc;
+    tx_asm_error(tx_asm_yyasm, "Line %d: %s\n", ss.str(), str.c_str());
 }
