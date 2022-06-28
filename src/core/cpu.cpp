@@ -13,15 +13,15 @@
 #define ERR_ROM_TOO_LARGE "Could not initialize tx_CPU: rom is too large"
 #define ERR_INVALID_PC    "Exception: Invalid program counter"
 #define ERR_SYSFUNC_REREGISTER \
-    "Could not register sysfunction '%s' as another function is already registered under the " \
+    "Could not register sysfunction '{}' as another function is already registered under the " \
     "same name"
 #define ERR_SYSFUNC_REALLOC \
-    "Could not register sysfunction '%s'; An error occurred while reallocating the sysfunction " \
+    "Could not register sysfunction '{}'; An error occurred while reallocating the sysfunction " \
     "hashtable."
-#define ERR_SYSFUNC_NOT_FOUND       "Exception: Could not find sysfunction '%s'"
-#define ERR_INVALID_REG_ID          "Exception: Invalid register id 0x%x"
-#define ERR_INVALID_REG_SIZE        "Exception: Invalid register size 0x%x"
-#define ERR_INVALID_MEM_WRITE_COUNT "tx_cpu_mem_write_n: Cannot write %d bytes"
+#define ERR_SYSFUNC_NOT_FOUND       "Exception: Could not find sysfunction '{}'"
+#define ERR_INVALID_REG_ID          "Exception: Invalid register id {:#x}"
+#define ERR_INVALID_REG_SIZE        "Exception: Invalid register size {:#x}"
+#define ERR_INVALID_MEM_WRITE_COUNT "tx_cpu_mem_write_n: Cannot write {} bytes"
 #define ERR_CANNOT_LOAD_WORD        "Cannot load a word into a smaller register"
 #define ERR_DIV_BY_ZERO             "Exception: Division by zero"
 
@@ -778,7 +778,7 @@ void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params) { cpu->stopped = true; }
 
 // Invalid operation
 void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params) {
-    tx::log_err("Invalid opcode at %x: %x", cpu->p, cpu->mem[cpu->p]);
+    tx::log_err("Invalid opcode at #{:x}: {:x}", cpu->p, cpu->mem[cpu->p]);
 }
 
 #undef AR_OVF_OP

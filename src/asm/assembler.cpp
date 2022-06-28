@@ -112,7 +112,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, const std::s
         if (strcmp(name.c_str(), label.name) == 0) {
             // error if the matched label already has a position set
             if (label.position != tx_asm_INVALID_LABEL_ADDRESS)
-                tx_asm_error(as, "Cannot create two or more labels with the same name '%s'\n", name.c_str());
+                tx_asm_error(as, "Cannot create two or more labels with the same name '{}'\n", name.c_str());
             else {
                 // set position of found label
                 // TODO fix position offset hack
@@ -123,7 +123,7 @@ tx_uint32 tx_asm_assembler_set_label_position(tx_asm_Assembler* as, const std::s
     }
 
     // error if no match was found
-    tx_asm_error(as, "No label '%s' to set position to\n", name.c_str());
+    tx_asm_error(as, "No label '{}' to set position to\n", name.c_str());
     return 0;
 }
 
@@ -133,12 +133,12 @@ tx_uint32 tx_asm_assembler_convert_label(tx_asm_Assembler* as, tx_uint32 id) {
             if (label.position != tx_asm_INVALID_LABEL_ADDRESS) return label.position;
 
             // error if label does not have a position set
-            tx_asm_error(as, "Label '%s' has no corresponding location", label.name);
+            tx_asm_error(as, "Label '{}' has no corresponding location", label.name);
             return 0;
         }
     }
 
-    tx_asm_error(as, "No label with id %d found", id);
+    tx_asm_error(as, "No label with id {} found", id);
     return 0;
 }
 
@@ -164,12 +164,12 @@ void tx_asm_assembler_convert_labels(tx_asm_Assembler* as) {
 void tx_asm_assembler_print_instructions(tx_asm_Assembler* as) {
     tx_uint32 pos = 0;
     for (auto& inst : as->instructions) {
-        tx::log_err("[asm] [#%04x:%02x] ", pos, inst.len);
+        tx::log_err("[asm] [#{:04x}:{:02x}] ", pos, inst.len);
         pos += inst.len;
         tx_debug_print_instruction(&inst);
     }
 }
 
 void tx_asm_assembler_print_labels(tx_asm_Assembler* as) {
-    for (auto& label : as->labels) { tx::log_err("[asm] :%s [%x] = #%x\n", label.name, label.id, label.position); }
+    for (auto& label : as->labels) { tx::log_err("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position); }
 }

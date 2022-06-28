@@ -10,33 +10,33 @@
 /// `print_u32(uint32 n)` - logs `n`
 f(print_u32) {
     tx_uint32 val = tx_cpu_top32(cpu);
-    tx::log("%x", val);
+    tx::log("{}", val);
 }
 
 /// `print_i32(int32 n)` - logs `n` as a signed value
 f(print_i32) {
     tx_num32 val;
     val.u = tx_cpu_top32(cpu);
-    tx::log("%d", val.i);
+    tx::log("{}", val.i);
 }
 
 f(print_f32) {
     tx_num32 val;
     val.u = tx_cpu_top32(cpu);
-    tx::log("%f", val.f);
+    tx::log("{}", val.f);
 }
 
 /// `print(char* s)` - logs the zero terminated string at `s`
 f(print) {
     tx_uint32 addr = tx_cpu_top32(cpu);
-    tx::log("%s", (char*) (cpu->mem + addr));
+    tx::log("{}", (char*) (cpu->mem + addr));
 }
 
 /// `println(char* s)` - Prints the zero terminated string at `s` with a trailing newline
 f(println) {
     tx_uint32 addr = tx_cpu_top32(cpu);
     char*     str  = (char*) (cpu->mem + addr);
-    tx::log("%s\n", str);
+    tx::log("{}\n", str);
 }
 
 #pragma clang diagnostic warning "-Wunused-parameter"

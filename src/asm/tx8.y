@@ -46,9 +46,9 @@ extern int tx_asm_yyerror(const char* str);
 %token END 0 "end of file"
 %token EOL "end of line"
 %token SPACE "space"
-%token <tx_uint32> REGISTER REGISTER_ADDRESS ABSOLUTE_ADDRESS RELATIVE_ADDRESS INTEGER8 INTEGER16 INTEGER32 OPCODE0 OPCODE1 OPCODE2
-%token <tx_float32> FLOAT
-%token <std::string> LABEL ALIAS INVALID
+%token <tx_uint32> REGISTER "register" REGISTER_ADDRESS "register address" ABSOLUTE_ADDRESS "absolute address" RELATIVE_ADDRESS "relative address" INTEGER8 "int8" INTEGER16 "int16" INTEGER32 "int32" OPCODE0 "opcode 0" OPCODE1 "opcode 1" OPCODE2 "opcode 2"
+%token <tx_float32> FLOAT "float constant"
+%token <std::string> LABEL "label" ALIAS "sysfunc name" INVALID "invalid token"
 
 %type <tx_Parameter> parameter
 %type <tx_Instruction> instruction
@@ -82,5 +82,5 @@ parameter:   ALIAS                                   { tx_Parameter p = { .value
 void tx::parser::Parser::error(const tx::parser::location& loc, const std::string& str) {
     std::stringstream ss;
     ss << loc;
-    tx_asm_error(tx_asm_yyasm, "Line %d: %s\n", ss.str(), str.c_str());
+    tx_asm_error(tx_asm_yyasm, "Line {}: {}\n", ss.str(), str.c_str());
 }
