@@ -57,7 +57,6 @@ target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY} fmt::fmt)
 
 # tx8-asm
 add_library(tx8-asm SHARED
-        src/asm/types.cpp
         src/asm/assembler.cpp
         ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp
         ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp)

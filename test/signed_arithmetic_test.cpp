@@ -234,7 +234,7 @@ hlt
         s,
         {0, 2u, 0, 3, 0u, 1337, -7, -3, 0xffffffffu, 7},
         "Exception: Division by zero\nCaused by instruction:\n"
-        "[#40009d] div a <0x0 | 0 | 0.00000>\n"
+        "[#40007d] div a <0x0 | 0>\n"
     );
 }
 
@@ -278,7 +278,7 @@ hlt
         s,
         {2, 0, 2, 0, -1, -1, 1},
         "Exception: Division by zero\nCaused by instruction:\n"
-        "[#40008b] mod a <0x0 | 0 | 0.00000>\n"
+        "[#40006b] mod a <0x0 | 0>\n"
     );
 }
 

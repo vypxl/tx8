@@ -7,16 +7,16 @@
 %define api.token.constructor
 
 %code requires {
-    #include <tx8/core/types.h>
     #include <tx8/core/instruction.h>
     #include <tx8/core/util.h>
     #include <sstream>
 
-    namespace tx::parser {
-        class Lexer;
+    namespace tx {
+        class Assembler;
+        namespace parser {
+            class Lexer;
+        }
     }
-    struct tx_asm_Assembler;
-    typedef struct tx_asm_Assembler tx_asm_Assembler;
 }
 
 %code top {
@@ -26,16 +26,16 @@
 #include <stdio.h>
 
 extern int tx_lex_yylineno;
-extern struct tx_asm_Assembler* tx_asm_yyasm;
+// extern tx::Assembler* tx_asm_yyasm;
 
 extern int tx_asm_yyerror(const char* str);
 #define yylex(x, y) lexer.get_next_token()
 }
 
 %lex-param { tx::parser::Lexer& lexer }
-%lex-param { tx_asm_Assembler& as }
+%lex-param { tx::Assembler& as }
 %parse-param { tx::parser::Lexer& lexer }
-%parse-param { tx_asm_Assembler& as }
+%parse-param { tx::Assembler& as }
 
 %locations
 %define parse.trace
@@ -58,9 +58,9 @@ program:     %empty
            | program SPACE
            | program EOL
            | program statement
-statement:   LABEL SPACE instruction EOL             { tx_asm_assembler_handle_label(&as, $1); tx_asm_assembler_set_label_position(&as, $1); tx_asm_assembler_add_instruction(&as, $3); }
-           | LABEL EOL                               { tx_asm_assembler_handle_label(&as, $1); tx_asm_assembler_set_label_position(&as, $1); }
-           | instruction EOL                         { tx_asm_assembler_add_instruction(&as, $1); }
+statement:   LABEL SPACE instruction EOL             { as.handle_label($1); as.set_label_position($1); as.add_instruction($3); }
+           | LABEL EOL                               { as.handle_label($1); as.set_label_position($1); }
+           | instruction EOL                         { as.add_instruction($1); }
            | error EOL                               { }
 
 instruction: OPCODE2 SPACE parameter SPACE parameter { tx_Instruction i = { .opcode = (tx_Opcode) $1, .params = { .p1 = $3, .p2 = $5 } }; $$ = i; }
@@ -76,11 +76,11 @@ parameter:   ALIAS                                   { tx_Parameter p = { .value
            | RELATIVE_ADDRESS                        { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_relative_address }; $$ = p; }
            | REGISTER                                { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_register }; $$ = p; }
            | REGISTER_ADDRESS                        { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_register_address }; $$ = p; }
-           | LABEL                                   { tx_Parameter p = { .value = { .u = tx_asm_assembler_handle_label(tx_asm_yyasm, $1) }, .mode = tx_param_label }; $$ = p; }
+           | LABEL                                   { tx_Parameter p = { .value = { .u = as.handle_label($1) }, .mode = tx_param_label }; $$ = p; }
 %%
 
 void tx::parser::Parser::error(const tx::parser::location& loc, const std::string& str) {
     std::stringstream ss;
     ss << loc;
-    tx_asm_error(tx_asm_yyasm, "Line {}: {}\n", ss.str(), str.c_str());
+    as.report_error("Line {}: {}\n", ss.str(), str);
 }

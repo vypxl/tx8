@@ -7,19 +7,17 @@
 #include <math.h>
 #include <tx8/core/instruction.h>
 
-int tx_asm_sprefix(const char* prefix, const char* str) {
+int tx_lex_sprefix(const char* prefix, const char* str) {
     return strncmp(prefix, str, strlen(prefix)) == 0;
 }
 tx_int32 tx_lex_num(const char* str) {
-    if (tx_asm_sprefix("0x", str)) return strtol(str + 2, (char**)NULL, 16);
-    if (tx_asm_sprefix("0b", str)) return strtol(str + 2, (char**)NULL, 2);
+    if (tx_lex_sprefix("0x", str)) return strtol(str + 2, (char**)NULL, 16);
+    if (tx_lex_sprefix("0b", str)) return strtol(str + 2, (char**)NULL, 2);
     return atoi(str);
 }
 tx_int32 tx_lex_hex(const char* str) {
     return strtol(str, (char**)NULL, 16);
 }
-
-int fileno(FILE *stream);
 
 using namespace tx::parser;
 

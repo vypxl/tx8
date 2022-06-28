@@ -25,7 +25,6 @@ class VMTest : public ::testing::Test {
     static void append_num(void* vm, tx_num32_variant value);
 
   protected:
-    tx_asm_Assembler              as  = {};
     tx_CPU                        cpu = {};
     std::vector<tx_num32_variant> nums;
 
@@ -42,8 +41,6 @@ class VMTest : public ::testing::Test {
         const std::vector<tx_num32_variant>& expected,
         const std::string&                   err = ""
     );
-
-    void run_binary();
 
     bool run_code(const std::string& s);
 };

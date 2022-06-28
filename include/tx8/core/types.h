@@ -6,11 +6,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef uint8_t  tx_uint8;
 typedef int8_t   tx_int8;
@@ -32,34 +27,3 @@ typedef union tx_num32 {
     /// The 32bit floating point value
     tx_float32 f;
 } tx_num32;
-
-#define tx_MAKE_ARRAY_TYPE(type, name) \
-    typedef struct tx_Array_##name { \
-        type*  data; \
-        size_t size; \
-        size_t front; \
-    } tx_Array_##name; \
-\
-    static inline void tx_array_##name##_init(tx_Array_##name* a, tx_uint32 size) { \
-        a->data  = (type*) malloc(size * sizeof(type)); \
-        a->front = 0; \
-        a->size  = size; \
-    } \
-\
-    static inline void tx_array_##name##_insert(tx_Array_##name* a, type element) { \
-        if (a->front == a->size) { \
-            a->size *= 2; \
-            a->data = (type*) realloc(a->data, a->size * sizeof(type)); \
-        } \
-        a->data[a->front++] = element; \
-    } \
-\
-    static inline void tx_array_##name##_destroy(tx_Array_##name* a) { \
-        free(a->data); \
-        a->data  = NULL; \
-        a->front = a->size = 0; \
-    }
-
-#ifdef __cplusplus
-}
-#endif

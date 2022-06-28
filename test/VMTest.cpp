@@ -19,10 +19,9 @@ VMTest::~VMTest() {
     tx::log_err.reset();
 }
 
-void VMTest::SetUp() { tx_asm_init_assembler(&as); }
+void VMTest::SetUp() { }
 
 void VMTest::TearDown() {
-    tx_asm_destroy_assembler(&as);
     tx_destroy_cpu(&cpu);
     tx::log.clear_str();
     tx::log_err.clear_str();
@@ -109,12 +108,25 @@ void VMTest::run_and_compare_num(
     }
 }
 
-void VMTest::run_binary() {
-    tx_uint32 rom_size = tx_asm_assembler_get_binary_size(&as);
-    auto      rom      = std::vector<tx_uint8>(rom_size);
-    tx_asm_assembler_generate_binary(&as, rom.data());
+bool VMTest::run_code(const std::string& s) {
+    tx::Assembler as(s);
+    auto          rom_ = as.generate_binary();
+    if (!rom_.has_value()) {
+        ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx::log_err.get_str();
+        return false;
+    }
 
-    tx_init_cpu(&cpu, rom.data(), rom_size);
+    auto rom = rom_.value();
+
+    if ((bool) tx_asm_yydebug) {
+        tx::log_err("labels:\n");
+        as.print_labels();
+
+        tx::log_err("\ninstructions:\n");
+        as.print_instructions();
+    }
+
+    tx_init_cpu(&cpu, rom.data(), rom.size());
     tx_cpu_use_stdlib(&cpu);
     tx_cpu_register_sysfunc(&cpu, (char*) "test_uint", VMTest::test_uint, this);
     tx_cpu_register_sysfunc(&cpu, (char*) "test_int", VMTest::test_int, this);
@@ -127,24 +139,6 @@ void VMTest::run_binary() {
     cpu.debug = (bool) tx_asm_yydebug;
 
     tx_run_cpu(&cpu);
-}
-
-bool VMTest::run_code(const std::string& s) {
-    int asm_err = tx_asm_run_assembler_buffer(&as, (char*) s.c_str(), (int) s.length());
-    if (asm_err != 0) {
-        ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx::log_err.get_str();
-        return false;
-    }
-
-    if ((bool) tx_asm_yydebug) {
-        tx::log_err("labels:\n");
-        tx_asm_assembler_print_labels(&as);
-
-        tx::log_err("\ninstructions:\n");
-        tx_asm_assembler_print_instructions(&as);
-    }
-
-    run_binary();
 
     return true;
 }
