@@ -83,8 +83,8 @@ void tx_run_cpu(tx_CPU* cpu) {
         current_instruction = tx_parse_instruction(cpu, cpu->p);
 
         if (cpu->debug && current_instruction.opcode != tx_op_nop) {
-            tx_debug_print_pc(cpu);
-            tx_debug_print_instruction(&current_instruction);
+            tx::log_err("[#{:x}] ", cpu->p);
+            tx::debug::print_instruction(current_instruction);
         }
         tx_cpu_exec_instruction(cpu, current_instruction);
 

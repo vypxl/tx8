@@ -169,8 +169,8 @@ void tx_cpu_error(tx_CPU* cpu, const std::string& format, Args... args) {
 
     tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
     tx::log_err("\nCaused by instruction:\n");
-    tx_debug_print_pc(cpu);
-    tx_debug_print_instruction(&current_instruction);
+    tx::log_err("[#{:x}] ", cpu->p);
+    tx::debug::print_instruction(current_instruction);
 }
 
 // All opcode handler functions

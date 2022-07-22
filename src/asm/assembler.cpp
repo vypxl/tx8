@@ -149,7 +149,7 @@ void Assembler::print_instructions() {
     for (auto& inst : instructions) {
         tx::log_err("[asm] [#{:04x}:{:02x}] ", pos, inst.len);
         pos += inst.len;
-        tx_debug_print_instruction(&inst);
+        tx::debug::print_instruction(inst);
     }
 }
 
