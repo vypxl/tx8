@@ -7,7 +7,7 @@
 %define api.token.constructor
 
 %code requires {
-    #include <tx8/core/instruction.h>
+    #include <tx8/core/instruction.hpp>
     #include <tx8/core/util.hpp>
     #include <sstream>
 
@@ -46,12 +46,12 @@ extern int tx_asm_yyerror(const char* str);
 %token END 0 "end of file"
 %token EOL "end of line"
 %token SPACE "space"
-%token <tx_uint32> REGISTER "register" REGISTER_ADDRESS "register address" ABSOLUTE_ADDRESS "absolute address" RELATIVE_ADDRESS "relative address" INTEGER8 "int8" INTEGER16 "int16" INTEGER32 "int32" OPCODE0 "opcode 0" OPCODE1 "opcode 1" OPCODE2 "opcode 2"
-%token <tx_float32> FLOAT "float constant"
+%token <tx::uint32> REGISTER "register" REGISTER_ADDRESS "register address" ABSOLUTE_ADDRESS "absolute address" RELATIVE_ADDRESS "relative address" INTEGER8 "int8" INTEGER16 "int16" INTEGER32 "int32" OPCODE0 "opcode 0" OPCODE1 "opcode 1" OPCODE2 "opcode 2"
+%token <tx::float32> FLOAT "float constant"
 %token <std::string> LABEL "label" ALIAS "sysfunc name" INVALID "invalid token"
 
-%type <tx_Parameter> parameter
-%type <tx_Instruction> instruction
+%type <Parameter> parameter
+%type <Instruction> instruction
 
 %%
 program:     %empty
@@ -63,20 +63,20 @@ statement:   LABEL SPACE instruction EOL             { as.handle_label($1); as.s
            | instruction EOL                         { as.add_instruction($1); }
            | error EOL                               { }
 
-instruction: OPCODE2 SPACE parameter SPACE parameter { tx_Instruction i = { .opcode = (tx_Opcode) $1, .params = { .p1 = $3, .p2 = $5 } }; $$ = i; }
-           | OPCODE1 SPACE parameter                 { tx_Instruction i = { .opcode = (tx_Opcode) $1, .params = { .p1 = $3 } }; $$ = i; }
-           | OPCODE0                                 { tx_Instruction i = { .opcode = (tx_Opcode) $1 }; $$ = i; }
+instruction: OPCODE2 SPACE parameter SPACE parameter { Instruction i = { .opcode = (Opcode) $1, .params = { .p1 = $3, .p2 = $5 } }; $$ = i; }
+           | OPCODE1 SPACE parameter                 { Instruction i = { .opcode = (Opcode) $1, .params = { .p1 = $3 } }; $$ = i; }
+           | OPCODE0                                 { Instruction i = { .opcode = (Opcode) $1 }; $$ = i; }
 
-parameter:   ALIAS                                   { tx_Parameter p = { .value = { .u = tx::str_hash($1) }, .mode = tx_param_constant32 }; $$ = p; }
-           | INTEGER8                                { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant8 }; $$ = p; }
-           | INTEGER16                               { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant16 }; $$ = p; }
-           | INTEGER32                               { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant32 }; $$ = p; }
-           | FLOAT                                   { tx_Parameter p = { .value = { .f = $1 }, .mode = tx_param_constant32 }; $$ = p; }
-           | ABSOLUTE_ADDRESS                        { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_absolute_address }; $$ = p; }
-           | RELATIVE_ADDRESS                        { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_relative_address }; $$ = p; }
-           | REGISTER                                { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_register }; $$ = p; }
-           | REGISTER_ADDRESS                        { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_register_address }; $$ = p; }
-           | LABEL                                   { tx_Parameter p = { .value = { .u = as.handle_label($1) }, .mode = tx_param_label }; $$ = p; }
+parameter:   ALIAS                                   { Parameter p = { .value = { .u = tx::str_hash($1) }, .mode = tx::ParamMode::Constant32 }; $$ = p; }
+           | INTEGER8                                { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::Constant8 }; $$ = p; }
+           | INTEGER16                               { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::Constant16 }; $$ = p; }
+           | INTEGER32                               { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::Constant32 }; $$ = p; }
+           | FLOAT                                   { Parameter p = { .value = { .f = $1 }, .mode = tx::ParamMode::Constant32 }; $$ = p; }
+           | ABSOLUTE_ADDRESS                        { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::AbsoluteAddress }; $$ = p; }
+           | RELATIVE_ADDRESS                        { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::RelativeAddress }; $$ = p; }
+           | REGISTER                                { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::Register }; $$ = p; }
+           | REGISTER_ADDRESS                        { Parameter p = { .value = { .u = $1 }, .mode = tx::ParamMode::RegisterAddress }; $$ = p; }
+           | LABEL                                   { Parameter p = { .value = { .u = as.handle_label($1) }, .mode = tx::ParamMode::Label }; $$ = p; }
 %%
 
 void tx::parser::Parser::error(const tx::parser::location& loc, const std::string& str) {

@@ -3,54 +3,57 @@
 #include "tx8/core/cpu.hpp"
 #include "tx8/core/log.hpp"
 
-#define f(name) void tx_stdlib_##name(tx_CPU* cpu, void* data)
+#define f(name) void name(CPU& cpu)
 
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
-/// `print_u32(uint32 n)` - logs `n`
-f(print_u32) {
-    tx_uint32 val = tx_cpu_top32(cpu);
-    tx::log("{}", val);
-}
+namespace tx::stdlib {
+    /// `print_u32(uint32 n)` - logs `n`
+    f(print_u32) {
+        uint32 val = cpu.top32();
+        tx::log("{}", val);
+    }
 
-/// `print_i32(int32 n)` - logs `n` as a signed value
-f(print_i32) {
-    tx_num32 val;
-    val.u = tx_cpu_top32(cpu);
-    tx::log("{}", val.i);
-}
+    /// `print_i32(int32 n)` - logs `n` as a signed value
+    f(print_i32) {
+        num32 val;
+        val.u = cpu.top32();
+        tx::log("{}", val.i);
+    }
 
-f(print_f32) {
-    tx_num32 val;
-    val.u = tx_cpu_top32(cpu);
-    tx::log("{}", val.f);
-}
+    f(print_f32) {
+        num32 val;
+        val.u = cpu.top32();
+        tx::log("{}", val.f);
+    }
 
-/// `print(char* s)` - logs the zero terminated string at `s`
-f(print) {
-    tx_uint32 addr = tx_cpu_top32(cpu);
-    tx::log("{}", (char*) (cpu->mem + addr));
-}
+    /// `print(char* s)` - logs the zero terminated string at `s`
+    f(print) {
+        uint32 addr = cpu.top32();
+        tx::log("{}", (char*) (cpu.mem.data() + addr));
+    }
 
-/// `println(char* s)` - Prints the zero terminated string at `s` with a trailing newline
-f(println) {
-    tx_uint32 addr = tx_cpu_top32(cpu);
-    char*     str  = (char*) (cpu->mem + addr);
-    tx::log("{}\n", str);
-}
+    /// `println(char* s)` - Prints the zero terminated string at `s` with a trailing newline
+    f(println) {
+        uint32 addr = cpu.top32();
+        char*  str  = (char*) (cpu.mem.data() + addr);
+        tx::log("{}\n", str);
+    }
 
 #pragma clang diagnostic warning "-Wunused-parameter"
 
-#undef f
 
-#define r(name) tx_cpu_register_sysfunc(cpu, #name, &tx_stdlib_##name, NULL)
+#define r(name) cpu.register_sysfunc(#name, &name)
 
-void tx_cpu_use_stdlib(tx_CPU* cpu) {
-    r(print_u32);
-    r(print_i32);
-    r(print_f32);
-    r(print);
-    r(println);
-}
+    void use_stdlib(CPU& cpu) {
+        r(print_u32);
+        r(print_i32);
+        r(print_f32);
+        r(print);
+        r(println);
+    }
+
+} // namespace tx::stdlib
 
 #undef r
+#undef f

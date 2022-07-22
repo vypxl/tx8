@@ -1,318 +1,308 @@
 /**
  * @file cpu.h
- * @brief tx_CPU and its methods.
- * @details Includes some constants for tx_CPU memory initialization, all raw op functions and the
+ * @brief CPU and its methods.
+ * @details Includes some constants for CPU memory initialization, all raw op functions and the
  * table of opcode function pointers.
  */
 #pragma once
 
 #include "tx8/core/debug.hpp"
-#include "tx8/core/instruction.h"
-#include "tx8/core/types.h"
+#include "tx8/core/instruction.hpp"
+#include "tx8/core/types.hpp"
 
+#include <functional>
 #include <map>
 #include <string>
 
-/// The size of the tx8 memory in bytes
-#define tx_MEM_SIZE 0xffffffU
-/// The default position of the stack in tx8 memory
-#define tx_STACK_BEGIN 0xc02000U
-/// The default starting point for code in tx8 memory
-#define tx_ENTRY_POINT 0x400000U
-/// The position in tx8 memory where the rom is inserted
-#define tx_ROM_START 0x400000U
-/// The maximum size of a tx8 rom
-#define tx_ROM_SIZE 0x800000U
-/// The number of tx8 cpu registers
-#define tx_REGISTER_COUNT 8
-/// The maximum value produced by tx_cpu_rand
-#define tx_RAND_MAX 0x7fff
-/// The initial random seed
-#define tx_RAND_INITIAL_SEED 0x12345678
+namespace tx {
+    /// The size of the tx8 memory in bytes
+    const uint32 MEM_SIZE = 0xffffffU;
+    /// The default position of the stack in tx8 memory
+    const uint32 STACK_BEGIN = 0xc02000U;
+    /// The default starting point for code in tx8 memory
+    const uint32 ENTRY_POINT = 0x400000U;
+    /// The position in tx8 memory where the rom is inserted
+    const uint32 ROM_START = 0x400000U;
+    /// The maximum size of a tx8 rom
+    const uint32 ROM_SIZE = 0x800000U;
+    /// The number of tx8 cpu registers
+    const uint32 REGISTER_COUNT = 8;
+    /// The maximum value produced by cpu::rand
+    const uint32 RANDOM_MAX = 0x7fff;
+    /// The initial random seed
+    const uint32 RAND_INITIAL_SEED = 0x12345678;
 
-typedef struct tx_CPU tx_CPU;
-/// A function pointer type alias for tx8 system functions callable by `sys` instructions
-typedef void (*tx_sysfunc_ptr)(tx_CPU* cpu, void* data);
+    class CPU;
+    /// A tx8 cpu system function
+    using Sysfunc = std::function<void(CPU& cpu)>;
 
-/// A tx8 cpu system function
-typedef struct tx_sysfunc {
-    tx_sysfunc_ptr func;
-    void*          data;
-} tx_sysfunc;
-
-/// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
-struct tx_CPU {
-    /// Pointer to the cpu memory
-    tx_mem_ptr mem;
-    /// Union for easy access to the cpu registers though simple identifiers and array indexing
-    union {
-        struct {
-            tx_uint32 a, b, c, d, r, o, p, s;
+    /// @brief Struct representing a tx8 CPU with memory, registers, system function table and a random seed.
+    class CPU {
+      public:
+        /// Pointer to the cpu memory
+        std::vector<uint8> mem;
+        /// Union for easy access to the cpu registers though simple identifiers and array indexing
+        union {
+            struct {
+                uint32 a, b, c, d, r, o, p, s;
+            };
+            std::array<uint32, REGISTER_COUNT> registers;
         };
-        tx_uint32 registers[tx_REGISTER_COUNT];
+        /// System function table
+        std::map<uint32, Sysfunc> sys_func_table;
+        /// Random seed
+        uint32 rseed;
+        /// If the cpu is currently halted (finished execution)
+        bool halted;
+        /// If the cpu is currently idle and waiting for an interrupt
+        bool stopped;
+        /// If debug information should be printed
+        bool debug;
+
+        /// Initialize all cpu members and copy the rom into the memory
+        CPU(Rom rom);
+        /// Execute instructions until an error occurs or a hlt instruction is reached
+        void run();
+        /// Get a random value using the random seed (range 0 - RANDOM_MAX)
+        uint32 rand();
+
+        /// Parse an instruction from the given memory address
+        Instruction parse_instruction(mem_addr pc);
+        /// Execute the given parsed instruction
+        void exec_instruction(Instruction instruction);
+
+        /// Register the given function in the system function table
+        void register_sysfunc(const std::string& name, Sysfunc func);
+        /// Execute the system function specified by its id (the hash of the string name)
+        void exec_sysfunc(uint32 hashed_name);
+
+        /// Get the raw numerical value of a parameter using its mode
+        uint32 get_param_value(Parameter param);
+        /// Get the absolute address specified by a parameter using its mode (fails if the parameter does not represent an address)
+        mem_addr get_param_address(Parameter param);
+
+        /// Update the program counter to the specified new location
+        void jump(uint32 location);
+        /// Push an 8bit value onto the stack
+        void push8(uint8 value);
+        /// Push a 16bit value onto the stack
+        void push16(uint16 value);
+        /// Push a 32bit value onto the stack
+        void push32(uint32 value);
+        /// Pop an 8bit value from the stack
+        uint8 pop8();
+        /// Pop a 16bit value from the stack
+        uint16 pop16();
+        /// Pop a 32bit value from the stack
+        uint32 pop32();
+        /// Get the topmost 8bit value from the stack
+        uint8 top8();
+        /// Get the topmost 816it value from the stack
+        uint16 top16();
+        /// Get the topmost 32bit value from the stack
+        uint32 top32();
+        /// Get a pointer to the specified location in tx8 cpu memory
+        mem_ptr mem_get_ptr(mem_addr location);
+        /// Write an 8bit value to the specified memory location
+        void mem_write8(mem_addr location, uint8 value);
+        /// Write a 16bit value to the specified memory location
+        void mem_write16(mem_addr location, uint16 value);
+        /// Write a 32bit value to the specified memory location
+        void mem_write32(mem_addr location, uint32 value);
+        /// Read an 8bit value from the specified memory location
+        uint8 mem_read8(mem_addr location);
+        /// Read a 16bit value from the specified memory location
+        uint16 mem_read16(mem_addr location);
+        /// Read a 32bit value from the specified memory location
+        uint32 mem_read32(mem_addr location);
+        /// Write an 8bit value from the specified memory location relative to the O register
+        void mem_write8_rel(mem_addr location, uint8 value);
+        /// Write a 16bit value from the specified memory location relative to the O register
+        void mem_write16_rel(mem_addr location, uint16 value);
+        /// Write a 32bit value from the specified memory location relative to the O register
+        void mem_write32_rel(mem_addr location, uint32 value);
+        /// Read an 8bit value from the specified memory location relative to the O register
+        uint8 mem_read8_rel(mem_addr location);
+        /// Read a 16bit value from the specified memory location relative to the O register
+        uint16 mem_read16_rel(mem_addr location);
+        /// Read a 32bit value from the specified memory location relative to the O register
+        uint32 mem_read32_rel(mem_addr location);
+        /// Overwrite the value of the specified cpu register (respects small registers)
+        void reg_write(Register which, uint32 value);
+        /// Read the value of the specified cpu register (respects small registers)
+        uint32 reg_read(Register which);
+
+        /// Write 1, 2 or 4 bytes of `value` to the specified memory location
+        void mem_write_n(mem_addr location, uint32 value, uint8 bytes);
+
+        // Convenience function to set the R register
+        inline void write_r(uint32 value) { reg_write(Register::R, value); }
+
+        /// Convenience function to set a bit in the r register to a value
+        inline void set_r_bit(uint8 bit, uint8 value) { r = (r & ~(1u << bit)) | (value << bit); }
+
+        // Convenience function to read the R register
+        inline uint32 read_r() { return reg_read(Register::R); }
+
+        /// Print an error message and halt the cpu (sets `halted` to true)
+        template <typename... Args>
+        void error_raw(const std::string& format, Args... args) {
+            log_err(format, args...);
+            halted = true;
+        }
+        /// Same as `error_raw`, but prints the instruction the cpu is currently executing
+        /// Beware that this function calls `parse_instruction`, so don't call this when encountering instruction parsing errors
+        template <typename... Args>
+        void error(const std::string& format, Args... args) {
+            error_raw(format, args...);
+
+            Instruction current_instruction = parse_instruction(p);
+            log_err("\nCaused by instruction:\n");
+            log_err("[#{:x}] ", p);
+            debug::print_instruction(current_instruction);
+        }
+
+        // All opcode handler functions
+
+        void op_hlt(const Parameters& params);
+        void op_nop(const Parameters& params);
+        void op_jmp(const Parameters& params);
+        void op_jeq(const Parameters& params);
+        void op_jne(const Parameters& params);
+        void op_jgt(const Parameters& params);
+        void op_jge(const Parameters& params);
+        void op_jlt(const Parameters& params);
+        void op_jle(const Parameters& params);
+        void op_cmp(const Parameters& params);
+        void op_fcmp(const Parameters& params);
+        void op_ucmp(const Parameters& params);
+        void op_call(const Parameters& params);
+        void op_ret(const Parameters& params);
+        void op_sys(const Parameters& params);
+
+        void op_ld(const Parameters& params);
+        void op_lw(const Parameters& params);
+        void op_lda(const Parameters& params);
+        void op_sta(const Parameters& params);
+        void op_ldb(const Parameters& params);
+        void op_stb(const Parameters& params);
+        void op_ldc(const Parameters& params);
+        void op_stc(const Parameters& params);
+        void op_ldd(const Parameters& params);
+        void op_std(const Parameters& params);
+        void op_zero(const Parameters& params);
+        void op_push(const Parameters& params);
+        void op_pop(const Parameters& params);
+
+        void op_inc(const Parameters& params);
+        void op_dec(const Parameters& params);
+        void op_add(const Parameters& params);
+        void op_sub(const Parameters& params);
+        void op_mul(const Parameters& params);
+        void op_div(const Parameters& params);
+        void op_mod(const Parameters& params);
+        void op_max(const Parameters& params);
+        void op_min(const Parameters& params);
+        void op_abs(const Parameters& params);
+        void op_sign(const Parameters& params);
+
+        void op_and(const Parameters& params);
+        void op_or(const Parameters& params);
+        void op_not(const Parameters& params);
+        void op_nand(const Parameters& params);
+        void op_xor(const Parameters& params);
+        void op_slr(const Parameters& params);
+        void op_sar(const Parameters& params);
+        void op_sll(const Parameters& params);
+        void op_ror(const Parameters& params);
+        void op_rol(const Parameters& params);
+        void op_set(const Parameters& params);
+        void op_clr(const Parameters& params);
+        void op_tgl(const Parameters& params);
+        void op_test(const Parameters& params);
+
+        void op_finc(const Parameters& params);
+        void op_fdec(const Parameters& params);
+        void op_fadd(const Parameters& params);
+        void op_fsub(const Parameters& params);
+        void op_fmul(const Parameters& params);
+        void op_fdiv(const Parameters& params);
+        void op_fmod(const Parameters& params);
+        void op_fmax(const Parameters& params);
+        void op_fmin(const Parameters& params);
+        void op_fabs(const Parameters& params);
+        void op_fsign(const Parameters& params);
+        void op_sin(const Parameters& params);
+        void op_cos(const Parameters& params);
+        void op_tan(const Parameters& params);
+        void op_asin(const Parameters& params);
+        void op_acos(const Parameters& params);
+        void op_atan(const Parameters& params);
+        void op_atan2(const Parameters& params);
+        void op_sqrt(const Parameters& params);
+        void op_pow(const Parameters& params);
+        void op_exp(const Parameters& params);
+        void op_log(const Parameters& params);
+        void op_log2(const Parameters& params);
+        void op_log10(const Parameters& params);
+
+        void op_umul(const Parameters& params);
+        void op_udiv(const Parameters& params);
+        void op_umod(const Parameters& params);
+        void op_umax(const Parameters& params);
+        void op_umin(const Parameters& params);
+
+        void op_rand(const Parameters& params);
+        void op_rseed(const Parameters& params);
+        void op_itf(const Parameters& params);
+        void op_fti(const Parameters& params);
+        void op_utf(const Parameters& params);
+        void op_ftu(const Parameters& params);
+        void op_ei(const Parameters& params);
+        void op_di(const Parameters& params);
+        void op_stop(const Parameters& params);
+
+
+        /// Opcode handler function for invalid opcodes
+        void op_inv(const Parameters& params);
     };
-    /// System function table
-    std::map<tx_uint32, tx_sysfunc> sys_func_table;
-    /// Random seed
-    tx_uint32 rseed;
-    /// If the cpu is currently halted (finished execution)
-    bool halted;
-    /// If the cpu is currently idle and waiting for an interrupt
-    bool stopped;
-    /// If debug information should be printed
-    bool debug;
 
-    /// If tx_init_cpu was called on this cpu
-    bool _initialized;
-};
+    // clang-format off
+    /// Mapping of opcodes to their handler functions
+    const std::array<std::function<void (CPU*, const Parameters& params)>, 256> op_function = {
+        // 0x0
+        &CPU::op_hlt, &CPU::op_nop, &CPU::op_jmp, &CPU::op_jeq, &CPU::op_jne, &CPU::op_jgt, &CPU::op_jge, &CPU::op_jlt, &CPU::op_jle, &CPU::op_cmp, &CPU::op_fcmp, &CPU::op_ucmp, &CPU::op_call, &CPU::op_ret, &CPU::op_sys, &CPU::op_inv,
+        // 0x1
+        &CPU::op_ld, &CPU::op_lw, &CPU::op_lda, &CPU::op_sta, &CPU::op_ldb, &CPU::op_stb, &CPU::op_ldc, &CPU::op_stc, &CPU::op_ldd, &CPU::op_std, &CPU::op_zero, &CPU::op_push, &CPU::op_pop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x2
+        &CPU::op_inc, &CPU::op_dec, &CPU::op_add, &CPU::op_sub, &CPU::op_mul, &CPU::op_div, &CPU::op_mod, &CPU::op_max, &CPU::op_min, &CPU::op_abs, &CPU::op_sign, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x3
+        &CPU::op_and, &CPU::op_or, &CPU::op_not, &CPU::op_nand, &CPU::op_xor, &CPU::op_slr, &CPU::op_sar, &CPU::op_sll, &CPU::op_ror, &CPU::op_rol, &CPU::op_set, &CPU::op_clr, &CPU::op_tgl, &CPU::op_test, &CPU::op_inv,  &CPU::op_inv,
+        // 0x4
+        &CPU::op_finc, &CPU::op_fdec, &CPU::op_fadd, &CPU::op_fsub, &CPU::op_fmul, &CPU::op_fdiv, &CPU::op_fmod, &CPU::op_fmax, &CPU::op_fmin, &CPU::op_fabs, &CPU::op_fsign, &CPU::op_sin, &CPU::op_cos, &CPU::op_tan, &CPU::op_asin, &CPU::op_acos,
+        // 0x5
+        &CPU::op_atan, &CPU::op_atan2, &CPU::op_sqrt, &CPU::op_pow, &CPU::op_exp, &CPU::op_log, &CPU::op_log2, &CPU::op_log10, &CPU::op_inv,  &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x6
+        &CPU::op_umul, &CPU::op_udiv, &CPU::op_umod, &CPU::op_umax, &CPU::op_umin, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x7
+        &CPU::op_rand, &CPU::op_rseed, &CPU::op_itf, &CPU::op_fti, &CPU::op_utf, &CPU::op_ftu, &CPU::op_ei, &CPU::op_di, &CPU::op_stop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x8
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0x9
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xa
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xb
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xc
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xd
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xe
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // 0xf
+        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+    };
+    // clang-format on
 
-/// Initialize all cpu members and copy the rom into the memory
-void tx_init_cpu(tx_CPU* cpu, tx_mem_ptr rom, tx_uint32 rom_size);
-/// Free all resources allocated by the cpu
-void tx_destroy_cpu(tx_CPU* cpu);
-/// Execute instructions until an error occurs or a hlt instruction is reached
-void tx_run_cpu(tx_CPU* cpu);
-/// Get a random value using the random seed (range 0 - tx_RAND_MAX)
-tx_uint32 tx_cpu_rand(tx_CPU* cpu);
-
-/// Parse an instruction from the given memory address
-tx_Instruction tx_parse_instruction(tx_CPU* cpu, tx_mem_addr pc);
-/// Execute the given parsed instruction
-void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction);
-
-/// Register the given function in the system function table
-void tx_cpu_register_sysfunc(tx_CPU* cpu, const char* name, tx_sysfunc_ptr func, void* data);
-/// Execute the system function specified by its id (the hash of the string name)
-void tx_cpu_exec_sysfunc(tx_CPU* cpu, tx_uint32 hashed_name);
-
-/// Get the raw numerical value of a parameter using its mode
-tx_uint32 tx_cpu_get_param_value(tx_CPU* cpu, tx_Parameter param);
-/// Get the absolute address specified by a parameter using its mode (fails if the parameter does not represent an address)
-tx_mem_addr tx_cpu_get_param_address(tx_CPU* cpu, tx_Parameter param);
-
-/// Update the program counter to the specified new location
-void tx_cpu_jump(tx_CPU* cpu, tx_uint32 location);
-/// Push an 8bit value onto the stack
-void tx_cpu_push8(tx_CPU* cpu, tx_uint8 value);
-/// Push a 16bit value onto the stack
-void tx_cpu_push16(tx_CPU* cpu, tx_uint16 value);
-/// Push a 32bit value onto the stack
-void tx_cpu_push32(tx_CPU* cpu, tx_uint32 value);
-/// Pop an 8bit value from the stack
-tx_uint8 tx_cpu_pop8(tx_CPU* cpu);
-/// Pop a 16bit value from the stack
-tx_uint16 tx_cpu_pop16(tx_CPU* cpu);
-/// Pop a 32bit value from the stack
-tx_uint32 tx_cpu_pop32(tx_CPU* cpu);
-/// Get the topmost 8bit value from the stack
-tx_uint8 tx_cpu_top8(tx_CPU* cpu);
-/// Get the topmost 816it value from the stack
-tx_uint16 tx_cpu_top16(tx_CPU* cpu);
-/// Get the topmost 32bit value from the stack
-tx_uint32 tx_cpu_top32(tx_CPU* cpu);
-/// Get a pointer to the specified location in tx8 cpu memory
-tx_mem_ptr tx_cpu_mem_get_ptr(tx_CPU* cpu, tx_mem_addr location);
-/// Write an 8bit value to the specified memory location
-void tx_cpu_mem_write8(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
-/// Write a 16bit value to the specified memory location
-void tx_cpu_mem_write16(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
-/// Write a 32bit value to the specified memory location
-void tx_cpu_mem_write32(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
-/// Read an 8bit value from the specified memory location
-tx_uint8 tx_cpu_mem_read8(tx_CPU* cpu, tx_mem_addr location);
-/// Read a 16bit value from the specified memory location
-tx_uint16 tx_cpu_mem_read16(tx_CPU* cpu, tx_mem_addr location);
-/// Read a 32bit value from the specified memory location
-tx_uint32 tx_cpu_mem_read32(tx_CPU* cpu, tx_mem_addr location);
-/// Write an 8bit value from the specified memory location relative to the O register
-void tx_cpu_mem_write8_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint8 value);
-/// Write a 16bit value from the specified memory location relative to the O register
-void tx_cpu_mem_write16_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint16 value);
-/// Write a 32bit value from the specified memory location relative to the O register
-void tx_cpu_mem_write32_rel(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value);
-/// Read an 8bit value from the specified memory location relative to the O register
-tx_uint8 tx_cpu_mem_read8_rel(tx_CPU* cpu, tx_mem_addr location);
-/// Read a 16bit value from the specified memory location relative to the O register
-tx_uint16 tx_cpu_mem_read16_rel(tx_CPU* cpu, tx_mem_addr location);
-/// Read a 32bit value from the specified memory location relative to the O register
-tx_uint32 tx_cpu_mem_read32_rel(tx_CPU* cpu, tx_mem_addr location);
-/// Overwrite the value of the specified cpu register (respects small registers)
-void tx_cpu_reg_write(tx_CPU* cpu, tx_Register which, tx_uint32 value);
-/// Read the value of the specified cpu register (respects small registers)
-tx_uint32 tx_cpu_reg_read(tx_CPU* cpu, tx_Register which);
-
-/// Write 1, 2 or 4 bytes of `value` to the specified memory location
-void tx_cpu_mem_write_n(tx_CPU* cpu, tx_mem_addr location, tx_uint32 value, tx_uint8 bytes);
-
-// Convenience function to set the R register
-static inline void tx_cpu_write_r(tx_CPU* cpu, tx_uint32 value) { tx_cpu_reg_write(cpu, tx_reg_r, value); }
-
-/// Convenience function to set a bit in the r register to a value
-static inline void tx_cpu_set_r_bit(tx_CPU* cpu, tx_uint8 bit, tx_uint8 value) {
-    cpu->r = (cpu->r & ~(1u << bit)) | (value << bit);
-}
-
-// Convenience function to read the R register
-static inline tx_uint32 tx_cpu_read_r(tx_CPU* cpu) { return tx_cpu_reg_read(cpu, tx_reg_r); }
-
-/// Print an error message and halt the cpu (sets `halted` to true)
-template <typename... Args>
-void tx_cpu_error_raw(tx_CPU* cpu, const std::string& format, Args... args) {
-    tx::log_err(format, args...);
-    cpu->halted = true;
-}
-/// Same as `tx_cpu_error_raw`, but prints the instruction the cpu is currently executing
-/// Beware that this function calls `tx_parse_instruction`, so don't call this when encountering instruction parsing errors
-template <typename... Args>
-void tx_cpu_error(tx_CPU* cpu, const std::string& format, Args... args) {
-    tx_cpu_error_raw(cpu, format, args...);
-
-    tx_Instruction current_instruction = tx_parse_instruction(cpu, cpu->p);
-    tx::log_err("\nCaused by instruction:\n");
-    tx::log_err("[#{:x}] ", cpu->p);
-    tx::debug::print_instruction(current_instruction);
-}
-
-// All opcode handler functions
-
-void tx_cpu_op_hlt(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_nop(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jmp(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jeq(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jne(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jgt(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jge(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jlt(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_jle(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_cmp(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fcmp(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ucmp(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_call(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ret(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sys(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_ld(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_lw(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_lda(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sta(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ldb(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_stb(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ldc(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_stc(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ldd(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_std(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_zero(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_push(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_pop(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_inc(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_dec(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_add(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sub(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_mul(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_div(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_mod(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_max(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_min(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_abs(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sign(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_and(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_or(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_not(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_nand(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_xor(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_slr(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sar(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sll(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ror(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_rol(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_set(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_clr(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_tgl(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_test(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_finc(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fdec(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fadd(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fsub(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fmul(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fdiv(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fmod(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fmax(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fmin(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fabs(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fsign(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sin(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_cos(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_tan(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_asin(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_acos(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_atan(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_atan2(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_sqrt(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_pow(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_exp(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_log(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_log2(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_log10(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_umul(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_udiv(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_umod(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_umax(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_umin(tx_CPU* cpu, tx_Parameters* params);
-
-void tx_cpu_op_rand(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_rseed(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_itf(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_fti(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_utf(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ftu(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_ei(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_di(tx_CPU* cpu, tx_Parameters* params);
-void tx_cpu_op_stop(tx_CPU* cpu, tx_Parameters* params);
-
-
-/// Opcode handler function for invalid opcodes
-void tx_cpu_op_inv(tx_CPU* cpu, tx_Parameters* params);
-
-/// A function pointer type alias for opcode handler functions
-typedef void (*tx_OpFunction)(tx_CPU* cpu, tx_Parameters* params);
-// clang-format off
-/// Mapping of opcodes to their handler functions
-static const tx_OpFunction tx_cpu_op_function[256] = {
-    // 0x0
-    &tx_cpu_op_hlt, &tx_cpu_op_nop, &tx_cpu_op_jmp, &tx_cpu_op_jeq, &tx_cpu_op_jne, &tx_cpu_op_jgt, &tx_cpu_op_jge, &tx_cpu_op_jlt, &tx_cpu_op_jle, &tx_cpu_op_cmp, &tx_cpu_op_fcmp, &tx_cpu_op_ucmp, &tx_cpu_op_call, &tx_cpu_op_ret, &tx_cpu_op_sys, &tx_cpu_op_inv,
-    // 0x1
-    &tx_cpu_op_ld, &tx_cpu_op_lw, &tx_cpu_op_lda, &tx_cpu_op_sta, &tx_cpu_op_ldb, &tx_cpu_op_stb, &tx_cpu_op_ldc, &tx_cpu_op_stc, &tx_cpu_op_ldd, &tx_cpu_op_std, &tx_cpu_op_zero, &tx_cpu_op_push, &tx_cpu_op_pop, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x2
-    &tx_cpu_op_inc, &tx_cpu_op_dec, &tx_cpu_op_add, &tx_cpu_op_sub, &tx_cpu_op_mul, &tx_cpu_op_div, &tx_cpu_op_mod, &tx_cpu_op_max, &tx_cpu_op_min, &tx_cpu_op_abs, &tx_cpu_op_sign, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x3
-    &tx_cpu_op_and, &tx_cpu_op_or, &tx_cpu_op_not, &tx_cpu_op_nand, &tx_cpu_op_xor, &tx_cpu_op_slr, &tx_cpu_op_sar, &tx_cpu_op_sll, &tx_cpu_op_ror, &tx_cpu_op_rol, &tx_cpu_op_set, &tx_cpu_op_clr, &tx_cpu_op_tgl, &tx_cpu_op_test, &tx_cpu_op_inv,  &tx_cpu_op_inv,
-    // 0x4
-    &tx_cpu_op_finc, &tx_cpu_op_fdec, &tx_cpu_op_fadd, &tx_cpu_op_fsub, &tx_cpu_op_fmul, &tx_cpu_op_fdiv, &tx_cpu_op_fmod, &tx_cpu_op_fmax, &tx_cpu_op_fmin, &tx_cpu_op_fabs, &tx_cpu_op_fsign, &tx_cpu_op_sin, &tx_cpu_op_cos, &tx_cpu_op_tan, &tx_cpu_op_asin, &tx_cpu_op_acos,
-    // 0x5
-    &tx_cpu_op_atan, &tx_cpu_op_atan2, &tx_cpu_op_sqrt, &tx_cpu_op_pow, &tx_cpu_op_exp, &tx_cpu_op_log, &tx_cpu_op_log2, &tx_cpu_op_log10, &tx_cpu_op_inv,  &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x6
-    &tx_cpu_op_umul, &tx_cpu_op_udiv, &tx_cpu_op_umod, &tx_cpu_op_umax, &tx_cpu_op_umin, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x7
-    &tx_cpu_op_rand, &tx_cpu_op_rseed, &tx_cpu_op_itf, &tx_cpu_op_fti, &tx_cpu_op_utf, &tx_cpu_op_ftu, &tx_cpu_op_ei, &tx_cpu_op_di, &tx_cpu_op_stop, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x8
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0x9
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xa
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xb
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xc
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xd
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xe
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-    // 0xf
-    &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv, &tx_cpu_op_inv,
-};
-// clang-format on
+} // namespace tx

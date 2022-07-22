@@ -8,25 +8,13 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using tx_num32_variant = std::variant<tx_uint32, tx_int32, tx_float32>;
 
 class VMTest : public ::testing::Test {
-  public:
-    static void test_uint(tx_CPU* cpu, void* vm);
-    static void test_int(tx_CPU* cpu, void* vm);
-    static void test_float(tx_CPU* cpu, void* vm);
-    static void test_au(tx_CPU* cpu, void* vm);
-    static void test_ai(tx_CPU* cpu, void* vm);
-    static void test_af(tx_CPU* cpu, void* vm);
-    static void test_r(tx_CPU* cpu, void* vm);
-    static void test_rf(tx_CPU* cpu, void* vm);
-
   private:
-    static void append_num(void* vm, tx_num32_variant value);
+    void append_num(tx::num32_variant value);
 
   protected:
-    tx_CPU                        cpu = {};
-    std::vector<tx_num32_variant> nums;
+    std::vector<tx::num32_variant> nums;
 
     VMTest();
     ~VMTest() override;
@@ -38,11 +26,13 @@ class VMTest : public ::testing::Test {
     void run_and_compare_str(const std::string& code, const std::string& out, const std::string& err = "");
     void run_and_compare_num(
         const std::string&                   code,
-        const std::vector<tx_num32_variant>& expected,
+        const std::vector<tx::num32_variant>& expected,
         const std::string&                   err = ""
     );
 
     bool run_code(const std::string& s);
+
+    void use_testing_stdlib(tx::CPU& cpu);
 };
 
 class Signed : public VMTest { };

@@ -5,17 +5,17 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <tx8/core/instruction.h>
+#include <tx8/core/instruction.hpp>
 
 int tx_lex_sprefix(const char* prefix, const char* str) {
     return strncmp(prefix, str, strlen(prefix)) == 0;
 }
-tx_int32 tx_lex_num(const char* str) {
+tx::int32 tx_lex_num(const char* str) {
     if (tx_lex_sprefix("0x", str)) return strtol(str + 2, (char**)NULL, 16);
     if (tx_lex_sprefix("0b", str)) return strtol(str + 2, (char**)NULL, 2);
     return atoi(str);
 }
-tx_int32 tx_lex_hex(const char* str) {
+tx::int32 tx_lex_hex(const char* str) {
     return strtol(str, (char**)NULL, 16);
 }
 
@@ -53,17 +53,17 @@ EOL         \n|\r\n
 {SPACE}         { return Parser::make_SPACE(location()); };
 :{IDENTIFIER}   { return Parser::make_LABEL(yytext + 1, location()); }
 &{IDENTIFIER}   { return Parser::make_ALIAS(yytext + 1, location()); }
-@{REGISTER}     { return Parser::make_REGISTER_ADDRESS(tx_reg_id_from_name(yytext + 1), location()); }
-{REGISTER}      { return Parser::make_REGISTER(tx_reg_id_from_name(yytext), location()); }
+@{REGISTER}     { return Parser::make_REGISTER_ADDRESS((tx::uint32) reg_id_from_name(yytext + 1), location()); }
+{REGISTER}      { return Parser::make_REGISTER((tx::uint32) reg_id_from_name(yytext), location()); }
 #{ADDRESS}      { return Parser::make_ABSOLUTE_ADDRESS(tx_lex_hex(yytext + 1), location()); }
 $-?{ADDRESS}    { return Parser::make_RELATIVE_ADDRESS(tx_lex_hex(yytext + 1), location()); }
 {FLOAT}         { return Parser::make_FLOAT(atof(yytext), location()); }
 {INTEGER8}      { return Parser::make_INTEGER8(tx_lex_num(yytext), location()); }
 {INTEGER16}     { return Parser::make_INTEGER16(tx_lex_num(yytext), location()); }
 {INTEGER32}     { return Parser::make_INTEGER32(tx_lex_num(yytext), location()); }
-{OP0}           { return Parser::make_OPCODE0(tx_opcode_from_name(yytext), location()); }
-{OP1}           { return Parser::make_OPCODE1(tx_opcode_from_name(yytext), location()); }
-{OP2}           { return Parser::make_OPCODE2(tx_opcode_from_name(yytext), location()); }
+{OP0}           { return Parser::make_OPCODE0((tx::uint32) opcode_from_name(yytext), location()); }
+{OP1}           { return Parser::make_OPCODE1((tx::uint32) opcode_from_name(yytext), location()); }
+{OP2}           { return Parser::make_OPCODE2((tx::uint32) opcode_from_name(yytext), location()); }
 {SPACE}?{EOL}   { return Parser::make_EOL(location()); }
 .               { return Parser::make_INVALID(yytext, location()); }
 <<EOF>>         { return yyterminate(); }

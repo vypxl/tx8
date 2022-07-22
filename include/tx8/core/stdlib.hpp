@@ -6,13 +6,7 @@
 
 #include <tx8/core/cpu.hpp>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/// Use this method to register the all standard library functions
-void tx_cpu_use_stdlib(tx_CPU* cpu);
-
-#ifdef __cplusplus
-}
-#endif
+namespace tx::stdlib {
+    /// Use this method to register the all standard library functions
+    void use_stdlib(CPU& cpu);
+} // namespace tx::stdlib

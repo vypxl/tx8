@@ -16,11 +16,11 @@
 
 namespace tx {
     /// Calculate a hash value for a string
-    static inline tx_uint32 str_hash(const std::string& str) {
+    static inline uint32 str_hash(const std::string& str) {
         const char* s = str.c_str();
-        tx_uint32   h = (tx_uint32) *s;
+        uint32      h = (uint32) *s;
         if (h)
-            for (++s; *s; ++s) h = (h << 5) - h + (tx_uint32) *s;
+            for (++s; *s; ++s) h = (h << 5) - h + (uint32) *s;
         return h;
     }
 } // namespace tx
