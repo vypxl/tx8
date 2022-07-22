@@ -8,7 +8,7 @@
 
 %code requires {
     #include <tx8/core/instruction.h>
-    #include <tx8/core/util.h>
+    #include <tx8/core/util.hpp>
     #include <sstream>
 
     namespace tx {
@@ -67,7 +67,7 @@ instruction: OPCODE2 SPACE parameter SPACE parameter { tx_Instruction i = { .opc
            | OPCODE1 SPACE parameter                 { tx_Instruction i = { .opcode = (tx_Opcode) $1, .params = { .p1 = $3 } }; $$ = i; }
            | OPCODE0                                 { tx_Instruction i = { .opcode = (tx_Opcode) $1 }; $$ = i; }
 
-parameter:   ALIAS                                   { tx_Parameter p = { .value = { .u = tx_str_hash($1.c_str()) }, .mode = tx_param_constant32 }; $$ = p; }
+parameter:   ALIAS                                   { tx_Parameter p = { .value = { .u = tx::str_hash($1) }, .mode = tx_param_constant32 }; $$ = p; }
            | INTEGER8                                { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant8 }; $$ = p; }
            | INTEGER16                               { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant16 }; $$ = p; }
            | INTEGER32                               { tx_Parameter p = { .value = { .u = $1 }, .mode = tx_param_constant32 }; $$ = p; }

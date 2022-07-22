@@ -3,7 +3,7 @@
 #include "tx8/core/instruction.h"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.h"
-#include "tx8/core/util.h"
+#include "tx8/core/util.hpp"
 
 #include <cmath>
 #include <stdlib.h>
@@ -143,7 +143,7 @@ void tx_cpu_exec_instruction(tx_CPU* cpu, tx_Instruction instruction) {
 }
 
 void tx_cpu_register_sysfunc(tx_CPU* cpu, const char* name, tx_sysfunc_ptr func, void* data) {
-    auto h = tx_str_hash(name);
+    auto h = tx::str_hash(name);
 
     tx_sysfunc f = {.func = func, .data = data};
 
