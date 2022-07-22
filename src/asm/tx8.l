@@ -1,5 +1,5 @@
 %{
-#include "tx8.tab.h"
+#include "tx8_parser.hpp"
 
 #include <tx8/asm/lexer.hpp>
 

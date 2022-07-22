@@ -6,12 +6,12 @@
 void tx_debug_print_raw_instruction(tx_Instruction* inst) {
     tx::log_err(
         "{:x} ({}) {:x} {:x} (modes: {:x} {:x})\n",
-        inst->opcode,
+        (tx_uint32) inst->opcode,
         tx_op_names[inst->opcode],
         inst->params.p1.value.u,
         inst->params.p2.value.u,
-        inst->params.p1.mode,
-        inst->params.p2.mode
+        (tx_uint32) inst->params.p1.mode,
+        (tx_uint32) inst->params.p2.mode
     );
 }
 
@@ -43,6 +43,6 @@ void tx_debug_print_parameter(tx_Parameter* p) {
         case tx_param_register: tx::log_err("{}", tx_reg_names[v.u]); break;
         case tx_param_label: tx::log_err("label(id: {:#x})", v.u); break;
         case tx_param_unused: break;
-        default: tx::log_err("{{ unknown parameter mode {:#x}; value: {:#x} }}", p->mode, v.u); break;
+        default: tx::log_err("{{ unknown parameter mode {:#x}; value: {:#x} }}", (tx_uint32) p->mode, v.u); break;
     }
 }
