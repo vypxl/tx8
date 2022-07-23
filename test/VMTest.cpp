@@ -28,9 +28,7 @@ void VMTest::TearDown() {
     nums.clear();
 }
 
-void VMTest::append_num(tx::num32_variant value) {
-    nums.push_back(value);
-}
+void VMTest::append_num(tx::num32_variant value) { nums.push_back(value); }
 
 void VMTest::run_and_compare_str(const std::string& code, const std::string& out, const std::string& err) {
     if (!run_code(code)) return;
@@ -40,9 +38,9 @@ void VMTest::run_and_compare_str(const std::string& code, const std::string& out
 }
 
 void VMTest::run_and_compare_num(
-    const std::string&                   code,
+    const std::string&                    code,
     const std::vector<tx::num32_variant>& expecteds,
-    const std::string&                   err
+    const std::string&                    err
 ) {
     if (!run_code(code)) return;
     ASSERT_EQ(tx::log_err.get_str(), err);
@@ -107,17 +105,17 @@ bool VMTest::run_code(const std::string& s) {
 
 void VMTest::use_testing_stdlib(tx::CPU& cpu) {
     cpu.register_sysfunc("test_uint", [this](tx::CPU& cpu) {
-        tx::num32 v = {.u = cpu.top32()};
+        tx::num32 v = {.u = cpu.top()};
         append_num(v.u);
     });
 
     cpu.register_sysfunc("test_int", [this](tx::CPU& cpu) {
-        tx::num32 v = {.u = cpu.top32()};
+        tx::num32 v = {.u = cpu.top()};
         append_num(v.i);
     });
 
     cpu.register_sysfunc("test_float", [this](tx::CPU& cpu) {
-        tx::num32 v = {.u = cpu.top32()};
+        tx::num32 v = {.u = cpu.top()};
         append_num(v.f);
     });
 

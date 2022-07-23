@@ -10,32 +10,32 @@
 namespace tx::stdlib {
     /// `print_u32(uint32 n)` - logs `n`
     f(print_u32) {
-        uint32 val = cpu.top32();
+        uint32 val = cpu.top();
         tx::log("{}", val);
     }
 
     /// `print_i32(int32 n)` - logs `n` as a signed value
     f(print_i32) {
         num32 val;
-        val.u = cpu.top32();
+        val.u = cpu.top();
         tx::log("{}", val.i);
     }
 
     f(print_f32) {
         num32 val;
-        val.u = cpu.top32();
+        val.u = cpu.top();
         tx::log("{}", val.f);
     }
 
     /// `print(char* s)` - logs the zero terminated string at `s`
     f(print) {
-        uint32 addr = cpu.top32();
+        uint32 addr = cpu.top();
         tx::log("{}", (char*) (cpu.mem.data() + addr));
     }
 
     /// `println(char* s)` - Prints the zero terminated string at `s` with a trailing newline
     f(println) {
-        uint32 addr = cpu.top32();
+        uint32 addr = cpu.top();
         char*  str  = (char*) (cpu.mem.data() + addr);
         tx::log("{}\n", str);
     }

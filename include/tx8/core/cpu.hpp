@@ -48,6 +48,11 @@ namespace tx {
             };
             std::array<uint32, REGISTER_COUNT> registers;
         };
+
+        /// If debug information should be printed
+        bool debug;
+
+      private:
         /// System function table
         std::map<uint32, Sysfunc> sys_func_table;
         /// Random seed
@@ -56,13 +61,45 @@ namespace tx {
         bool halted;
         /// If the cpu is currently idle and waiting for an interrupt
         bool stopped;
-        /// If debug information should be printed
-        bool debug;
 
+      public:
         /// Initialize all cpu members and copy the rom into the memory
-        CPU(Rom rom);
+        explicit CPU(Rom rom);
         /// Execute instructions until an error occurs or a hlt instruction is reached
         void run();
+        /// Register the given function in the system function table
+        void register_sysfunc(const std::string& name, Sysfunc func);
+
+        /// Write a value to the specified memory location
+        void mem_write(mem_addr location, uint32 value, ValueSize size = ValueSize::Word);
+        /// Read a value from the specified memory location
+        uint32 mem_read(mem_addr location, ValueSize size = ValueSize::Word);
+        /// Write a value from the specified memory location relative to the O register
+        void mem_write_rel(mem_addr location, uint32 value, ValueSize size = ValueSize::Word);
+        /// Read a value from the specified memory location relative to the O register
+        uint32 mem_read_rel(mem_addr location, ValueSize size = ValueSize::Word);
+        /// Overwrite the value of the specified cpu register (respects small registers)
+        void reg_write(Register which, uint32 value);
+        /// Read the value of the specified cpu register (respects small registers)
+        uint32 reg_read(Register which);
+
+        /// Update the program counter to the specified new location
+        void jump(mem_addr location);
+        /// Push an value onto the stack
+        void push(uint32 value, ValueSize size = ValueSize::Word);
+        /// Pop a value from the stack
+        uint32 pop(ValueSize size = ValueSize::Word);
+        /// Get the topmost value from the stack
+        uint32 top(ValueSize size = ValueSize::Word);
+
+        // Convenience function to set the R register
+        inline void write_r(uint32 value) { reg_write(Register::R, value); }
+        /// Convenience function to set a bit in the r register to a value
+        inline void set_r_bit(uint8 bit, uint8 value) { r = (r & ~(1u << bit)) | (value << bit); }
+        // Convenience function to read the R register
+        inline uint32 read_r() { return reg_read(Register::R); }
+
+      private:
         /// Get a random value using the random seed (range 0 - RANDOM_MAX)
         uint32 rand();
 
@@ -71,8 +108,6 @@ namespace tx {
         /// Execute the given parsed instruction
         void exec_instruction(Instruction instruction);
 
-        /// Register the given function in the system function table
-        void register_sysfunc(const std::string& name, Sysfunc func);
         /// Execute the system function specified by its id (the hash of the string name)
         void exec_sysfunc(uint32 hashed_name);
 
@@ -81,68 +116,10 @@ namespace tx {
         /// Get the absolute address specified by a parameter using its mode (fails if the parameter does not represent an address)
         mem_addr get_param_address(Parameter param);
 
-        /// Update the program counter to the specified new location
-        void jump(uint32 location);
-        /// Push an 8bit value onto the stack
-        void push8(uint8 value);
-        /// Push a 16bit value onto the stack
-        void push16(uint16 value);
-        /// Push a 32bit value onto the stack
-        void push32(uint32 value);
-        /// Pop an 8bit value from the stack
-        uint8 pop8();
-        /// Pop a 16bit value from the stack
-        uint16 pop16();
-        /// Pop a 32bit value from the stack
-        uint32 pop32();
-        /// Get the topmost 8bit value from the stack
-        uint8 top8();
-        /// Get the topmost 816it value from the stack
-        uint16 top16();
-        /// Get the topmost 32bit value from the stack
-        uint32 top32();
         /// Get a pointer to the specified location in tx8 cpu memory
-        mem_ptr mem_get_ptr(mem_addr location);
-        /// Write an 8bit value to the specified memory location
-        void mem_write8(mem_addr location, uint8 value);
-        /// Write a 16bit value to the specified memory location
-        void mem_write16(mem_addr location, uint16 value);
-        /// Write a 32bit value to the specified memory location
-        void mem_write32(mem_addr location, uint32 value);
-        /// Read an 8bit value from the specified memory location
-        uint8 mem_read8(mem_addr location);
-        /// Read a 16bit value from the specified memory location
-        uint16 mem_read16(mem_addr location);
-        /// Read a 32bit value from the specified memory location
-        uint32 mem_read32(mem_addr location);
-        /// Write an 8bit value from the specified memory location relative to the O register
-        void mem_write8_rel(mem_addr location, uint8 value);
-        /// Write a 16bit value from the specified memory location relative to the O register
-        void mem_write16_rel(mem_addr location, uint16 value);
-        /// Write a 32bit value from the specified memory location relative to the O register
-        void mem_write32_rel(mem_addr location, uint32 value);
-        /// Read an 8bit value from the specified memory location relative to the O register
-        uint8 mem_read8_rel(mem_addr location);
-        /// Read a 16bit value from the specified memory location relative to the O register
-        uint16 mem_read16_rel(mem_addr location);
-        /// Read a 32bit value from the specified memory location relative to the O register
-        uint32 mem_read32_rel(mem_addr location);
-        /// Overwrite the value of the specified cpu register (respects small registers)
-        void reg_write(Register which, uint32 value);
-        /// Read the value of the specified cpu register (respects small registers)
-        uint32 reg_read(Register which);
-
-        /// Write 1, 2 or 4 bytes of `value` to the specified memory location
-        void mem_write_n(mem_addr location, uint32 value, uint8 bytes);
-
-        // Convenience function to set the R register
-        inline void write_r(uint32 value) { reg_write(Register::R, value); }
-
-        /// Convenience function to set a bit in the r register to a value
-        inline void set_r_bit(uint8 bit, uint8 value) { r = (r & ~(1u << bit)) | (value << bit); }
-
-        // Convenience function to read the R register
-        inline uint32 read_r() { return reg_read(Register::R); }
+        [[deprecated("Don't use mem_get_ptr")]] uint8* mem_get_ptr(mem_addr location);
+        /// Check if a location is within valid memory range
+        static inline bool mem_in_range(mem_addr location) { return location < MEM_SIZE; }
 
         /// Print an error message and halt the cpu (sets `halted` to true)
         template <typename... Args>
@@ -262,47 +239,45 @@ namespace tx {
         void op_di(const Parameters& params);
         void op_stop(const Parameters& params);
 
-
         /// Opcode handler function for invalid opcodes
         void op_inv(const Parameters& params);
-    };
 
-    // clang-format off
-    /// Mapping of opcodes to their handler functions
-    const std::array<std::function<void (CPU*, const Parameters& params)>, 256> op_function = {
-        // 0x0
-        &CPU::op_hlt, &CPU::op_nop, &CPU::op_jmp, &CPU::op_jeq, &CPU::op_jne, &CPU::op_jgt, &CPU::op_jge, &CPU::op_jlt, &CPU::op_jle, &CPU::op_cmp, &CPU::op_fcmp, &CPU::op_ucmp, &CPU::op_call, &CPU::op_ret, &CPU::op_sys, &CPU::op_inv,
-        // 0x1
-        &CPU::op_ld, &CPU::op_lw, &CPU::op_lda, &CPU::op_sta, &CPU::op_ldb, &CPU::op_stb, &CPU::op_ldc, &CPU::op_stc, &CPU::op_ldd, &CPU::op_std, &CPU::op_zero, &CPU::op_push, &CPU::op_pop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x2
-        &CPU::op_inc, &CPU::op_dec, &CPU::op_add, &CPU::op_sub, &CPU::op_mul, &CPU::op_div, &CPU::op_mod, &CPU::op_max, &CPU::op_min, &CPU::op_abs, &CPU::op_sign, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x3
-        &CPU::op_and, &CPU::op_or, &CPU::op_not, &CPU::op_nand, &CPU::op_xor, &CPU::op_slr, &CPU::op_sar, &CPU::op_sll, &CPU::op_ror, &CPU::op_rol, &CPU::op_set, &CPU::op_clr, &CPU::op_tgl, &CPU::op_test, &CPU::op_inv,  &CPU::op_inv,
-        // 0x4
-        &CPU::op_finc, &CPU::op_fdec, &CPU::op_fadd, &CPU::op_fsub, &CPU::op_fmul, &CPU::op_fdiv, &CPU::op_fmod, &CPU::op_fmax, &CPU::op_fmin, &CPU::op_fabs, &CPU::op_fsign, &CPU::op_sin, &CPU::op_cos, &CPU::op_tan, &CPU::op_asin, &CPU::op_acos,
-        // 0x5
-        &CPU::op_atan, &CPU::op_atan2, &CPU::op_sqrt, &CPU::op_pow, &CPU::op_exp, &CPU::op_log, &CPU::op_log2, &CPU::op_log10, &CPU::op_inv,  &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x6
-        &CPU::op_umul, &CPU::op_udiv, &CPU::op_umod, &CPU::op_umax, &CPU::op_umin, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x7
-        &CPU::op_rand, &CPU::op_rseed, &CPU::op_itf, &CPU::op_fti, &CPU::op_utf, &CPU::op_ftu, &CPU::op_ei, &CPU::op_di, &CPU::op_stop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x8
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0x9
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xa
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xb
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xc
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xd
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xe
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
-        // 0xf
-        &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        // clang-format off
+        /// Mapping of opcodes to their handler functions
+        const std::array<std::function<void (CPU*, const Parameters& params)>, 256> op_function = {
+            // 0x0
+            &CPU::op_hlt, &CPU::op_nop, &CPU::op_jmp, &CPU::op_jeq, &CPU::op_jne, &CPU::op_jgt, &CPU::op_jge, &CPU::op_jlt, &CPU::op_jle, &CPU::op_cmp, &CPU::op_fcmp, &CPU::op_ucmp, &CPU::op_call, &CPU::op_ret, &CPU::op_sys, &CPU::op_inv,
+            // 0x1
+            &CPU::op_ld, &CPU::op_lw, &CPU::op_lda, &CPU::op_sta, &CPU::op_ldb, &CPU::op_stb, &CPU::op_ldc, &CPU::op_stc, &CPU::op_ldd, &CPU::op_std, &CPU::op_zero, &CPU::op_push, &CPU::op_pop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x2
+            &CPU::op_inc, &CPU::op_dec, &CPU::op_add, &CPU::op_sub, &CPU::op_mul, &CPU::op_div, &CPU::op_mod, &CPU::op_max, &CPU::op_min, &CPU::op_abs, &CPU::op_sign, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x3
+            &CPU::op_and, &CPU::op_or, &CPU::op_not, &CPU::op_nand, &CPU::op_xor, &CPU::op_slr, &CPU::op_sar, &CPU::op_sll, &CPU::op_ror, &CPU::op_rol, &CPU::op_set, &CPU::op_clr, &CPU::op_tgl, &CPU::op_test, &CPU::op_inv,  &CPU::op_inv,
+            // 0x4
+            &CPU::op_finc, &CPU::op_fdec, &CPU::op_fadd, &CPU::op_fsub, &CPU::op_fmul, &CPU::op_fdiv, &CPU::op_fmod, &CPU::op_fmax, &CPU::op_fmin, &CPU::op_fabs, &CPU::op_fsign, &CPU::op_sin, &CPU::op_cos, &CPU::op_tan, &CPU::op_asin, &CPU::op_acos,
+            // 0x5
+            &CPU::op_atan, &CPU::op_atan2, &CPU::op_sqrt, &CPU::op_pow, &CPU::op_exp, &CPU::op_log, &CPU::op_log2, &CPU::op_log10, &CPU::op_inv,  &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x6
+            &CPU::op_umul, &CPU::op_udiv, &CPU::op_umod, &CPU::op_umax, &CPU::op_umin, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x7
+            &CPU::op_rand, &CPU::op_rseed, &CPU::op_itf, &CPU::op_fti, &CPU::op_utf, &CPU::op_ftu, &CPU::op_ei, &CPU::op_di, &CPU::op_stop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x8
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0x9
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xa
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xb
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xc
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xd
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xe
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            // 0xf
+            &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+        };
+        // clang-format on
     };
-    // clang-format on
-
 } // namespace tx

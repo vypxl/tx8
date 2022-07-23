@@ -12,6 +12,10 @@
 #pragma clang diagnostic ignored "-Wunused-function"
 
 namespace tx {
+    /// Enum to specify the amount of bytes a value should have
+    /// @details Used in various memory-related functions
+    enum class ValueSize { Byte = 1, Short = 2, Word = 4 };
+
     /// List of opcodes understood by a tx8 cpu
     /// Contains constants for every opcode
     enum class Opcode {
@@ -301,26 +305,26 @@ namespace tx {
     /// Masks to truncate a tx8 cpu register value according to the register size
     const std::array<uint32, 3> register_mask = {0xffffffff, 0xff, 0xffff};
     /// Get the register size of a tx8 cpu register by its id
-    static inline uint8 register_size(Register reg) {
+    static inline ValueSize register_size(Register reg) {
         switch (((uint32) reg) & REG_SIZE_MASK) {
-            case REG_SIZE_1: return 1;
-            case REG_SIZE_2: return 2;
-            case REG_SIZE_4: return 4;
-            default: return 0;
+            case REG_SIZE_1: return ValueSize::Byte;
+            case REG_SIZE_2: return ValueSize::Short;
+            case REG_SIZE_4: return ValueSize::Word;
+            default: return ValueSize::Word;
         }
     }
 
     /// Get the size of a tx8 instruction parameter in bytes
-    static inline uint8 param_value_size(Parameter param) {
+    static inline ValueSize param_value_size(Parameter param) {
         switch (param.mode) {
-            case ParamMode::Constant8: return 1;
-            case ParamMode::Constant16: return 2;
+            case ParamMode::Constant8: return ValueSize::Byte;
+            case ParamMode::Constant16: return ValueSize::Short;
             case ParamMode::Constant32:
             case ParamMode::AbsoluteAddress:
             case ParamMode::RelativeAddress:
-            case ParamMode::RegisterAddress: return 4;
+            case ParamMode::RegisterAddress: return ValueSize::Word;
             case ParamMode::Register: return register_size((Register) param.value.u);
-            default: return 0;
+            default: return ValueSize::Word;
         }
     }
 
