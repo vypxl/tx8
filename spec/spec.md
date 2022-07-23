@@ -47,6 +47,12 @@ the lower 2 bytes via `Xs` and the lowest byte via `Xb`.
 The names are case-insensitive.
 (You can memorize the suffixes by thinking of: `int`, `short` and `byte`)
 
+When mixing registers or other destinations of different sizes, the first parameter determines the size of the
+operation.
+This means when writing to `ab`, the operation is executed in 8-bit mode, the second parameter is truncated to 8-bit.
+On the other hand, when writing to `as`, or `ai` / `a`, the operation is executed in 16/32-bit mode and the second
+parameter is extended or truncated to the size of the first parameter.
+
 When reading from a smaller register in an operation that requires a 32-bit value, the value is zero-extended.
 When writing a larger value to a smaller register, the result is truncated.
 
