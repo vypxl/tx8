@@ -36,18 +36,20 @@ namespace tx {
         Sys  = 0x0e,
 
         Ld   = 0x10,
-        Lw   = 0x11,
-        Lda  = 0x12,
-        Sta  = 0x13,
-        Ldb  = 0x14,
-        Stb  = 0x15,
-        Ldc  = 0x16,
-        Stc  = 0x17,
-        Ldd  = 0x18,
-        Std  = 0x19,
-        Zero = 0x1a,
-        Push = 0x1b,
-        Pop  = 0x1c,
+        Lds  = 0x11,
+        Lw   = 0x12,
+        Lws  = 0x13,
+        Lda  = 0x14,
+        Sta  = 0x15,
+        Ldb  = 0x16,
+        Stb  = 0x17,
+        Ldc  = 0x18,
+        Stc  = 0x19,
+        Ldd  = 0x1a,
+        Std  = 0x1b,
+        Zero = 0x1c,
+        Push = 0x1d,
+        Pop  = 0x1e,
 
         Inc  = 0x20,
         Dec  = 0x21,
@@ -101,11 +103,13 @@ namespace tx {
         Log2  = 0x56,
         Log10 = 0x57,
 
-        Umul = 0x60,
-        Udiv = 0x61,
-        Umod = 0x62,
-        Umax = 0x63,
-        Umin = 0x64,
+        Uadd = 0x60,
+        Usub = 0x61,
+        Umul = 0x62,
+        Udiv = 0x63,
+        Umod = 0x64,
+        Umax = 0x65,
+        Umin = 0x66,
 
         Rand  = 0x70,
         Rseed = 0x71,
@@ -171,7 +175,7 @@ namespace tx {
         // 0x0
         "hlt",   "nop",   "jmp",   "jeq",   "jne",   "jgt",   "jge",   "jlt",   "jle",   "cmp",   "fcmp",  "ucmp",  "call",  "ret",   "sys",   "IN_0f",
         // 0x1
-        "ld",    "lw",    "lda",   "sta",   "ldb",   "stb",   "ldc",   "stc",   "ldd",   "std",   "zero",  "push",  "pop",   "IN_1d", "IN_1e", "IN_1f",
+        "ld",    "lds",   "lw",    "lws",   "lda",   "sta",   "ldb",   "stb",   "ldc",   "stc",   "ldd",   "std",   "zero",  "push",  "pop",  "IN_1f",
         // 0x2
         "inc",   "dec",   "add",   "sub",   "mul",   "div",   "mod",   "max",   "min",   "abs",   "sign",  "IN_2b", "IN_2c", "IN_2d", "IN_2e", "IN_2f",
         // 0x3
@@ -181,7 +185,7 @@ namespace tx {
         // 0x5
         "atan",  "atan2", "sqrt",  "pow",   "exp",   "log",   "log2",  "log10", "IN_58", "IN_59", "IN_5a", "IN_5b", "IN_5c", "IN_5d", "IN_5e", "IN_5f",
         // 0x6
-        "umul",  "udiv",  "umod",  "umax",  "umin",  "IN_65", "IN_66", "IN_67", "IN_68", "IN_69", "IN_6a", "IN_6b", "IN_6c", "IN_6d", "IN_6e", "IN_6f",
+        "uadd",  "usub",  "umul",  "udiv",  "umod",  "umax",  "umin",  "IN_67", "IN_68", "IN_69", "IN_6a", "IN_6b", "IN_6c", "IN_6d", "IN_6e", "IN_6f",
         // 0x7
         "rand",  "rseed", "itf",   "fti",   "utf",   "ftu",   "ei",    "di",    "stop",  "IN_79", "IN_7a", "IN_7b", "IN_7c", "IN_7d", "IN_7e", "IN_7f",
         // 0x8
@@ -356,7 +360,7 @@ namespace tx {
         // 0x0
         0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 0, 1, 0,
         // 0x1
-        2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+        2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
         // 0x2
         1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0,
         // 0x3
@@ -366,7 +370,7 @@ namespace tx {
         // 0x5
         1, 2, 1, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
         // 0x6
-        2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         // 0x7
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         // 0x8

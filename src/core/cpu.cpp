@@ -158,6 +158,21 @@ namespace tx {
         }
     }
 
+    // Returns the numerical value of a parameter, but sign extends values smaller than 32 pit instead of zero-extending
+    uint32 CPU::get_param_value_sign_extended(Parameter param) {
+        switch (param.mode) {
+            case ParamMode::Unused: return 0;
+            case ParamMode::Constant8: return (int32) (int8) param.value.u;
+            case ParamMode::Constant16: return (int32) (int16) param.value.u;
+            case ParamMode::Constant32: return param.value.u;
+            case ParamMode::AbsoluteAddress: return mem_read(param.value.u);
+            case ParamMode::RelativeAddress: return mem_read_rel(param.value.u);
+            case ParamMode::Register: return reg_read_sign_extended((Register) param.value.u);
+            case ParamMode::RegisterAddress: return mem_read(reg_read((Register) param.value.u));
+            default: return 0;
+        }
+    }
+
     mem_addr CPU::get_param_address(Parameter param) {
         switch (param.mode) {
             case ParamMode::AbsoluteAddress: return param.value.u;
@@ -226,9 +241,19 @@ namespace tx {
         return 0;
     }
 
+    uint32 CPU::reg_read_sign_extended(Register which) {
+        uint32 val = reg_read(which);
+        switch ((uint32) which & REG_SIZE_MASK) {
+            case REG_SIZE_1: return (int32) (int8) val;
+            case REG_SIZE_2: return (int32) (int16) val;
+            default: return val;
+        }
+    }
+
 // local conveniences macros
-#define PARAMV(which) get_param_value(params.p##which)
-#define PARAMA(which) get_param_address(params.p##which)
+#define PARAMV(which)  get_param_value(params.p##which)
+#define PARAMVI(which) get_param_value_sign_extended(params.p##which)
+#define PARAMA(which)  get_param_address(params.p##which)
 #define CHECK_WRITABLE(name) \
     if (!param_is_writable(params.p1.mode)) { \
         error("Destination of " #name " is not writable"); \
@@ -255,6 +280,13 @@ namespace tx {
 
 #undef COMP_JUMP
 
+    void CPU::op_cmp(const Parameters& params) {
+        num32 a   = {.u = PARAMVI(1)};
+        num32 b   = {.u = PARAMVI(2)};
+        int32 res = CMP(a.i, b.i);
+        write_r(res);
+    }
+
 #define COMPARISON(dtype, name) \
     void CPU::op_##name(const Parameters& params) { \
         num32 a   = {.u = PARAMV(1)}; \
@@ -263,7 +295,6 @@ namespace tx {
         write_r(res); \
     }
 
-    COMPARISON(i, cmp)
     COMPARISON(f, fcmp)
     COMPARISON(u, ucmp)
 
@@ -278,34 +309,46 @@ namespace tx {
 
     void CPU::op_sys(const Parameters& params) { exec_sysfunc(PARAMV(1)); }
 
-    void CPU::op_ld(const Parameters& params) {
-        CHECK_WRITABLE("ld")
-
-        uint32 val = PARAMV(2);
-
-        // register <- value
-        if (param_is_register(params.p1.mode)) reg_write((Register) params.p1.value.u, val);
-        // address <- address
-        else if (param_is_address(params.p2.mode)) mem_write(PARAMA(1), val, ValueSize::Byte);
-        // address <- register
-        else if (param_is_register(params.p2.mode))
-            mem_write(PARAMA(1), val, register_size((Register) params.p2.value.u));
-        // address <- constant
-        else mem_write(PARAMA(1), val, param_value_size(params.p2));
+#define LD(name, type) \
+    void CPU::op_##name(const Parameters& params) { \
+        CHECK_WRITABLE(#name) \
+\
+        uint32 val = type(2); \
+\
+        /* register <- value */ \
+        if (param_is_register(params.p1.mode)) reg_write((Register) params.p1.value.u, val); \
+        /* address <- address */ \
+        else if (param_is_address(params.p2.mode)) mem_write(PARAMA(1), val, ValueSize::Byte); \
+        /* address <- register */ \
+        else if (param_is_register(params.p2.mode)) \
+            mem_write(PARAMA(1), val, register_size((Register) params.p2.value.u)); \
+        /* address <- constant */ \
+        else mem_write(PARAMA(1), val, param_value_size(params.p2)); \
     }
 
-    void CPU::op_lw(const Parameters& params) {
-        CHECK_WRITABLE("lw")
+    LD(ld, PARAMV)
+    LD(lds, PARAMVI)
 
-        uint32 val = PARAMV(2);
+#undef LD
 
-        if (param_is_register(params.p1.mode)) {
-            if (register_size((Register) params.p1.value.u) != ValueSize::Word) error(ERR_CANNOT_LOAD_WORD);
-            else reg_write((Register) params.p1.value.u, val);
-        } else {
-            mem_write(PARAMA(1), val);
-        }
+#define LW(name, type) \
+    void CPU::op_##name(const Parameters& params) { \
+        CHECK_WRITABLE(#name) \
+\
+        uint32 val = type(2); \
+\
+        if (param_is_register(params.p1.mode)) { \
+            if (register_size((Register) params.p1.value.u) != ValueSize::Word) error(ERR_CANNOT_LOAD_WORD); \
+            else reg_write((Register) params.p1.value.u, val); \
+        } else { \
+            mem_write(PARAMA(1), val); \
+        } \
     }
+
+    LW(lw, PARAMV)
+    LW(lws, PARAMVI)
+
+#undef LW
 
 // Macro for defining ld and st ops for registers a through d
 #define DEFINE_LDX_STX(name, which) \
@@ -353,9 +396,18 @@ namespace tx {
     num32 result;
 #define AR_OP_1_BEGIN(name) \
     CHECK_WRITABLE(name) \
-    num32 a = {.u = PARAMV(1)}; \
+    num32 a = {.u = PARAMVI(1)}; \
     num32 result;
 #define AR_OP_2_BEGIN(name) \
+    CHECK_WRITABLE(name) \
+    num32 a = {.u = PARAMVI(1)}; \
+    num32 b = {.u = PARAMVI(2)}; \
+    num32 result;
+#define AR_UOP_1_BEGIN(name) \
+    CHECK_WRITABLE(name) \
+    num32 a = {.u = PARAMV(1)}; \
+    num32 result;
+#define AR_UOP_2_BEGIN(name) \
     CHECK_WRITABLE(name) \
     num32 a = {.u = PARAMV(1)}; \
     num32 b = {.u = PARAMV(2)}; \
@@ -375,11 +427,11 @@ namespace tx {
     AR_OP_END
 
 #define AR_SIMPLE_UOP_1(name, op) \
-    AR_OP_1_BEGIN(name) \
+    AR_UOP_1_BEGIN(name) \
         result.u = op a.u; \
     AR_OP_END
 #define AR_SIMPLE_UOP_2(name, op) \
-    AR_OP_2_BEGIN(name) \
+    AR_UOP_2_BEGIN(name) \
         result.u = a.u op b.u; \
     AR_OP_END
 
@@ -410,8 +462,12 @@ namespace tx {
         result.f = fun(a.f, b.f); \
     AR_OP_END
 
+#define AR_FUN_UOP_1(name, fun) \
+    AR_UOP_1_BEGIN(name) \
+        result.u = fun(a.u); \
+    AR_OP_END
 #define AR_FUN_UOP_2(name, fun) \
-    AR_OP_2_BEGIN(name) \
+    AR_UOP_2_BEGIN(name) \
         result.u = fun(a.u, b.u); \
     AR_OP_END
 
@@ -430,25 +486,24 @@ namespace tx {
         } \
     } else R((full))
 
-#define AR_OVF_OP(name) \
-    AR_OP_2_BEGIN(name) \
-        uint32    rval; \
-        ValueSize size = ValueSize::Word; \
-        if (param_is_register(params.p1.mode)) size = register_size((Register) params.p1.value.u); \
-        switch (size) { \
-            case ValueSize::Byte: \
-                rval = __builtin_##name##_overflow((uint8) a.u, (uint8) b.u, (uint8*) (&result.u)); \
-                rval |= __builtin_##name##_overflow((int8) a.i, (int8) b.i, (int8*) (&result.i)) << 1; \
-                break; \
-            case ValueSize::Short: \
-                rval = __builtin_##name##_overflow((uint16) a.u, (uint16) b.u, (uint16*) (&result.u)); \
-                rval |= __builtin_##name##_overflow((int16) a.i, (int16) b.i, (int16*) (&result.i)) << 1; \
-                break; \
-            case ValueSize::Word: \
-                rval = __builtin_##name##_overflow(a.u, b.u, &result.u); \
-                rval |= __builtin_##name##_overflow(a.i, b.i, &result.i) << 1; \
-                break; \
-        } \
+#define AR_OVF_OP(name, type) \
+    type(name) uint32 rval; \
+    ValueSize         size = ValueSize::Word; \
+    if (param_is_register(params.p1.mode)) size = register_size((Register) params.p1.value.u); \
+    switch (size) { \
+        case ValueSize::Byte: \
+            rval = __builtin_##name##_overflow((uint8) a.u, (uint8) b.u, (uint8*) (&result.u)); \
+            rval |= __builtin_##name##_overflow((int8) a.i, (int8) b.i, (int8*) (&result.i)) << 1; \
+            break; \
+        case ValueSize::Short: \
+            rval = __builtin_##name##_overflow((uint16) a.u, (uint16) b.u, (uint16*) (&result.u)); \
+            rval |= __builtin_##name##_overflow((int16) a.i, (int16) b.i, (int16*) (&result.i)) << 1; \
+            break; \
+        case ValueSize::Word: \
+            rval = __builtin_##name##_overflow(a.u, b.u, &result.u); \
+            rval |= __builtin_##name##_overflow(a.i, b.i, &result.i) << 1; \
+            break; \
+    } \
     AR_OP_END \
     R(rval);
 
@@ -464,7 +519,7 @@ namespace tx {
     // Actual arithmetic operations
 
     void CPU::op_inc(const Parameters& params) {
-        AR_OP_1_BEGIN(inc)
+        AR_UOP_1_BEGIN(inc)
             result.u = a.u;
             result.u++;
             if (param_is_register(params.p1.mode)) result.u &= register_mask[(params.p1.value.u & REG_SIZE_MASK) >> 4u];
@@ -476,7 +531,7 @@ namespace tx {
         );
     }
     void CPU::op_dec(const Parameters& params) {
-        AR_OP_1_BEGIN(dec)
+        AR_UOP_1_BEGIN(dec)
             result.u = a.u;
             result.u--;
             if (param_is_register(params.p1.mode)) result.u &= register_mask[(params.p1.value.u & REG_SIZE_MASK) >> 4u];
@@ -487,8 +542,8 @@ namespace tx {
             ((result.u == (uint32) INT32_MAX) << 1u) | (result.u == UINT32_MAX)
         );
     }
-    void CPU::op_add(const Parameters& params) { AR_OVF_OP(add) }
-    void CPU::op_sub(const Parameters& params) { AR_OVF_OP(sub) }
+    void CPU::op_add(const Parameters& params) { AR_OVF_OP(add, AR_OP_2_BEGIN) }
+    void CPU::op_sub(const Parameters& params) { AR_OVF_OP(sub, AR_OP_2_BEGIN) }
     void CPU::op_mul(const Parameters& params) { AR_OVF_MUL(mul, int, i) }
     void CPU::op_div(const Parameters& params) {
         AR_OP_2_BEGIN("div")
@@ -527,7 +582,7 @@ namespace tx {
     void CPU::op_or(const Parameters& params) { AR_SIMPLE_UOP_2("or", |) }
     void CPU::op_not(const Parameters& params) { AR_SIMPLE_UOP_1("not", ~) }
     void CPU::op_nand(const Parameters& params) {
-        AR_OP_2_BEGIN("nand")
+        AR_UOP_2_BEGIN("nand")
             result.u = ~(a.u & b.u);
         AR_OP_END
     }
@@ -546,7 +601,7 @@ namespace tx {
     } else b.u &= BITMASK_5;
 
     void CPU::op_slr(const Parameters& params) {
-        AR_OP_2_BEGIN("slr")
+        AR_UOP_2_BEGIN("slr")
             BIT_TRUNC;
             result.u = a.u >> b.u;
         AR_OP_END
@@ -560,40 +615,40 @@ namespace tx {
         R(b.u == 0 ? 0 : (a.u << (32 - b.u)) >> (32 - b.u));
     }
     void CPU::op_sll(const Parameters& params) {
-        AR_OP_2_BEGIN("sll")
+        AR_UOP_2_BEGIN("sll")
             BIT_TRUNC;
             result.u = a.u << b.u;
         AR_OP_END
         R(b.u == 0 ? 0 : a.u >> (32 - b.u));
     }
     void CPU::op_ror(const Parameters& params) {
-        AR_OP_2_BEGIN("ror")
+        AR_UOP_2_BEGIN("ror")
             BIT_TRUNC;
             result.u = (a.u >> b.u) | (a.u << ((-b.u) & BITMASK_5));
         AR_OP_END
     }
     void CPU::op_rol(const Parameters& params) {
-        AR_OP_2_BEGIN("ror")
+        AR_UOP_2_BEGIN("ror")
             BIT_TRUNC;
             result.u = (a.u << b.u) | (a.u >> ((-b.u) & BITMASK_5));
         AR_OP_END
     }
     void CPU::op_set(const Parameters& params) {
-        AR_OP_2_BEGIN("set")
+        AR_UOP_2_BEGIN("set")
             BIT_TRUNC;
             result.u = a.u | (1u << b.u);
         AR_OP_END
         R((a.u >> b.u) & 1u);
     }
     void CPU::op_clr(const Parameters& params) {
-        AR_OP_2_BEGIN("clr")
+        AR_UOP_2_BEGIN("clr")
             BIT_TRUNC;
             result.u = a.u & ~(1u << b.u);
         AR_OP_END
         R((a.u >> b.u) & 1u);
     }
     void CPU::op_tgl(const Parameters& params) {
-        AR_OP_2_BEGIN("tgl")
+        AR_UOP_2_BEGIN("tgl")
             BIT_TRUNC;
             result.u = a.u ^ (1u << b.u);
         AR_OP_END
@@ -643,9 +698,11 @@ namespace tx {
     void CPU::op_log2(const Parameters& params) { AR_FUN_FOP_1("log2", log2f) }
     void CPU::op_log10(const Parameters& params) { AR_FUN_FOP_1("log10", log10f) }
 
+    void CPU::op_uadd(const Parameters& params) { AR_OVF_OP(add, AR_UOP_2_BEGIN) }
+    void CPU::op_usub(const Parameters& params) { AR_OVF_OP(sub, AR_UOP_2_BEGIN) }
     void CPU::op_umul(const Parameters& params) { AR_OVF_MUL(umul, uint, u); }
     void CPU::op_udiv(const Parameters& params) {
-        AR_OP_2_BEGIN("udiv")
+        AR_UOP_2_BEGIN("udiv")
             if (b.u == 0) {
                 error(ERR_DIV_BY_ZERO);
                 return;
@@ -655,7 +712,7 @@ namespace tx {
         R(a.u % b.u);
     }
     void CPU::op_umod(const Parameters& params) {
-        AR_OP_2_BEGIN("umod")
+        AR_UOP_2_BEGIN("umod")
             if (b.u == 0) {
                 error(ERR_DIV_BY_ZERO);
                 return;

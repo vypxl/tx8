@@ -82,6 +82,8 @@ namespace tx {
         void reg_write(Register which, uint32 value);
         /// Read the value of the specified cpu register (respects small registers)
         uint32 reg_read(Register which);
+        /// Same as reg_read, but sign extends values smaller than 32 bits instead of zero extending
+        uint32 reg_read_sign_extended(Register which);
 
         /// Update the program counter to the specified new location
         void jump(mem_addr location);
@@ -113,6 +115,8 @@ namespace tx {
 
         /// Get the raw numerical value of a parameter using its mode
         uint32 get_param_value(Parameter param);
+        /// Same as `get_param_value`, but sign extends values smaller than a word instead of zero extending
+        uint32 get_param_value_sign_extended(Parameter param);
         /// Get the absolute address specified by a parameter using its mode (fails if the parameter does not represent an address)
         mem_addr get_param_address(Parameter param);
 
@@ -158,7 +162,9 @@ namespace tx {
         void op_sys(const Parameters& params);
 
         void op_ld(const Parameters& params);
+        void op_lds(const Parameters& params);
         void op_lw(const Parameters& params);
+        void op_lws(const Parameters& params);
         void op_lda(const Parameters& params);
         void op_sta(const Parameters& params);
         void op_ldb(const Parameters& params);
@@ -223,6 +229,8 @@ namespace tx {
         void op_log2(const Parameters& params);
         void op_log10(const Parameters& params);
 
+        void op_uadd(const Parameters& params);
+        void op_usub(const Parameters& params);
         void op_umul(const Parameters& params);
         void op_udiv(const Parameters& params);
         void op_umod(const Parameters& params);
@@ -248,7 +256,7 @@ namespace tx {
             // 0x0
             &CPU::op_hlt, &CPU::op_nop, &CPU::op_jmp, &CPU::op_jeq, &CPU::op_jne, &CPU::op_jgt, &CPU::op_jge, &CPU::op_jlt, &CPU::op_jle, &CPU::op_cmp, &CPU::op_fcmp, &CPU::op_ucmp, &CPU::op_call, &CPU::op_ret, &CPU::op_sys, &CPU::op_inv,
             // 0x1
-            &CPU::op_ld, &CPU::op_lw, &CPU::op_lda, &CPU::op_sta, &CPU::op_ldb, &CPU::op_stb, &CPU::op_ldc, &CPU::op_stc, &CPU::op_ldd, &CPU::op_std, &CPU::op_zero, &CPU::op_push, &CPU::op_pop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            &CPU::op_ld, &CPU::op_lds, &CPU::op_lw, &CPU::op_lws, &CPU::op_lda, &CPU::op_sta, &CPU::op_ldb, &CPU::op_stb, &CPU::op_ldc, &CPU::op_stc, &CPU::op_ldd, &CPU::op_std, &CPU::op_zero, &CPU::op_push, &CPU::op_pop, &CPU::op_inv,
             // 0x2
             &CPU::op_inc, &CPU::op_dec, &CPU::op_add, &CPU::op_sub, &CPU::op_mul, &CPU::op_div, &CPU::op_mod, &CPU::op_max, &CPU::op_min, &CPU::op_abs, &CPU::op_sign, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
             // 0x3
@@ -258,7 +266,7 @@ namespace tx {
             // 0x5
             &CPU::op_atan, &CPU::op_atan2, &CPU::op_sqrt, &CPU::op_pow, &CPU::op_exp, &CPU::op_log, &CPU::op_log2, &CPU::op_log10, &CPU::op_inv,  &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
             // 0x6
-            &CPU::op_umul, &CPU::op_udiv, &CPU::op_umod, &CPU::op_umax, &CPU::op_umin, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
+            &CPU::op_uadd, &CPU::op_usub, &CPU::op_umul, &CPU::op_udiv, &CPU::op_umod, &CPU::op_umax, &CPU::op_umin, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
             // 0x7
             &CPU::op_rand, &CPU::op_rseed, &CPU::op_itf, &CPU::op_fti, &CPU::op_utf, &CPU::op_ftu, &CPU::op_ei, &CPU::op_di, &CPU::op_stop, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv, &CPU::op_inv,
             // 0x8
