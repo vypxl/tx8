@@ -143,17 +143,30 @@ lda 0x55
 ldb 0x1234
 mul ab bs
 sys &test_au ; 0x44
-sys &test_r ; 0x11
+sys &test_r ; 0
 
 lda 0x1234
 ldb 0x55
 mul as bb
 sys &test_au ; 0x0b44
-sys &test_r ; 0x6
+sys &test_r ; 0
 
+lda -11890
+ldb 23
+mul as bb
+sys &test_au ; 0xffffd3c2 (the first 16 bits are 0xffff because they retain their previous value)
+sys &test_r ; 0
+
+lda -11890
+ldb 23
+mul ab bs
+sys &test_au ; 0xffffd1c2 (the first 24 bits are 0xffffd1 because they retain their previous value)
+sys &test_r ; 0
+ld a ab
+sys &test_au ; 0xc2 (now the upper bits were set to 0)
 hlt
 )EOF";
-    run_and_compare_num(s, {0x44u, 0x11u, 0x0b44u, 0x6u});
+    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0u, 0xffffd1c2u, 0u, 0xc2u});
 }
 
 #pragma clang diagnostic pop
