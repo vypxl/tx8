@@ -106,7 +106,7 @@ hlt
     run_and_compare_num(
         s,
         {0xdeadbeefu, 0u, 0x200u, 277u, 1u},
-        "Exception: Division by zero\nCaused by instruction:\n[#40003b] udiv a <0x0 | 0>\n"
+        "Exception: Division by zero\nCaused by instruction:\n[#40004b] udiv a <0x0 | 0 | 0.00000>\n"
     );
 }
 
@@ -128,7 +128,7 @@ hlt
     run_and_compare_num(
         s,
         {0x227fu, 0u},
-        "Exception: Division by zero\nCaused by instruction:\n[#400021] umod a <0x0 | 0>\n"
+        "Exception: Division by zero\nCaused by instruction:\n[#40002c] umod a <0x0 | 0 | 0.00000>\n"
     );
 }
 

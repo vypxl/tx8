@@ -115,17 +115,7 @@ uint32 Assembler::convert_label(uint32 id) {
     return 0;
 }
 
-static inline void truncate_param(Parameter& p) {
-    if (p.mode != ParamMode::Constant32) return;
-    if ((p.value.u & 0xffffff00) == 0) p.mode = ParamMode::Constant8;
-    else if ((p.value.u & 0xffff0000) == 0) p.mode = ParamMode::Constant16;
-}
-
 void Assembler::add_instruction(Instruction inst) {
-    // Check if numbers could be made smaller
-    truncate_param(inst.params.p1);
-    truncate_param(inst.params.p2);
-
     calculate_instruction_length(inst);
     instructions.push_back(inst);
     position += inst.len;
