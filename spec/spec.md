@@ -51,7 +51,12 @@ When mixing registers or other destinations of different sizes, the first parame
 operation.
 This means when writing to `ab`, the operation is executed in 8-bit mode, the second parameter is truncated to 8-bit.
 On the other hand, when writing to `as`, or `ai` / `a`, the operation is executed in 16/32-bit mode and the second
-parameter is extended or truncated to the size of the first parameter.
+parameter is extended or truncated to the size of the first parameter. This does not hold for arithmetic instructions.
+Those are always executed in 32 bit mode, regardless of the sources and destinations. See [arithmetic](#arithmetic)
+for more information.
+
+Beware that when using smaller registers as destinations, only the lower bytes will be set, the upper bytes will
+retain their previous value. You can use something like `ld a as` afterwards to set the upper bits to zero.
 
 When reading from a smaller register in an operation that requires a 32-bit value, the value is zero-extended.
 When writing a larger value to a smaller register, the result is truncated.
@@ -94,7 +99,7 @@ In binary, parameter modes are indicated by the 0-1 bytes after the opcode. Ever
 parameter mode.
 
 | Code | Mode             |
-|------|------------------|
+| ---- | ---------------- |
 | 0x0  | Unused           |
 | 0x1  | Constant 8bit    |
 | 0x2  | Constant 16bit   |
@@ -163,7 +168,7 @@ If you want to jump based on the result of a `test` bit test operation, use `jne
 tested bit was 1, `jeq` to jump if the tested bit was 0.
 
 | Opcode | Asm  | Parameters | Operation                                | Example       |
-|--------|------|------------|------------------------------------------|---------------|
+| ------ | ---- | ---------- | ---------------------------------------- | ------------- |
 | 0x00   | hlt  | `00`       | halt / stop execution                    | `hlt`         |
 | 0x01   | nop  | `00`       | no operation                             | `nop`         |
 | 0x02   | jmp  | `v0`       | jump to address                          | `jmp :label`  |
@@ -221,7 +226,7 @@ Push and pop behave like this:
 - `pop address` pops 4 bytes
 
 | Opcode | Asm  | Parameters | Operation                                             | Example        |
-|--------|------|------------|-------------------------------------------------------|----------------|
+| ------ | ---- | ---------- | ----------------------------------------------------- | -------------- |
 | 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2)    | `ld A 42`      |
 | 0x11   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 | `lw a #c01234` |
 | 0x12   | lda  | `v0`       | load value into register A                            | `lda 42`       |
@@ -241,6 +246,11 @@ Push and pop behave like this:
 All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5.
 
 By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended.
+Beware that when using signed operations with smaller registers, you might not get the results you expected, because
+the zero-extension of values means that the sign bit of your smaller number is treated as if it were part of a 32 bit one.
+For example, consider `A = -11890`. When using `as` in an arithmetic operation, the number would be treated as `53646`.
+That is because in hex, the 16 bit `-11890 == 0xd18e`, but the arithmetic operation would treat it as the 32 bit
+`0x0000d18e == 53646`.
 When a smaller register is the destination of an operation, the result is truncated to the size of the register.
 
 Normal instructions operate on signed integers. If you have unsigned integers
@@ -252,7 +262,7 @@ or floats, you have to use the specialized instructions.
   See [flow control](#flow-control).
 - The `inc`, `dec`, `add` and `sub` instructions set the `R` register's lowest bit if there was an unsigned overflow,
   and the second-lowest bit if there was a signed overflow.
-- The `mul` and `umul` instructions sets the `R` register to the top half of the result.
+- The `mul` and `umul` instructions sets the `R` register to the top 32 bit of the 64 bit result.
 - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
 - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
 - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data
@@ -276,7 +286,7 @@ This would result in the value `1` being stored in `R` and the value `2` being d
 ##### Signed Integer Operations
 
 | Opcode | Asm  | Parameters | Operation         | Example    |
-|--------|------|------------|-------------------|------------|
+| ------ | ---- | ---------- | ----------------- | ---------- |
 | 0x20   | inc  | `w0`       | increment         | `inc a`    |
 | 0x21   | dec  | `w0`       | decrement         | `dec $1`   |
 | 0x22   | add  | `wv`       | add               | `add a 5`  |
@@ -292,7 +302,7 @@ This would result in the value `1` being stored in `R` and the value `2` being d
 ##### Bitwise Operations
 
 | Opcode | Asm  | Parameters | Operation                                    | Example            |
-|--------|------|------------|----------------------------------------------|--------------------|
+| ------ | ---- | ---------- | -------------------------------------------- | ------------------ |
 | 0x30   | and  | `wv`       | and                                          | `and c 0b10011010` |
 | 0x31   | or   | `wv`       | or                                           | `or c 0x7f`        |
 | 0x32   | not  | `w0`       | not                                          | `not c`            |
@@ -313,32 +323,32 @@ considered. Analogously, the bit position for `set`, `clr`, `tgl`, and `test` is
 
 ##### Floating Point Operations
 
-| Opcode | Asm   | Parameters   | Operation                                | Example          |
-|--------|-------|--------------|------------------------------------------|------------------|
-| 0x40   | finc  | `w0`         | floating point increment                 | `finc a`         |
-| 0x41   | fdec  | `w0`         | floating point decrement                 | `fdec $1`        |
-| 0x42   | fadd  | `wv`         | floating point add                       | `fadd a 5.0`     |
-| 0x43   | fsub  | `wv`         | floating point subtract                  | `fsub a 8`       |
-| 0x44   | fmul  | `wv`         | floating point multiply                  | `fmul a -2.7924` |
-| 0x45   | fdiv  | `wv`         | floating point divide                    | `fdiv a 5.2`     |
-| 0x46   | fmod  | `wv`         | floating point remainder                 | `fmod a 7`       |
-| 0x47   | fmax  | `wv`         | floating point max                       | `fmax a 2.5`     |
-| 0x48   | fmin  | `wv`         | floating point min                       | `fmin a 2.5`     |
-| 0x49   | fabs  | `w0`         | floating point absolute value            | `fabs b`         |
-| 0x4a   | fsign | `w0`         | floating point signum (-1.0 / 0.0 / 1.0) | `fsign b`        |
-| 0x4b   | sin   | `w0`         | sine                                     | `sin a`          |
-| 0x4c   | cos   | `w0`         | cosine                                   | `cos b`          |
-| 0x4d   | tan   | `w0`         | tangent                                  | `tan b`          |
-| 0x4e   | asin  | `w0`         | arc sine                                 | `asin a`         |
-| 0x4f   | acos  | `w0`         | arc cosine                               | `acos b`         |
-| 0x50   | atan  | `w0`         | arc tangent                              | `atan b`         |
-| 0x51   | atan2 | `wv`         | p1 := atan2(p1, p2)                      | `atan2 a b`      |
-| 0x52   | sqrt  | `w0`         | square root                              | `sqrt a`         |
-| 0x53   | pow   | `wv`         | power (p1 := p1 ^ p2)                    | `pow a b`        |
-| 0x54   | exp   | `w0`         | exponential (p1 := exp(p1))              | `exp a`          |
-| 0x55   | log   | `w0`         | natural logarithm (p1 := ln(p1))         | `log a`          |
-| 0x56   | log2  | `w0`         | base 2 logarithm                         | `log2 a`         |
-| 0x57   | log10 | `w0`         | base 10 logarithm                        | `log10 a`        |
+| Opcode | Asm   | Parameters | Operation                                | Example          |
+| ------ | ----- | ---------- | ---------------------------------------- | ---------------- |
+| 0x40   | finc  | `w0`       | floating point increment                 | `finc a`         |
+| 0x41   | fdec  | `w0`       | floating point decrement                 | `fdec $1`        |
+| 0x42   | fadd  | `wv`       | floating point add                       | `fadd a 5.0`     |
+| 0x43   | fsub  | `wv`       | floating point subtract                  | `fsub a 8`       |
+| 0x44   | fmul  | `wv`       | floating point multiply                  | `fmul a -2.7924` |
+| 0x45   | fdiv  | `wv`       | floating point divide                    | `fdiv a 5.2`     |
+| 0x46   | fmod  | `wv`       | floating point remainder                 | `fmod a 7`       |
+| 0x47   | fmax  | `wv`       | floating point max                       | `fmax a 2.5`     |
+| 0x48   | fmin  | `wv`       | floating point min                       | `fmin a 2.5`     |
+| 0x49   | fabs  | `w0`       | floating point absolute value            | `fabs b`         |
+| 0x4a   | fsign | `w0`       | floating point signum (-1.0 / 0.0 / 1.0) | `fsign b`        |
+| 0x4b   | sin   | `w0`       | sine                                     | `sin a`          |
+| 0x4c   | cos   | `w0`       | cosine                                   | `cos b`          |
+| 0x4d   | tan   | `w0`       | tangent                                  | `tan b`          |
+| 0x4e   | asin  | `w0`       | arc sine                                 | `asin a`         |
+| 0x4f   | acos  | `w0`       | arc cosine                               | `acos b`         |
+| 0x50   | atan  | `w0`       | arc tangent                              | `atan b`         |
+| 0x51   | atan2 | `wv`       | p1 := atan2(p1, p2)                      | `atan2 a b`      |
+| 0x52   | sqrt  | `w0`       | square root                              | `sqrt a`         |
+| 0x53   | pow   | `wv`       | power (p1 := p1 ^ p2)                    | `pow a b`        |
+| 0x54   | exp   | `w0`       | exponential (p1 := exp(p1))              | `exp a`          |
+| 0x55   | log   | `w0`       | natural logarithm (p1 := ln(p1))         | `log a`          |
+| 0x56   | log2  | `w0`       | base 2 logarithm                         | `log2 a`         |
+| 0x57   | log10 | `w0`       | base 10 logarithm                        | `log10 a`        |
 
 Beware that floating point operations do not behave as expected when using integer immediates.
 They are **not** converted to floating point values, instead their underlying bits are reinterpreted
@@ -350,18 +360,18 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 
 ##### Unsigned Integer Operations
 
-| Opcode | Asm   | Parameters | Operation                                  | Example       |
-|--------|-------|------------|--------------------------------------------|---------------|
-| 0x60   | umul  | `wv`       | unsigned multiply                          | `umul a b`    |
-| 0x61   | udiv  | `wv`       | unsigned divide                            | `udiv a b`    |
-| 0x62   | umod  | `wv`       | unsigned remainder                         | `umod a b`    |
-| 0x63   | umax  | `wv`       | unsigned max                               | `umax a 2`    |
-| 0x64   | umin  | `wv`       | unsigned min                               | `umin a 0x42` |
+| Opcode | Asm  | Parameters | Operation          | Example       |
+| ------ | ---- | ---------- | ------------------ | ------------- |
+| 0x60   | umul | `wv`       | unsigned multiply  | `umul a b`    |
+| 0x61   | udiv | `wv`       | unsigned divide    | `udiv a b`    |
+| 0x62   | umod | `wv`       | unsigned remainder | `umod a b`    |
+| 0x63   | umax | `wv`       | unsigned max       | `umax a 2`    |
+| 0x64   | umin | `wv`       | unsigned min       | `umin a 0x42` |
 
 ##### Miscellaneous Operations
 
 | Opcode | Asm   | Parameters | Operation                                                                              | Example    |
-|--------|-------|------------|----------------------------------------------------------------------------------------|------------|
+| ------ | ----- | ---------- | -------------------------------------------------------------------------------------- | ---------- |
 | 0x70   | rand  | `w0`       | p1 := pseudo random float between 0 and 1                                              | `rand $0`  |
 | 0x71   | rseed | `v0`       | set random seed                                                                        | `rseed 42` |
 | 0x72   | itf   | `w0`       | convert integer to floating point                                                      | `itf a`    |
@@ -392,7 +402,7 @@ it is found in the `R` register. To get a random integer without affecting any o
 TX8 programs or games are distributed as binary files. These files must include a header at the top.
 
 | Bytes | Type                                 | Meaning / Content                                                                       |
-|-------|--------------------------------------|-----------------------------------------------------------------------------------------|
+| ----- | ------------------------------------ | --------------------------------------------------------------------------------------- |
 | 0-3   | Magic bytes                          | `0x54 0x58 0x38` (or `TX8` in ascii)                                                    |
 | 4     | Little endian 8bit unsigned integer  | program name length in bytes (0 for no name)                                            |
 | 5-6   | Little endian 16bit unsigned integer | description length in bytes (0 for no description)                                      |
