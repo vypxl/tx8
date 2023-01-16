@@ -2,6 +2,28 @@
 #pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
+TEST_F(SmallRegisters, sign_extend) {
+    std::string s = R"EOF(
+ld ab 1
+lws a ab
+sys &test_ai ; 1
+
+ld ab -1
+lws a ab
+sys &test_ai ; -1
+
+ld as 1
+lws a as
+sys &test_ai ; 1
+
+ld as -1
+lws a as
+sys &test_ai ; -1
+
+)EOF";
+    run_and_compare_num(s, {1, -1, 1, -1});
+}
+
 TEST_F(SmallRegisters, comparisons) {
     std::string s = R"EOF(
 ld ab 5
@@ -19,6 +41,11 @@ ld b 0x54123
 cmp a bs
 sys &test_r ; 0 (equal)
 
+ld a -1
+ld b 0
+cmp as b
+sys &test_r ; -1 (smaller)
+
 ld a 0x12
 ld bb 0x12345612
 ucmp a bb
@@ -26,7 +53,7 @@ sys &test_r ; 0 (equal)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1u, 0u, 0u, 0u});
+    run_and_compare_num(s, {1u, 0u, 0u, -1u, 0u});
 }
 
 TEST_F(SmallRegisters, inc) {
@@ -105,9 +132,15 @@ add as 3
 sys &test_au ; 0x8001
 sys &test_r ; 0b10 (signed overflow)
 
+lda 2
+ldb -3
+add a bb
+sys &test_ai ; -1
+sys &test_r ; 0
+
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u});
+    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, -1, 0u});
 }
 
 TEST_F(SmallRegisters, sub) {
@@ -132,9 +165,15 @@ sub as 3
 sys &test_au ; 0x7ffe
 sys &test_r ; 0b10 (signed overflow)
 
+lda -2
+ldb -3
+sub ab bb
+sys &test_au ; 0xffffff01
+sys &test_r ; 0
+
 hlt
 )EOF";
-    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u});
+    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 0xffffff01u, 0u});
 }
 
 TEST_F(SmallRegisters, mul) {
@@ -155,18 +194,42 @@ lda -11890
 ldb 23
 mul as bb
 sys &test_au ; 0xffffd3c2 (the first 16 bits are 0xffff because they retain their previous value)
-sys &test_r ; 0
+sys &test_r ; 0xffffffff (result is negative)
 
 lda -11890
 ldb 23
 mul ab bs
 sys &test_au ; 0xffffd1c2 (the first 24 bits are 0xffffd1 because they retain their previous value)
-sys &test_r ; 0
+sys &test_r ; 0xffffffff
 ld a ab
 sys &test_au ; 0xc2 (now the upper bits were set to 0)
 hlt
 )EOF";
-    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0u, 0xffffd1c2u, 0u, 0xc2u});
+    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0xffffffffu, 0xffffd1c2u, 0xffffffffu, 0xc2u});
+}
+
+TEST_F(SmallRegisters, div) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+div ab bs
+sys &test_au ; 0x0
+sys &test_r ; 0x55
+
+lda 0x1234
+ldb 0x55
+div as bb
+sys &test_au ; 0x36
+sys &test_r ; 0x46
+
+lda -11890
+ldb 23
+div as bb
+sys &test_au ; 0xfffffdfc
+sys &test_r ; 0xffffffea
+
+)EOF";
+    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0xfffffdfcu, 0xffffffea});
 }
 
 #pragma clang diagnostic pop
