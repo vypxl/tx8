@@ -225,32 +225,30 @@ Push and pop behave like this:
 - `pop register` pops as many bytes as the register has (A=4, As=2, Ab=1)
 - `pop address` pops 4 bytes
 
-| Opcode | Asm  | Parameters | Operation                                             | Example        |
-| ------ | ---- | ---------- | ----------------------------------------------------- | -------------- |
-| 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2)    | `ld A 42`      |
-| 0x11   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 | `lw a #c01234` |
-| 0x12   | lda  | `v0`       | load value into register A                            | `lda 42`       |
-| 0x13   | sta  | `w0`       | store value from register A into parameter1           | `sta $2`       |
-| 0x14   | ldb  | `v0`       | load value into register B                            | `ldb 55`       |
-| 0x15   | stb  | `w0`       | store value from register B into parameter1           | `stb a`        |
-| 0x16   | ldc  | `v0`       | load value into register C                            | `ldc $32`      |
-| 0x17   | stc  | `w0`       | store value from register C into parameter1           | `stc #c01234`  |
-| 0x18   | ldd  | `v0`       | load value into register D                            | `ldd @cb`      |
-| 0x19   | std  | `w0`       | store value from register D into parameter1           | `std $-35`     |
-| 0x1a   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                | `zero a`       |
-| 0x1b   | push | `v0`       | push onto stack                                       | `push a`       |
-| 0x1c   | pop  | `w0`       | pop from stack                                        | `pop a`        |
+| Opcode | Asm  | Parameters | Operation                                                                            | Example        |
+| ------ | ---- | ---------- | ------------------------------------------------------------------------------------ | -------------- |
+| 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2) (zero extension on small values)  | `ld A 42`      |
+| 0x11   | lds  | `wv`       | same as `ld`, but values will be sign extended                                       | `ld A 42`      |
+| 0x12   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 (values will be zero extended) | `lw a #c01234` |
+| 0x13   | lws  | `wv`       | same as `lw`, but values will be sign extended                                       | `lws a -1`     |
+| 0x14   | lda  | `v0`       | load value into register A                                                           | `lda 42`       |
+| 0x15   | sta  | `w0`       | store value from register A into parameter1                                          | `sta $2`       |
+| 0x16   | ldb  | `v0`       | load value into register B                                                           | `ldb 55`       |
+| 0x17   | stb  | `w0`       | store value from register B into parameter1                                          | `stb a`        |
+| 0x18   | ldc  | `v0`       | load value into register C                                                           | `ldc $32`      |
+| 0x19   | stc  | `w0`       | store value from register C into parameter1                                          | `stc #c01234`  |
+| 0x1a   | ldd  | `v0`       | load value into register D                                                           | `ldd @cb`      |
+| 0x1b   | std  | `w0`       | store value from register D into parameter1                                          | `std $-35`     |
+| 0x1c   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                                               | `zero a`       |
+| 0x1d   | push | `v0`       | push onto stack                                                                      | `push a`       |
+| 0x1e   | pop  | `w0`       | pop from stack                                                                       | `pop a`        |
 
 #### Arithmetic
 
 All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5.
 
-By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended.
-Beware that when using signed operations with smaller registers, you might not get the results you expected, because
-the zero-extension of values means that the sign bit of your smaller number is treated as if it were part of a 32 bit one.
-For example, consider `A = -11890`. When using `as` in an arithmetic operation, the number would be treated as `53646`.
-That is because in hex, the 16 bit `-11890 == 0xd18e`, but the arithmetic operation would treat it as the 32 bit
-`0x0000d18e == 53646`.
+By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended
+or sign-extended, depending on the instruction (signend integer instructions sign extend, others zero-extend).
 When a smaller register is the destination of an operation, the result is truncated to the size of the register.
 
 Normal instructions operate on signed integers. If you have unsigned integers
@@ -274,6 +272,9 @@ or floats, you have to use the specialized instructions.
 Note that the R register assignment is done **after** the operation itself, this means if one specified the `R`
 register as the destination of an operation, the normal value is discarded and the residual value is found in `R`.
 
+Note that the reason why there are `add` and `uadd` instructions is that the the signed `add` sign-extends smaller values, and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constantst, you should use the correct instruction.
+The same goes for `sub` / `usub`.
+
 Example:
 
 ```asm
@@ -283,12 +284,17 @@ max r 2
 
 This would result in the value `1` being stored in `R` and the value `2` being discarded.
 
+##### Increment and decrement
+
+| Opcode | Asm | Parameters | Operation | Example  |
+| ------ | --- | ---------- | --------- | -------- |
+| 0x20   | inc | `w0`       | increment | `inc a`  |
+| 0x21   | dec | `w0`       | decrement | `dec $1` |
+
 ##### Signed Integer Operations
 
 | Opcode | Asm  | Parameters | Operation         | Example    |
 | ------ | ---- | ---------- | ----------------- | ---------- |
-| 0x20   | inc  | `w0`       | increment         | `inc a`    |
-| 0x21   | dec  | `w0`       | decrement         | `dec $1`   |
 | 0x22   | add  | `wv`       | add               | `add a 5`  |
 | 0x23   | sub  | `wv`       | subtract          | `sub a 8`  |
 | 0x24   | mul  | `wv`       | multiply          | `mul a -2` |
@@ -362,11 +368,13 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 
 | Opcode | Asm  | Parameters | Operation          | Example       |
 | ------ | ---- | ---------- | ------------------ | ------------- |
-| 0x60   | umul | `wv`       | unsigned multiply  | `umul a b`    |
-| 0x61   | udiv | `wv`       | unsigned divide    | `udiv a b`    |
-| 0x62   | umod | `wv`       | unsigned remainder | `umod a b`    |
-| 0x63   | umax | `wv`       | unsigned max       | `umax a 2`    |
-| 0x64   | umin | `wv`       | unsigned min       | `umin a 0x42` |
+| 0x60   | uadd | `wv`       | unsigned add       | `add a 5`     |
+| 0x61   | usub | `wv`       | unsigned subtract  | `sub a 8`     |
+| 0x62   | umul | `wv`       | unsigned multiply  | `umul a b`    |
+| 0x63   | udiv | `wv`       | unsigned divide    | `udiv a b`    |
+| 0x64   | umod | `wv`       | unsigned remainder | `umod a b`    |
+| 0x65   | umax | `wv`       | unsigned max       | `umax a 2`    |
+| 0x66   | umin | `wv`       | unsigned min       | `umin a 0x42` |
 
 ##### Miscellaneous Operations
 
