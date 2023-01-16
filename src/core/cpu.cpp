@@ -458,16 +458,8 @@ namespace tx {
         type##64_t b_64 = b.vtype; \
         type##64_t r_64 = a_64 * b_64; \
         result.vtype    = r_64; \
-        uint32    rval; \
-        ValueSize size = ValueSize::Word; \
-        if (param_is_register(params.p1.mode)) size = register_size((Register) params.p1.value.u); \
-        switch (size) { \
-            case ValueSize::Byte: rval = (r_64 >> 8u) & 0xffu; break; \
-            case ValueSize::Short: rval = (r_64 >> 16u) & 0xffffu; break; \
-            case ValueSize::Word: rval = (r_64 >> 32u) & 0xffffffffu; \
-        } \
     AR_OP_END \
-    R(rval);
+    R(r_64 >> 32u);
 
     // Actual arithmetic operations
 
@@ -475,10 +467,11 @@ namespace tx {
         AR_OP_1_BEGIN(inc)
             result.u = a.u;
             result.u++;
+            if (param_is_register(params.p1.mode)) result.u &= register_mask[(params.p1.value.u & REG_SIZE_MASK) >> 4u];
         AR_OP_END
         R_SIZES(
-            ((result.u == (uint32) INT8_MIN) << 1u) | (result.u == 0),
-            ((result.u == (uint32) INT16_MIN) << 1u) | (result.u == 0),
+            ((result.u == (uint8) INT8_MIN) << 1u) | (result.u == 0),
+            ((result.u == (uint16) INT16_MIN) << 1u) | (result.u == 0),
             ((result.u == (uint32) INT32_MIN) << 1u) | (result.u == 0)
         );
     }
@@ -486,10 +479,11 @@ namespace tx {
         AR_OP_1_BEGIN(dec)
             result.u = a.u;
             result.u--;
+            if (param_is_register(params.p1.mode)) result.u &= register_mask[(params.p1.value.u & REG_SIZE_MASK) >> 4u];
         AR_OP_END
         R_SIZES(
-            ((result.u == (uint32) INT8_MAX) << 1u) | (result.u == UINT8_MAX),
-            ((result.u == (uint32) INT16_MAX) << 1u) | (result.u == UINT16_MAX),
+            ((result.u == (uint8) INT8_MAX) << 1u) | (result.u == UINT8_MAX),
+            ((result.u == (uint16) INT16_MAX) << 1u) | (result.u == UINT16_MAX),
             ((result.u == (uint32) INT32_MAX) << 1u) | (result.u == UINT32_MAX)
         );
     }
