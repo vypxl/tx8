@@ -32,6 +32,10 @@ To start developing on TX8, you need `cmake > 3.20`, `ninja` and `clang`. Set up
 `bash -c "CC=clang CXX=clang++ cmake -B build -G Ninja"`. You can then build the test executable via `cmake --build build`
 and execute it via `build/tx8-test`.
 
+If you are using `clangd`, you should use the cmake command
+`bash -c "CC=clang CXX=clang++ cmake -B build -G Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=1` and link `compile_commands.json`
+via `ln -s build/compile_commands.json compile_commands.json` for `clangd` to work correctly.
+
 To build the documentation, run `doxygen` in the project root directory.
 
 # Used Libraries
