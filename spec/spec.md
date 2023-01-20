@@ -272,9 +272,6 @@ or floats, you have to use the specialized instructions.
 Note that the R register assignment is done **after** the operation itself, this means if one specified the `R`
 register as the destination of an operation, the normal value is discarded and the residual value is found in `R`.
 
-Note that the reason why there are `add` and `uadd` instructions is that the the signed `add` sign-extends smaller values, and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constantst, you should use the correct instruction.
-The same goes for `sub` / `usub`.
-
 Example:
 
 ```asm
@@ -283,6 +280,15 @@ max r 2
 ```
 
 This would result in the value `1` being stored in `R` and the value `2` being discarded.
+
+Note that the reason why there are `add` and `uadd` instructions is that the the signed `add` sign-extends smaller values,
+and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constantst, you should use
+the correct instruction.
+The same goes for `sub` / `usub`.
+
+Note that the R register behaviour aims to be 'what the programmer expects'. Take the `sll` instruction. When shifting
+the `Ab` register by 8 bits, the `R` register will contain these 8 bits, even if, when considering the 32-bit default mode
+for arithmetic, it would contain just zeros.
 
 ##### Increment and decrement
 
