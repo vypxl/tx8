@@ -139,6 +139,12 @@ void VMTest::use_testing_stdlib(tx::CPU& cpu) {
         append_num(v.u);
     });
 
+    cpu.register_sysfunc("test_ri", [this](tx::CPU& cpu) {
+        tx::num32 v = {.u = cpu.r};
+        append_num(v.i);
+    });
+
+
     cpu.register_sysfunc("test_rf", [this](tx::CPU& cpu) {
         tx::num32 v = {.u = cpu.r};
         append_num(v.f);
