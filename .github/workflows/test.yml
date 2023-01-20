@@ -1,31 +1,32 @@
 name: Tests
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Install tools
-        run: sudo apt-get update && sudo apt-get install -y ninja-build clang libclang-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build wget software-properties-common
+          gnupg
       - name: Install llvm
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 13
+          sudo ./llvm.sh 15
           rm llvm.sh
       - uses: actions/checkout@v2
       - name: configure
-        run: "CC=clang CXX=clang++ cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping' ."
+        run: "CC=clang-15 CXX=clang++-15 cmake -B build -DCMAKE_BUILD_TYPE=Release
+          -G Ninja -DCMAKE_C_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping'
+          -DCMAKE_CXX_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping'
+          ."
       - name: build
         run: cmake --build build --target all
       - name: Run Test
         run: cd build && ctest -V
-
       - name: Setup python
         uses: actions/setup-python@v2
         with:
@@ -34,7 +35,7 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
-          echo -e "#!/bin/bash\nexec llvm-cov-13 gcov \"\$@\"" > /tmp/gcov.sh
+          echo -e "#!/bin/bash\nexec llvm-cov-15 gcov \"\$@\"" > /tmp/gcov.sh
           chmod +x /tmp/gcov.sh
           python -m venv venv
           source venv/bin/activate
