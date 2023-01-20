@@ -590,15 +590,17 @@ namespace tx {
 
 #define BITMASK_5 0b11111u
 #define BIT_TRUNC \
+    uint32 mask = BITMASK_5; \
     if (param_is_register(params.p1.mode)) { \
         uint32 reg = params.p1.value.u; \
         switch (reg & REG_SIZE_MASK) { \
-            case REG_SIZE_1: b.u &= 0b111u; break; \
-            case REG_SIZE_2: b.u &= 0b1111u; break; \
-            case REG_SIZE_4: b.u &= BITMASK_5; break; \
+            case REG_SIZE_1: mask = 0b111u; break; \
+            case REG_SIZE_2: mask = 0b1111u; break; \
+            case REG_SIZE_4: mask = BITMASK_5; break; \
             default: break; \
         } \
-    } else b.u &= BITMASK_5;
+    } \
+    b.u &= mask;
 
     void CPU::op_slr(const Parameters& params) {
         AR_UOP_2_BEGIN("slr")
@@ -619,18 +621,18 @@ namespace tx {
             BIT_TRUNC;
             result.u = a.u << b.u;
         AR_OP_END
-        R(b.u == 0 ? 0 : a.u >> (32 - b.u));
+        R(b.u == 0 ? 0 : a.u >> ((mask + 1) - b.u));
     }
     void CPU::op_ror(const Parameters& params) {
         AR_UOP_2_BEGIN("ror")
             BIT_TRUNC;
-            result.u = (a.u >> b.u) | (a.u << ((-b.u) & BITMASK_5));
+            result.u = (a.u >> b.u) | (a.u << ((-b.u) & mask));
         AR_OP_END
     }
     void CPU::op_rol(const Parameters& params) {
         AR_UOP_2_BEGIN("ror")
             BIT_TRUNC;
-            result.u = (a.u << b.u) | (a.u >> ((-b.u) & BITMASK_5));
+            result.u = (a.u << b.u) | (a.u >> ((-b.u) & mask));
         AR_OP_END
     }
     void CPU::op_set(const Parameters& params) {
