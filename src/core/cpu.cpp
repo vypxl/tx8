@@ -260,11 +260,11 @@ namespace tx {
         return; \
     }
 
-    void CPU::CPU::op_hlt(const Parameters& params) { halted = true; }
+    void CPU::op_hlt(const Parameters& params) { halted = true; }
 
-    void CPU::CPU::op_nop(const Parameters& params) { }
+    void CPU::op_nop(const Parameters& params) { }
 
-    void CPU::CPU::op_jmp(const Parameters& params) { jump(PARAMV(1)); }
+    void CPU::op_jmp(const Parameters& params) { jump(PARAMV(1)); }
 
 #define COMP_JUMP(comparison, name) \
     void CPU::op_##name(const Parameters& params) { \
@@ -507,12 +507,11 @@ namespace tx {
     AR_OP_END \
     R(rval);
 
-#define AR_OVF_MUL(name, type, vtype) \
-    AR_OP_2_BEGIN(name) \
-        type##64_t a_64 = a.vtype; \
-        type##64_t b_64 = b.vtype; \
-        type##64_t r_64 = a_64 * b_64; \
-        result.vtype    = r_64; \
+#define AR_OVF_MUL(name, type, vtype, m) \
+    m(name) type##64_t a_64 = a.vtype; \
+    type##64_t b_64         = b.vtype; \
+    type##64_t r_64         = a_64 * b_64; \
+    result.vtype            = r_64; \
     AR_OP_END \
     R(r_64 >> 32u);
 
@@ -544,7 +543,7 @@ namespace tx {
     }
     void CPU::op_add(const Parameters& params) { AR_OVF_OP(add, AR_OP_2_BEGIN) }
     void CPU::op_sub(const Parameters& params) { AR_OVF_OP(sub, AR_OP_2_BEGIN) }
-    void CPU::op_mul(const Parameters& params) { AR_OVF_MUL(mul, int, i) }
+    void CPU::op_mul(const Parameters& params) { AR_OVF_MUL(mul, int, i, AR_OP_2_BEGIN) }
     void CPU::op_div(const Parameters& params) {
         AR_OP_2_BEGIN("div")
             if (b.i == 0) {
@@ -702,7 +701,7 @@ namespace tx {
 
     void CPU::op_uadd(const Parameters& params) { AR_OVF_OP(add, AR_UOP_2_BEGIN) }
     void CPU::op_usub(const Parameters& params) { AR_OVF_OP(sub, AR_UOP_2_BEGIN) }
-    void CPU::op_umul(const Parameters& params) { AR_OVF_MUL(umul, uint, u); }
+    void CPU::op_umul(const Parameters& params) { AR_OVF_MUL(umul, uint, u, AR_UOP_2_BEGIN); }
     void CPU::op_udiv(const Parameters& params) {
         AR_UOP_2_BEGIN("udiv")
             if (b.u == 0) {
