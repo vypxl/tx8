@@ -11,7 +11,6 @@
  */
 #pragma once
 
-#include <bits/types/FILE.h>
 #include <cstdio>
 #include <fmt/format.h>
 #include <string>
