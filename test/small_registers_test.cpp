@@ -171,15 +171,22 @@ sub as 3
 sys &test_au ; 0x7ffe
 sys &test_r ; 0b10 (signed overflow)
 
-lda -2
-ldb -3
-sub ab bb
-sys &test_au ; 0xffffff01
+zero a
+zero b
+ld as -2
+ld bb -3
+sub as bb
+sys &test_au ; 1
 sys &test_r ; 0
+
+zero a
+ld bb -1
+sub a bb
+sys &test_ai ; 1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 0xffffff01u, 0u});
+    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 1u, 0u, 1});
 }
 
 TEST_F(SmallRegisters, mul) {
@@ -677,6 +684,226 @@ sys &test_r ; 0x1
 hlt
 )EOF";
     run_and_compare_num(s, {0x1u, 0x1u});
+}
+
+TEST_F(SmallRegisters, uadd) {
+    std::string s = R"EOF(
+lda 0xfe
+uadd ab 3
+sys &test_au ; 0x1
+sys &test_r ; 0b01 (unsigned overflow)
+
+lda 0x7e
+uadd ab 3
+sys &test_au ; 0x81
+sys &test_r ; 0b10 (signed overflow)
+
+lda 0xfffe
+uadd as 3
+sys &test_au ; 0x1
+sys &test_r ; 0b01 (unsigned overflow)
+
+lda 0x7ffe
+uadd as 3
+sys &test_au ; 0x8001
+sys &test_r ; 0b10 (signed overflow)
+
+lda 2
+ldb -3
+uadd a bb
+sys &test_ai ; 0xff
+sys &test_r ; 0
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, 0xff, 0u});
+}
+
+TEST_F(SmallRegisters, usub) {
+    std::string s = R"EOF(
+lda 0x1
+usub ab 3
+sys &test_au ; 0xfe
+sys &test_r ; 0b01 (unsigned overflow)
+
+lda 0x81
+usub ab 3
+sys &test_au ; 0x7e
+sys &test_r ; 0b10 (signed overflow)
+
+lda 0x1
+usub as 3
+sys &test_au ; 0xfffe
+sys &test_r ; 0b01 (unsigned overflow)
+
+lda 0x8001
+usub as 3
+sys &test_au ; 0x7ffe
+sys &test_r ; 0b10 (signed overflow)
+
+lda 0
+ldb 0
+ld ab -2
+ld bb -3
+usub ab bb
+sys &test_au ; 1
+sys &test_r ; 0
+
+lda 0
+ld bb -1
+usub a bb
+sys &test_ai ; -255
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 0x1u, 0u, -255});
+}
+
+TEST_F(SmallRegisters, umul) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+umul ab bs
+sys &test_au ; 0x44
+sys &test_r ; 0
+
+lda 0x1234
+ldb 0x55
+umul as bb
+sys &test_au ; 0x0b44
+sys &test_r ; 0
+
+lda -11890
+ldb 23
+umul as bb
+sys &test_au ; 0xffffd3c2 (the first 16 bits are 0xffff because they retain their previous value)
+sys &test_r ; 0
+
+lda -11890
+ldb 23
+umul ab bs
+sys &test_au ; 0xffffd1c2 (the first 24 bits are 0xffffd1 because they retain their previous value)
+sys &test_r ; 0
+ld a ab
+sys &test_au ; 0xc2 (now the upper bits were set to 0)
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0u, 0xffffd1c2u, 0u, 0xc2u});
+}
+
+TEST_F(SmallRegisters, udiv) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+div ab bs
+sys &test_au ; 0x0
+sys &test_r ; 0x55
+
+lda 0x1234
+ldb 0x55
+div as bb
+sys &test_au ; 0x36
+sys &test_r ; 0x46
+
+zero a
+ld as -11890
+ldb 23
+udiv as bb
+sys &test_au ; 0x91c
+sys &test_r ; 0xa
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0x91cu, 0xau});
+}
+
+TEST_F(SmallRegisters, umod) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+umod ab bs
+sys &test_au ; 0x55
+
+lda 0x1234
+ldb 0x55
+umod as bb
+sys &test_au ; 0x46
+
+lda -11890
+ldb 23
+umod as bb
+sys &test_au ; 0xffff000a
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x55u, 0x46u, 0xffff000au});
+}
+
+TEST_F(SmallRegisters, umin) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+umin ab bs
+sys &test_au ; 0x55
+sys &test_r ; 0x1234
+
+umin as bb
+sys &test_au ; 0x34
+sys &test_r ; 0x55
+
+lda -11890
+ldb 23
+umin as bb
+lds a as
+lds r rs
+sys &test_ai ; 23
+sys &test_ri ; -11890
+
+lda -11890
+ldb 23
+umin ab bs
+lds a ab ; needed because otherwise a would be -11890 again as the upper bits are not overwritten
+lds r rb
+sys &test_ai ; 23
+sys &test_ri ; -114
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, 23, -11890, 23, -114});
+}
+
+TEST_F(SmallRegisters, umax) {
+    std::string s = R"EOF(
+lda 0x55
+ldb 0x1234
+umax ab bs
+sys &test_au ; 0x34 ; 0x12 prefix is truncated
+sys &test_r ; 0x55
+
+lda 0x55
+ldb 0x1234
+umax as bb
+sys &test_au ; 0x55
+sys &test_r ; 0x34
+
+lda -11890
+ldb 23
+umax as bb
+lds a as ; needed because otherwise a would be weird as the upper bits are not overwritten
+sys &test_ai ; -11890
+sys &test_ri ; 23
+
+lda -11890
+ldb 23
+umax ab bs
+lds a ab
+sys &test_ai ; -114
+sys &test_ri ; 23
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, -11890, 23, -114, 23});
 }
 
 #pragma clang diagnostic pop
