@@ -25,6 +25,7 @@ lds as ab
 lds a as
 sys &test_ai ; -1
 
+hlt
 )EOF";
     run_and_compare_num(s, {1, -1, 1, -1, -1});
 }
@@ -208,6 +209,7 @@ sys &test_au ; 0xffffd1c2 (the first 24 bits are 0xffffd1 because they retain th
 sys &test_r ; 0xffffffff
 ld a ab
 sys &test_au ; 0xc2 (now the upper bits were set to 0)
+
 hlt
 )EOF";
     run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0xffffffffu, 0xffffd1c2u, 0xffffffffu, 0xc2u});
@@ -233,6 +235,7 @@ div as bb
 sys &test_au ; 0xfffffdfc
 sys &test_r ; 0xffffffea
 
+hlt
 )EOF";
     run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0xfffffdfcu, 0xffffffea});
 }
@@ -254,6 +257,7 @@ ldb 23
 mod as bb
 sys &test_au ; 0xffffffea
 
+hlt
 )EOF";
     run_and_compare_num(s, {0x55u, 0x46u, 0xffffffeau});
 }
@@ -280,6 +284,8 @@ min ab bs
 lds a ab ; needed because otherwise a would be -11890 again as the upper bits are not overwritten
 sys &test_ai ; -114
 sys &test_ri ; 23
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, -11890, 23, -114, 23});
 }
@@ -311,6 +317,8 @@ max ab bs
 lds a ab
 sys &test_ai ; 23
 sys &test_ri ; -114
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, 23, -11890, 23, -114});
 }
@@ -345,6 +353,8 @@ sys &test_ri ; 0
 abs ab
 sys &test_ai ; 0
 sys &test_ri ; 0
+
+hlt
 )EOF";
     run_and_compare_num(s, {3, -1, 3, 1, 3, -1, 3, 1, 0, 0, 0, 0});
 }
@@ -373,6 +383,8 @@ sys &test_ai ; 0
 
 sign ab
 sys &test_ai ; 0
+
+hlt
 )EOF";
     run_and_compare_num(s, {-1, -1, 1, 1, 0, 0});
 }
@@ -398,6 +410,8 @@ lda 0xfebc
 ldb 0x1234
 and as bb
 sys &test_au ; 0x34
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x14u, 0x14u, 0xfe34u, 0x34u});
 }
@@ -423,6 +437,8 @@ lda 0xfebc
 ldb 0x1234
 or as bb
 sys &test_au ; 0xfebc
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x75u, 0x75u, 0xfebcu, 0xfebcu});
 }
@@ -435,6 +451,8 @@ sys &test_au ; 0x12cba9
 
 not ab
 sys &test_au ; 0x12cb56
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x12cba9u, 0x12cb56u});
 }
@@ -449,6 +467,8 @@ sys &test_au ; 0x1234eb
 lda 0x123456
 nand as bb
 sys &test_au ; 0x12ffeb
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x1234ebu, 0x12ffebu});
 }
@@ -463,6 +483,8 @@ sys &test_au ; 0x1234ea
 lda 0x123456
 xor as bb
 sys &test_au ; 0x12caea
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x1234eau, 0x1234eau});
 }
@@ -478,6 +500,8 @@ sys &test_r ; 0x6
 slr ab bb
 sys &test_au ; 0x120304
 sys &test_r ; 0x5
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u});
 }
@@ -493,6 +517,8 @@ sys &test_r ; 0x3
 sll ab bb
 sys &test_au ; 0x124500
 sys &test_r ; 0x6
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x124560u, 0x3u, 0x124500u, 0x6u});
 }
@@ -518,6 +544,8 @@ sys &test_r ; 0x6
 sar ab bb
 sys &test_au ; 0x12f8f8
 sys &test_r ; 0x5
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u, 0x12f885u, 0x6u, 0x12f8f8u, 0x5u});
 }
@@ -531,6 +559,8 @@ sys &test_au ; 0x126345
 
 ror ab bb
 sys &test_au ; 0x126354
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x126345u, 0x126354u});
 }
@@ -544,6 +574,8 @@ sys &test_au ; 0x124563
 
 rol ab bb
 sys &test_au ; 0x124536
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x124563u, 0x124536u});
 }
@@ -568,6 +600,8 @@ sys &test_r ; 0x0
 set ab 0
 sys &test_au ; 0x91
 sys &test_r ; 0x1
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x91u, 0x1u});
 }
@@ -590,6 +624,8 @@ sys &test_r ; 0x1
 clr as 0
 sys &test_au ; 0x0
 sys &test_r ; 0x0
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u, 0x0u, 0x0u});
 }
@@ -624,6 +660,7 @@ tgl ab 0
 sys &test_au ; 0x0
 sys &test_r ; 0x1
 
+hlt
 )EOF";
     run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u});
 }
@@ -636,9 +673,10 @@ sys &test_r ; 0x1
 
 test as 16
 sys &test_r ; 0x1
+
+hlt
 )EOF";
     run_and_compare_num(s, {0x1u, 0x1u});
 }
-
 
 #pragma clang diagnostic pop
