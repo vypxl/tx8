@@ -11,6 +11,7 @@ set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
 add_compile_options(-Wall -Wextra -Werror -Wno-unknown-pragmas -fmodules -fPIC)
 
 # Choose build type
+
 set(DEFAULT_BUILD_TYPE "Debug")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(
@@ -20,8 +21,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       "${default_build_type}"
       CACHE STRING "Choose the type of build." FORCE)
   # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-                                               "MinSizeRel" "RelWithDebInfo")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
 find_library(MATH_LIBRARY m)
@@ -32,6 +32,7 @@ find_package(FLEX 2.6 REQUIRED)
 find_package(BISON 3.8 REQUIRED)
 
 # fmt
+
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
@@ -39,6 +40,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(fmt)
 
 # Google test
+
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
@@ -50,41 +52,33 @@ set(GTEST_FORCE_SHARED_CRT
 FetchContent_MakeAvailable(googletest)
 
 # tx8-core
+
 add_library(tx8-core SHARED src/core/cpu.cpp src/core/debug.cpp
                             src/core/stdlib.cpp src/core/log.cpp)
 target_include_directories(tx8-core PUBLIC include)
 target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY} fmt::fmt)
 
 # tx8-asm
-add_library(
-  tx8-asm SHARED
-  src/asm/assembler.cpp ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp
-  ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp)
-target_include_directories(tx8-asm PRIVATE ${CMAKE_BINARY_DIR}/tmp_lexyacc)
+
+set(LEXYACC_DIR "${CMAKE_BINARY_DIR}/parser_lexer")
+set(LEXER_OUT "${LEXYACC_DIR}/tx8_lexer.cpp")
+set(PARSER_OUT "${LEXYACC_DIR}/tx8_parser.cpp")
+
+flex_target(LEXER src/asm/tx8.l "${LEXER_OUT}"
+            DEFINES_FILE "${LEXYACC_DIR}/tx8_lexer.hpp")
+bison_target(PARSER src/asm/tx8.y "${PARSER_OUT}"
+             DEFINES_FILE "${LEXYACC_DIR}/tx8_parser.hpp")
+add_flex_bison_dependency(LEXER PARSER)
+
+add_library(tx8-asm SHARED src/asm/assembler.cpp ${LEXYACC_DIR}/tx8_parser.cpp
+                           ${LEXYACC_DIR}/tx8_lexer.cpp)
+target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR}/)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
-# Needed because yacc generates code with warnings :(
-target_compile_options(
-  tx8-asm PRIVATE -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable
-                  -Wno-unused-but-set-variable)
-
-# Custom commands for yacc / lex (actually bison/flex)
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp
-         ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.hpp
-  COMMAND bison ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp --verbose
-          -d ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
-  COMMENT "Generating parser"
-  DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y)
-
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp
-  COMMAND flex ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp
-          ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
-  COMMENT "Generating lexer"
-  DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.l
-          ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.hpp)
+# Needed because bison generates code with warnings :(
+target_compile_options(tx8-asm PRIVATE -Wno-error)
 
 # Tests
+
 enable_testing()
 
 add_executable(
@@ -101,7 +95,6 @@ add_executable(
   test/small_registers_test.cpp)
 target_include_directories(tx8-test PRIVATE ${CMAKE_BINARY_DIR}/tmp_lexyacc)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
-# target_compile_options(tx8-test PUBLIC ${CXX_OPTS})
 
 target_compile_options(gtest PRIVATE -Wno-error)
 
