@@ -12,7 +12,9 @@
 #pragma once
 
 #include <cstdio>
+// #include <format>
 #include <fmt/format.h>
+#include <iostream>
 #include <string>
 
 using tx_logfunc_ptr = void (*)(const std::string& s);
@@ -27,13 +29,12 @@ namespace tx {
         ~Log();
 
         /// Issue log message
-        template <typename S, typename... Args>
-        void operator()(const S& format, Args&&... args) {
-            fmt::format_args fargs = fmt::make_format_args(std::forward<Args>(args)...);
-            std::string      s     = fmt::vformat(format, fargs);
+        template <typename... Args>
+        void operator()(fmt::format_string<Args...> format, Args&&... args) {
+            std::string s = fmt::format(format, std::forward<Args>(args)...);
 
             if (stream != nullptr) *stream << s;
-            if (str != nullptr) str->append(s.c_str());
+            if (str != nullptr) str->append(s);
 
             if (file != nullptr) fprintf(file, "%s", s.c_str());
             if (func != nullptr) func(s);

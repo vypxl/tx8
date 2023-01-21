@@ -10,6 +10,7 @@
 #include "tx8/core/instruction.hpp"
 #include "tx8/core/types.hpp"
 
+#include <fmt/format.h>
 #include <functional>
 #include <map>
 #include <string>
@@ -127,15 +128,15 @@ namespace tx {
 
         /// Print an error message and halt the cpu (sets `halted` to true)
         template <typename... Args>
-        void error_raw(const std::string& format, Args... args) {
-            log_err(format, args...);
+        void error_raw(fmt::format_string<Args...> format, Args... args) {
+            log_err(format, std::forward<Args>(args)...);
             halted = true;
         }
         /// Same as `error_raw`, but prints the instruction the cpu is currently executing
         /// Beware that this function calls `parse_instruction`, so don't call this when encountering instruction parsing errors
         template <typename... Args>
-        void error(const std::string& format, Args... args) {
-            error_raw(format, args...);
+        void error(fmt::format_string<Args...> format, Args... args) {
+            error_raw(format, std::forward<Args>(args)...);
 
             Instruction current_instruction = parse_instruction(p);
             log_err("\nCaused by instruction:\n");

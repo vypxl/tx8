@@ -10,6 +10,7 @@
 #include "tx8/core/log.hpp"
 #include "tx8_parser.hpp"
 
+#include <fmt/format.h>
 #include <optional>
 #include <tx8/core/types.hpp>
 #include <vector>
@@ -71,8 +72,8 @@ namespace tx {
 
         /// Print an error message with the current line number from lex
         template <typename... Args>
-        void report_error(const char* format, Args... args) {
-            tx::log_err(format, args...);
+        void report_error(fmt::format_string<Args...> format, Args... args) {
+            tx::log_err(format, std::forward<Args>(args)...);
             error = 1;
         }
 
