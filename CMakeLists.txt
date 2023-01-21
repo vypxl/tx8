@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.17)
 include(FetchContent)
 
 project(tx8 VERSION 0.1.0)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -59,6 +59,10 @@ add_library(
   ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_lexer.cpp)
 target_include_directories(tx8-asm PRIVATE ${CMAKE_BINARY_DIR}/tmp_lexyacc)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
+# Needed because yacc generates code with warnings :(
+target_compile_options(
+  tx8-asm PRIVATE -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable
+                  -Wno-unused-but-set-variable)
 
 # Custom commands for yacc / lex (actually bison/flex)
 add_custom_command(
@@ -67,7 +71,6 @@ add_custom_command(
   COMMAND bison ARGS -o${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8_parser.cpp --verbose
           -d ${CMAKE_SOURCE_DIR}/src/asm/tx8.y
   COMMENT "Generating parser"
-  BYPRODUCTS ${CMAKE_BINARY_DIR}/tmp_lexyacc/tx8.output
   DEPENDS ${CMAKE_SOURCE_DIR}/src/asm/tx8.y)
 
 add_custom_command(
