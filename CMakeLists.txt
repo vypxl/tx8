@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.25)
 include(FetchContent)
 
 project(tx8 VERSION 0.1.0)
