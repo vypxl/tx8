@@ -28,6 +28,9 @@ find_library(MATH_LIBRARY m)
 
 # Dependencies
 
+find_package(FLEX 2.6 REQUIRED)
+find_package(BISON 3.8 REQUIRED)
+
 # fmt
 FetchContent_Declare(
   fmt
