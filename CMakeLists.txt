@@ -72,7 +72,7 @@ add_flex_bison_dependency(LEXER PARSER)
 
 add_library(tx8-asm SHARED src/asm/assembler.cpp ${LEXYACC_DIR}/tx8_parser.cpp
                            ${LEXYACC_DIR}/tx8_lexer.cpp)
-target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR}/)
+target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR}/ ${FLEX_INCLUDE_DIRS})
 target_link_libraries(tx8-asm PRIVATE tx8-core)
 # Needed because bison generates code with warnings :(
 target_compile_options(tx8-asm PRIVATE -Wno-error)
