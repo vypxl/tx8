@@ -8,7 +8,11 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
 
-add_compile_options(-Wall -Wextra -Werror -Wno-unknown-pragmas -fmodules -fPIC)
+add_compile_options(-fPIC)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  add_compile_options(-Wall -Wextra -Wno-unknown-pragmas -Werror)
+endif()
 
 # Choose build type
 
