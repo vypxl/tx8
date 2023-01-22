@@ -31,13 +31,6 @@ find_library(MATH_LIBRARY m)
 find_package(FLEX 2.6 REQUIRED)
 find_package(BISON 3.8 REQUIRED)
 
-if(NOT FLEX_INCLUDE_DIRS)
-  message(
-    FATAL_ERROR
-      "FlexLexer.h not found. Please check your flex installation. If you are on Ubuntu, try installing the libfl-dev and libfl2 packages."
-  )
-endif()
-
 # fmt
 
 FetchContent_Declare(
@@ -79,7 +72,7 @@ add_flex_bison_dependency(LEXER PARSER)
 
 add_library(tx8-asm SHARED src/asm/assembler.cpp ${LEXYACC_DIR}/tx8_parser.cpp
                            ${LEXYACC_DIR}/tx8_lexer.cpp)
-target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR} ${FLEX_INCLUDE_DIRS})
+target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR})
 target_link_libraries(tx8-asm PRIVATE tx8-core)
 # Needed because bison generates code with warnings :(
 target_compile_options(tx8-asm PRIVATE -Wno-error)
