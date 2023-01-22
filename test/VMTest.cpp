@@ -10,7 +10,7 @@ VMTest::VMTest() {
     tx::log.init_str();
     tx::log_err.init_str();
 
-    if (tx_asm_yydebug) {
+    if (tx_asm_yydebug != 0) {
         tx::log.init_stream(&std::cout);
         tx::log_err.init_stream(&std::cerr);
     }
@@ -38,6 +38,26 @@ void VMTest::run_and_compare_str(const std::string& code, const std::string& out
     ASSERT_EQ(tx::log_err.get_str(), err);
 }
 
+void compare_num(tx::num32_variant a, tx::num32_variant b, size_t i) {
+    if (std::holds_alternative<tx::uint32>(b) || std::holds_alternative<tx::int32>(b)) {
+        if (a != b) {
+            if (std::holds_alternative<tx::uint32>(b))
+                ADD_FAILURE() << "Value 0x" << std::hex << std::get<tx::uint32>(a) << " at index " << std::dec << i
+                              << " does not match expected value 0x" << std::hex << std::get<tx::uint32>(b) << ".";
+            else
+                ADD_FAILURE() << "Value " << std::get<tx::int32>(a) << " at index " << std::dec << i
+                              << " does not match expected value " << std::get<tx::int32>(b) << ".";
+        } else {
+            SUCCEED();
+        }
+    } else /* tx::float32 */ {
+        tx::float32 actual   = std::get<tx::float32>(a);
+        tx::float32 expected = std::get<tx::float32>(b);
+        if (std::isnan(actual) && std::isnan(expected)) SUCCEED();
+        else EXPECT_FLOAT_EQ(actual, expected) << "At index " << i;
+    }
+}
+
 void VMTest::run_and_compare_num(
     const std::string&                    code,
     const std::vector<tx::num32_variant>& expecteds,
@@ -51,27 +71,10 @@ void VMTest::run_and_compare_num(
                       << ") values do not match.";
         return;
     }
-
     for (size_t i = 0; i < nums.size(); i++) {
         auto a = nums[i];
         auto b = expecteds[i];
-        if (std::holds_alternative<tx::uint32>(b) || std::holds_alternative<tx::int32>(b)) {
-            if (a != b) {
-                if (std::holds_alternative<tx::uint32>(b))
-                    ADD_FAILURE() << "Value 0x" << std::hex << std::get<tx::uint32>(a) << " at index " << std::dec << i
-                                  << " does not match expected value 0x" << std::hex << std::get<tx::uint32>(b) << ".";
-                else
-                    ADD_FAILURE() << "Value " << std::get<tx::int32>(a) << " at index " << std::dec << i
-                                  << " does not match expected value " << std::get<tx::int32>(b) << ".";
-            } else {
-                SUCCEED();
-            }
-        } else /* tx::float32 */ {
-            tx::float32 actual   = std::get<tx::float32>(a);
-            tx::float32 expected = std::get<tx::float32>(b);
-            if (std::isnan(actual) && std::isnan(expected)) SUCCEED();
-            else EXPECT_FLOAT_EQ(actual, expected) << "At index " << i;
-        }
+        compare_num(a, b, i);
     }
 }
 
