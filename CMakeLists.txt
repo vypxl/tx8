@@ -31,6 +31,13 @@ find_library(MATH_LIBRARY m)
 find_package(FLEX 2.6 REQUIRED)
 find_package(BISON 3.8 REQUIRED)
 
+if(NOT FLEX_INCLUDE_DIRS)
+  message(
+    FATAL_ERROR
+      "FlexLexer.h not found. Please check your flex installation. If you are on Ubuntu, try installing the libfl-dev and libfl2 packages."
+  )
+endif()
+
 # fmt
 
 FetchContent_Declare(
