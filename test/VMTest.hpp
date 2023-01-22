@@ -9,7 +9,7 @@
 #include <vector>
 
 
-class VMTest : public ::testing::Test {
+class VMTest : public ::testing::Test { // NOLINT
   private:
     void append_num(tx::num32_variant value);
 
@@ -25,9 +25,9 @@ class VMTest : public ::testing::Test {
 
     void run_and_compare_str(const std::string& code, const std::string& out, const std::string& err = "");
     void run_and_compare_num(
-        const std::string&                   code,
+        const std::string&                    code,
         const std::vector<tx::num32_variant>& expected,
-        const std::string&                   err = ""
+        const std::string&                    err = ""
     );
 
     bool run_code(const std::string& s);
