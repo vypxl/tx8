@@ -1,0 +1,43 @@
+name: Build on MacOS
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest]
+        compiler: [appleclang, clang, gcc]
+        build_type: [Debug, Release]
+        include:
+          - compiler: appleclang
+            cc: clang
+            cxx: clang++
+          - compiler: clang
+            cc: $(brew --prefix llvm@15)/bin/clang
+            cxx: $(brew --prefix llvm@15)/bin/clang++
+          - compiler: gcc
+            cc: gcc-11
+            cxx: g++-11
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install tools
+        run: brew install ninja bison flex
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          export CMAKE_INCLUDE_PATH="/usr/local/opt/flex/include"
+          export CMAKE_LIBRARY_PATH="/usr/local/opt/flex/lib;/usr/local/opt/bison/lib"
+          export PATH="/usr/local/opt/bison/bin:/usr/local/opt/flex/bin:$PATH"
+          CC=${{ matrix.cc }} CXX=${{ matrix.cxx }} cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja .
+      - name: build
+        run: |
+          export CMAKE_INCLUDE_PATH="/usr/local/opt/flex/include"
+          export CMAKE_LIBRARY_PATH="/usr/local/opt/flex/lib;/usr/local/opt/bison/lib"
+          export CPPFLAGS="-I/usr/local/opt/flex/include"
+          export PATH="/usr/local/opt/bison/bin:/usr/local/opt/flex/bin:$PATH"
+          cmake --build build --target all
+      - name: Run Test
+        run: cd build && ctest -V
