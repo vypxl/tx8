@@ -398,7 +398,7 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 
 When converting floating point values to int or uint, the conversion behaves like a c-style cast. This means the
 fractional part is discarded, and if the magnitude of the float is too large for the receiving datatype, the result
-is undefined.
+is undefined. The result is also undefined when trying to convert a negative float to an unsigned int.
 
 ###### The random number generator
 

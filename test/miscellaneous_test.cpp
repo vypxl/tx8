@@ -99,13 +99,9 @@ lda 42.1337
 ftu a
 sys &test_au ; 42
 
-lda -4.2
-ftu a
-sys &test_au ; 0xfffffffc
-
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 42u, 0xfffffffcu}); // NOLINT
+    run_and_compare_num(s, {0u, 42u}); // NOLINT
 }
 
 #pragma clang diagnostic pop
