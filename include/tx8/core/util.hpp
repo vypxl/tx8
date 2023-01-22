@@ -5,6 +5,9 @@
  */
 #pragma once
 
+#include <string>
+#include <tx8/core/types.hpp>
+
 /// Get the minimum of a or b (beware double evaluation)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 /// Get the maximum of a or b (beware double evaluation)
@@ -18,9 +21,9 @@ namespace tx {
     /// Calculate a hash value for a string
     static inline uint32 str_hash(const std::string& str) {
         const char* s = str.c_str();
-        uint32      h = (uint32) *s;
-        if (h)
-            for (++s; *s; ++s) h = (h << 5) - h + (uint32) *s;
+        uint32      h = (uint8) *s;
+        if (h != 0)
+            for (++s; *s; ++s) h = (h << 5) - h + (uint32) *s; // NOLINT
         return h;
     }
 } // namespace tx

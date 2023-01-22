@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 #include <cmath>
@@ -20,7 +18,7 @@ sys &test_af ; 1235.567
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1.0f, 0.0f, 1235.567f});
+    run_and_compare_num(s, {1.0f, 0.0f, 1235.567f}); // NOLINT
 }
 
 TEST_F(Float, fdec) {
@@ -38,7 +36,7 @@ fdec a
 sys &test_af ; 1233.567
 hlt
 )EOF";
-    run_and_compare_num(s, {-1.0f, 0.0f, 1233.567f});
+    run_and_compare_num(s, {-1.0f, 0.0f, 1233.567f}); // NOLINT
 }
 
 TEST_F(Float, fadd) {
@@ -65,7 +63,7 @@ sys &test_af ; 44.44
 
 hlt
 )EOF";
-    run_and_compare_num(s, {15.62f, 0.0f, -24.68f, 44.44f, 44.44f});
+    run_and_compare_num(s, {15.62f, 0.0f, -24.68f, 44.44f, 44.44f}); // NOLINT
 }
 
 TEST_F(Float, fsub) {
@@ -92,7 +90,7 @@ sys &test_af ; -66.66
 
 hlt
 )EOF";
-    run_and_compare_num(s, {{15.62f, 0.0f, 0.0f, 66.66f, -66.66f}});
+    run_and_compare_num(s, {{15.62f, 0.0f, 0.0f, 66.66f, -66.66f}}); // NOLINT
 }
 
 TEST_F(Float, fmul) {
@@ -123,7 +121,7 @@ sys &test_af ; 1.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {{5.5f, 0.0f, -3.75f, -12.0f, 15.0f, 1.0f}});
+    run_and_compare_num(s, {{5.5f, 0.0f, -3.75f, -12.0f, 15.0f, 1.0f}}); // NOLINT
 }
 
 TEST_F(Float, fdiv) {
@@ -158,7 +156,7 @@ sys &test_af ; nan
 
 hlt
 )EOF";
-    run_and_compare_num(
+    run_and_compare_num( // NOLINT
         s,
         {0.2f,
          -25.0f,
@@ -194,7 +192,7 @@ sys &test_af ; nan
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1.0f, 3.37f, 1.0f, -1.2f, std::numeric_limits<float>::quiet_NaN()});
+    run_and_compare_num(s, {1.0f, 3.37f, 1.0f, -1.2f, std::numeric_limits<float>::quiet_NaN()}); // NOLINT
 }
 
 TEST_F(Float, fmax) {
@@ -216,7 +214,7 @@ sys &test_rf ; 0.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {5.0f, 1.0f, 13.37f, -5.0f, 0.0f, 0.0f});
+    run_and_compare_num(s, {5.0f, 1.0f, 13.37f, -5.0f, 0.0f, 0.0f}); // NOLINT
 }
 
 TEST_F(Float, fmin) {
@@ -238,7 +236,7 @@ sys &test_rf ; 0.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1.0f, 5.0f, -5.0f, 13.37f, 0.0f, 0.0f});
+    run_and_compare_num(s, {1.0f, 5.0f, -5.0f, 13.37f, 0.0f, 0.0f}); // NOLINT
 }
 
 TEST_F(Float, fabs) {
@@ -260,7 +258,7 @@ sys &test_rf ; 0.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1.0f, 1.0f, 4.0f, -1.0f, 0.0f, 0.0f});
+    run_and_compare_num(s, {1.0f, 1.0f, 4.0f, -1.0f, 0.0f, 0.0f}); // NOLINT
 }
 
 TEST_F(Float, fsign) {
@@ -279,7 +277,7 @@ sys &test_af ; 0.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1.0f, -1.0f, 0.0f});
+    run_and_compare_num(s, {1.0f, -1.0f, 0.0f}); // NOLINT
 }
 
 TEST_F(Float, sin) {
@@ -302,7 +300,7 @@ sys &test_af ; sin(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) sin(1.0), (float) sin(-1.0), (float) sin(0.0), (float) sin(3.14159f)});
+    run_and_compare_num(s, {(float) sin(1.0), (float) sin(-1.0), (float) sin(0.0), (float) sin(3.14159f)}); // NOLINT
 }
 
 TEST_F(Float, cos) {
@@ -325,7 +323,7 @@ sys &test_af ; cos(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) cos(1.0), (float) cos(-1.0), (float) cos(0.0), (float) cos(3.14159f)});
+    run_and_compare_num(s, {(float) cos(1.0), (float) cos(-1.0), (float) cos(0.0), (float) cos(3.14159f)}); // NOLINT
 }
 
 TEST_F(Float, tan) {
@@ -348,7 +346,7 @@ sys &test_af ; tan(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) tan(1.0), (float) tan(-1.0), (float) tan(0.0), (float) tan(3.14159f)});
+    run_and_compare_num(s, {(float) tan(1.0), (float) tan(-1.0), (float) tan(0.0), (float) tan(3.14159f)}); // NOLINT
 }
 
 TEST_F(Float, asin) {
@@ -367,7 +365,7 @@ sys &test_af ; asin(0.0)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) asin(1.0), (float) asin(-1.0), (float) asin(0.0)});
+    run_and_compare_num(s, {(float) asin(1.0), (float) asin(-1.0), (float) asin(0.0)}); // NOLINT
 }
 
 TEST_F(Float, acos) {
@@ -386,7 +384,7 @@ sys &test_af ; acos(0.0)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) acos(1.0), (float) acos(-1.0), (float) acos(0.0)});
+    run_and_compare_num(s, {(float) acos(1.0), (float) acos(-1.0), (float) acos(0.0)}); // NOLINT
 }
 
 TEST_F(Float, atan) {
@@ -405,7 +403,7 @@ sys &test_af ; atan(0.0)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) atan(1.0), (float) atan(-1.0), (float) atan(0.0)});
+    run_and_compare_num(s, {(float) atan(1.0), (float) atan(-1.0), (float) atan(0.0)}); // NOLINT
 }
 
 TEST_F(Float, atan2) {
@@ -428,7 +426,7 @@ sys &test_af ; atan2(-7.0, -1.5)
 
 hlt
 )EOF";
-    run_and_compare_num(
+    run_and_compare_num( // NOLINT
         s,
         {(float) atan2(2.0, 2.0), (float) atan2(-1.5, 2.0), (float) atan2(2.0, -1.5), (float) atan2(-7.0, -1.5)}
     );
@@ -454,7 +452,10 @@ sys &test_af ; sqrt(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) sqrt(1.0), (float) sqrt(-1.0), (float) sqrt(0.0), (float) sqrt(3.14159f)});
+    run_and_compare_num(
+        s,
+        {(float) sqrt(1.0), (float) sqrt(-1.0), (float) sqrt(0.0), (float) sqrt(3.14159f)}
+    ); // NOLINT
 }
 
 TEST_F(Float, pow) {
@@ -473,7 +474,7 @@ sys &test_af ; pow(7.4, -0.5)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) pow(1.0, 5678134.5), (float) pow(-2.6, -5.1), (float) pow(7.4, -0.5)});
+    run_and_compare_num(s, {(float) pow(1.0, 5678134.5), (float) pow(-2.6, -5.1), (float) pow(7.4, -0.5)}); // NOLINT
 }
 
 TEST_F(Float, exp) {
@@ -496,7 +497,7 @@ sys &test_af ; exp(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) exp(1.0), (float) exp(-1.0), (float) exp(0.0), (float) exp(3.14159f)});
+    run_and_compare_num(s, {(float) exp(1.0), (float) exp(-1.0), (float) exp(0.0), (float) exp(3.14159f)}); // NOLINT
 }
 
 TEST_F(Float, log) {
@@ -519,7 +520,7 @@ sys &test_af ; log(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) log(1.0), (float) log(-1.6), (float) log(0.0), (float) log(3.14159f)});
+    run_and_compare_num(s, {(float) log(1.0), (float) log(-1.6), (float) log(0.0), (float) log(3.14159f)}); // NOLINT
 }
 
 TEST_F(Float, log2) {
@@ -542,7 +543,10 @@ sys &test_af ; log2(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) log2(1.0), (float) log2(-1.6), (float) log2(0.0), (float) log2(3.14159f)});
+    run_and_compare_num(
+        s,
+        {(float) log2(1.0), (float) log2(-1.6), (float) log2(0.0), (float) log2(3.14159f)}
+    ); // NOLINT
 }
 
 TEST_F(Float, log10) {
@@ -565,7 +569,8 @@ sys &test_af ; log10(3.14159)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {(float) log10f(1.0), (float) log10f(-1.6), (float) log10f(0.0), log10f(3.14159f)});
+    run_and_compare_num(
+        s,
+        {(float) log10f(1.0), (float) log10f(-1.6), (float) log10f(0.0), log10f(3.14159f)}
+    ); // NOLINT
 }
-
-#pragma clang diagnostic pop

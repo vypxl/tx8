@@ -25,16 +25,16 @@
 #define ERR_DIV_BY_ZERO       "Exception: Division by zero"
 
 namespace tx {
-    CPU::CPU(Rom rom) {
+    CPU::CPU(Rom rom) { // NOLINT
         if (rom.size() > ROM_SIZE) {
             error(ERR_ROM_TOO_LARGE);
             return;
         }
 
         // initialize registers and memory
-        halted  = 0;
-        stopped = 0;
-        debug   = 0;
+        halted  = false;
+        stopped = false;
+        debug   = false;
         rseed   = RAND_INITIAL_SEED;
         a       = 0;
         b       = 0;
@@ -268,7 +268,8 @@ namespace tx {
 
 #define COMP_JUMP(comparison, name) \
     void CPU::op_##name(const Parameters& params) { \
-        if (read_r() comparison 0) jump(PARAMV(1)); \
+        /* NOLINT */ if (read_r() comparison 0) \
+            jump(PARAMV(1)); \
     }
 
     COMP_JUMP(==, jeq)
@@ -462,10 +463,6 @@ namespace tx {
         result.f = fun(a.f, b.f); \
     AR_OP_END
 
-#define AR_FUN_UOP_1(name, fun) \
-    AR_UOP_1_BEGIN(name) \
-        result.u = fun(a.u); \
-    AR_OP_END
 #define AR_FUN_UOP_2(name, fun) \
     AR_UOP_2_BEGIN(name) \
         result.u = fun(a.u, b.u); \

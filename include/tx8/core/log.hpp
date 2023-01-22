@@ -20,7 +20,7 @@
 using tx_logfunc_ptr = void (*)(const std::string& s);
 
 namespace tx {
-    class Log {
+    class Log { // NOLINT
       public:
         /// Reset the logger to its initial state
         void reset();
@@ -36,7 +36,7 @@ namespace tx {
             if (stream != nullptr) *stream << s;
             if (str != nullptr) str->append(s);
 
-            if (file != nullptr) fprintf(file, "%s", s.c_str());
+            if (file != nullptr) fprintf(file, "%s", s.c_str()); // NOLINT
             if (func != nullptr) func(s);
         }
 

@@ -41,8 +41,8 @@ namespace tx {
         /// Add a parsed instruction to the instruction list of the assembler
         void add_instruction(Instruction inst);
 
-        static void   write_parameter(Parameter& p, Rom& output);
-        static void   write_instruction(Instruction& inst, Rom& output);
+        static void   write_parameter(Parameter& p, Rom& binary);
+        static void   write_instruction(Instruction& inst, Rom& binary);
         static uint32 calculate_instruction_length(Instruction& inst);
 
         friend class tx::parser::Parser;

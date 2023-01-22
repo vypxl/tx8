@@ -313,7 +313,6 @@ namespace tx {
         switch (((uint32) reg) & REG_SIZE_MASK) {
             case REG_SIZE_1: return ValueSize::Byte;
             case REG_SIZE_2: return ValueSize::Short;
-            case REG_SIZE_4: return ValueSize::Word;
             default: return ValueSize::Word;
         }
     }

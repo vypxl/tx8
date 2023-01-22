@@ -12,10 +12,10 @@
 #include "tx8_parser.hpp"
 
 namespace tx::parser {
-    class Lexer : public yyFlexLexer {
+    class Lexer : public yyFlexLexer { // NOLINT
       public:
         Lexer()          = default;
-        virtual ~Lexer() = default;
+        virtual ~Lexer() = default; // NOLINT
         virtual tx::parser::Parser::symbol_type get_next_token();
     };
 } // namespace tx::parser

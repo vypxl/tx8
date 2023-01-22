@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(SmallRegisters, sign_extend) {
@@ -27,7 +25,7 @@ sys &test_ai ; -1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1, -1, 1, -1, -1});
+    run_and_compare_num(s, {1, -1, 1, -1, -1}); // NOLINT
 }
 
 TEST_F(SmallRegisters, comparisons) {
@@ -59,7 +57,7 @@ sys &test_r ; 0 (equal)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1u, 0u, 0u, -1u, 0u});
+    run_and_compare_num(s, {1u, 0u, 0u, -1u, 0u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, inc) {
@@ -86,7 +84,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x0u, 0b01u, 0x80u, 0b10u, 0x0u, 0b01u, 0x8000u, 0b10u});
+    run_and_compare_num(s, {0x0u, 0b01u, 0x80u, 0b10u, 0x0u, 0b01u, 0x8000u, 0b10u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, dec) {
@@ -113,7 +111,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffu, 0b01u, 0xffffu, 0b01u, 0x7fu, 0b10u, 0x7fffu, 0b10u});
+    run_and_compare_num(s, {0xffu, 0b01u, 0xffffu, 0b01u, 0x7fu, 0b10u, 0x7fffu, 0b10u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, add) {
@@ -146,7 +144,7 @@ sys &test_r ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, -1, 0u});
+    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, -1, 0u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, sub) {
@@ -186,7 +184,7 @@ sys &test_ai ; 1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 1u, 0u, 1});
+    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 1u, 0u, 1}); // NOLINT
 }
 
 TEST_F(SmallRegisters, mul) {
@@ -219,7 +217,10 @@ sys &test_au ; 0xc2 (now the upper bits were set to 0)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0xffffffffu, 0xffffd1c2u, 0xffffffffu, 0xc2u});
+    run_and_compare_num(
+        s,
+        {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0xffffffffu, 0xffffd1c2u, 0xffffffffu, 0xc2u}
+    ); // NOLINT
 }
 
 TEST_F(SmallRegisters, div) {
@@ -244,7 +245,7 @@ sys &test_r ; 0xffffffea
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0xfffffdfcu, 0xffffffea});
+    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0xfffffdfcu, 0xffffffea}); // NOLINT
 }
 
 TEST_F(SmallRegisters, mod) {
@@ -266,7 +267,7 @@ sys &test_au ; 0xffffffea
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x55u, 0x46u, 0xffffffeau});
+    run_and_compare_num(s, {0x55u, 0x46u, 0xffffffeau}); // NOLINT
 }
 
 TEST_F(SmallRegisters, min) {
@@ -294,7 +295,7 @@ sys &test_ri ; 23
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, -11890, 23, -114, 23});
+    run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, -11890, 23, -114, 23}); // NOLINT
 }
 
 TEST_F(SmallRegisters, max) {
@@ -327,7 +328,7 @@ sys &test_ri ; -114
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, 23, -11890, 23, -114});
+    run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, 23, -11890, 23, -114}); // NOLINT
 }
 
 TEST_F(SmallRegisters, abs) {
@@ -363,7 +364,7 @@ sys &test_ri ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {3, -1, 3, 1, 3, -1, 3, 1, 0, 0, 0, 0});
+    run_and_compare_num(s, {3, -1, 3, 1, 3, -1, 3, 1, 0, 0, 0, 0}); // NOLINT
 }
 
 TEST_F(SmallRegisters, sign) {
@@ -393,7 +394,7 @@ sys &test_ai ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {-1, -1, 1, 1, 0, 0});
+    run_and_compare_num(s, {-1, -1, 1, 1, 0, 0}); // NOLINT
 }
 
 TEST_F(SmallRegisters, and) {
@@ -420,7 +421,7 @@ sys &test_au ; 0x34
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x14u, 0x14u, 0xfe34u, 0x34u});
+    run_and_compare_num(s, {0x14u, 0x14u, 0xfe34u, 0x34u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, or) {
@@ -447,7 +448,7 @@ sys &test_au ; 0xfebc
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x75u, 0x75u, 0xfebcu, 0xfebcu});
+    run_and_compare_num(s, {0x75u, 0x75u, 0xfebcu, 0xfebcu}); // NOLINT
 }
 
 TEST_F(SmallRegisters, not ) {
@@ -461,7 +462,7 @@ sys &test_au ; 0x12cb56
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x12cba9u, 0x12cb56u});
+    run_and_compare_num(s, {0x12cba9u, 0x12cb56u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, nand) {
@@ -477,7 +478,7 @@ sys &test_au ; 0x12ffeb
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1234ebu, 0x12ffebu});
+    run_and_compare_num(s, {0x1234ebu, 0x12ffebu}); // NOLINT
 }
 
 TEST_F(SmallRegisters, xor) {
@@ -493,7 +494,7 @@ sys &test_au ; 0x12caea
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1234eau, 0x1234eau});
+    run_and_compare_num(s, {0x1234eau, 0x1234eau}); // NOLINT
 }
 
 TEST_F(SmallRegisters, slr) {
@@ -510,7 +511,7 @@ sys &test_r ; 0x5
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u});
+    run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, sll) {
@@ -527,7 +528,7 @@ sys &test_r ; 0x6
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x124560u, 0x3u, 0x124500u, 0x6u});
+    run_and_compare_num(s, {0x124560u, 0x3u, 0x124500u, 0x6u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, sar) {
@@ -554,7 +555,7 @@ sys &test_r ; 0x5
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u, 0x12f885u, 0x6u, 0x12f8f8u, 0x5u});
+    run_and_compare_num(s, {0x120345u, 0x6u, 0x120304u, 0x5u, 0x12f885u, 0x6u, 0x12f8f8u, 0x5u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, ror) {
@@ -569,7 +570,7 @@ sys &test_au ; 0x126354
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x126345u, 0x126354u});
+    run_and_compare_num(s, {0x126345u, 0x126354u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, rol) {
@@ -584,7 +585,7 @@ sys &test_au ; 0x124536
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x124563u, 0x124536u});
+    run_and_compare_num(s, {0x124563u, 0x124536u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, set) {
@@ -610,7 +611,7 @@ sys &test_r ; 0x1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x91u, 0x1u});
+    run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x91u, 0x1u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, clr) {
@@ -634,7 +635,7 @@ sys &test_r ; 0x0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u, 0x0u, 0x0u});
+    run_and_compare_num(s, {0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u, 0x0u, 0x0u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, tgl) {
@@ -669,7 +670,7 @@ sys &test_r ; 0x1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u});
+    run_and_compare_num(s, {0x10u, 0x0u, 0x11u, 0x0u, 0x91u, 0x0u, 0x11u, 0x1u, 0x1u, 0x1u, 0x0u, 0x1u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, test) {
@@ -683,7 +684,7 @@ sys &test_r ; 0x1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1u, 0x1u});
+    run_and_compare_num(s, {0x1u, 0x1u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, uadd) {
@@ -716,7 +717,7 @@ sys &test_r ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, 0xff, 0u});
+    run_and_compare_num(s, {0x1u, 0b01u, 0x81u, 0b10u, 0x1u, 0b01u, 0x8001u, 0b10u, 0xff, 0u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, usub) {
@@ -756,7 +757,7 @@ sys &test_ai ; -255
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 0x1u, 0u, -255});
+    run_and_compare_num(s, {0xfeu, 0b01u, 0x7eu, 0b10u, 0xfffeu, 0b01u, 0x7ffeu, 0b10u, 0x1u, 0u, -255}); // NOLINT
 }
 
 TEST_F(SmallRegisters, umul) {
@@ -789,7 +790,7 @@ sys &test_au ; 0xc2 (now the upper bits were set to 0)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0u, 0xffffd1c2u, 0u, 0xc2u});
+    run_and_compare_num(s, {0x44u, 0u, 0x0b44u, 0u, 0xffffd3c2u, 0u, 0xffffd1c2u, 0u, 0xc2u}); // NOLINT
 }
 
 TEST_F(SmallRegisters, udiv) {
@@ -815,7 +816,7 @@ sys &test_r ; 0xa
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0x91cu, 0xau});
+    run_and_compare_num(s, {0x0u, 0x55u, 0x36u, 0x46u, 0x91cu, 0xau}); // NOLINT
 }
 
 TEST_F(SmallRegisters, umod) {
@@ -837,7 +838,7 @@ sys &test_au ; 0xffff000a
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x55u, 0x46u, 0xffff000au});
+    run_and_compare_num(s, {0x55u, 0x46u, 0xffff000au}); // NOLINT
 }
 
 TEST_F(SmallRegisters, umin) {
@@ -870,7 +871,7 @@ sys &test_ri ; -114
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, 23, -11890, 23, -114});
+    run_and_compare_num(s, {0x55u, 0x1234u, 0x34u, 0x55u, 23, -11890, 23, -114}); // NOLINT
 }
 
 TEST_F(SmallRegisters, umax) {
@@ -903,7 +904,5 @@ sys &test_ri ; 23
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, -11890, 23, -114, 23});
+    run_and_compare_num(s, {0x34u, 0x55u, 0x55u, 0x34u, -11890, 23, -114, 23}); // NOLINT
 }
-
-#pragma clang diagnostic pop

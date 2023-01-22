@@ -43,7 +43,7 @@ namespace tx::stdlib {
 #pragma clang diagnostic warning "-Wunused-parameter"
 
 
-#define r(name) cpu.register_sysfunc(#name, &name)
+#define r(name) cpu.register_sysfunc(#name, &(name))
 
     void use_stdlib(CPU& cpu) {
         r(print_u32);

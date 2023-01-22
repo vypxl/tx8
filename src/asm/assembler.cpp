@@ -151,7 +151,7 @@ void Assembler::write_parameter(Parameter& p, Rom& binary) {
     size_t c     = 0;
 #define push_next binary.push_back(v_ptr[c++])
     switch (p.mode) {
-        case ParamMode::Constant32: push_next;
+        case ParamMode::Constant32: push_next; // NOLINT
         case ParamMode::AbsoluteAddress:
         case ParamMode::RelativeAddress: push_next;
         case ParamMode::Constant16: push_next;

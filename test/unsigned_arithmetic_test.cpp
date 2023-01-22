@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(Unsigned, inc) {
@@ -11,7 +9,7 @@ sys &test_r ; 0b01 (unsigned overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0b01u});
+    run_and_compare_num(s, {0u, 0b01u}); // NOLINT
 }
 
 TEST_F(Unsigned, dec) {
@@ -23,7 +21,7 @@ sys &test_r ; 0b01 (unsigned overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0b01u});
+    run_and_compare_num(s, {0xffffffffu, 0b01u}); // NOLINT
 }
 
 TEST_F(Unsigned, add) {
@@ -45,7 +43,7 @@ sys &test_r ; 0b01 (unsigned overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0b01u, 0xfffffffeu, 0b01u, 2, 0b1u});
+    run_and_compare_num(s, {0u, 0b01u, 0xfffffffeu, 0b01u, 2, 0b1u}); // NOLINT
 }
 
 TEST_F(Unsigned, sub) {
@@ -57,7 +55,7 @@ sys &test_r ; 0b01 (unsigned overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0b1u});
+    run_and_compare_num(s, {0xffffffffu, 0b1u}); // NOLINT
 }
 
 TEST_F(Unsigned, umul) {
@@ -79,7 +77,7 @@ sys &test_r ; 0xd0ced442
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0u, 0x1u, 0xfffffffeu, 0x43d05b62u, 0xd0ced442u});
+    run_and_compare_num(s, {0xffffffffu, 0u, 0x1u, 0xfffffffeu, 0x43d05b62u, 0xd0ced442u}); // NOLINT
 }
 
 TEST_F(Unsigned, udiv) {
@@ -105,7 +103,7 @@ hlt
 )EOF";
     run_and_compare_num(
         s,
-        {0xdeadbeefu, 0u, 0x200u, 277u, 1u},
+        {0xdeadbeefu, 0u, 0x200u, 277u, 1u}, // NOLINT
         "Exception: Division by zero\nCaused by instruction:\n[#40004b] udiv a <0x0 | 0 | 0.00000>\n"
     );
 }
@@ -127,7 +125,7 @@ hlt
 )EOF";
     run_and_compare_num(
         s,
-        {0x227fu, 0u},
+        {0x227fu, 0u}, // NOLINT
         "Exception: Division by zero\nCaused by instruction:\n[#40002c] umod a <0x0 | 0 | 0.00000>\n"
     );
 }
@@ -151,7 +149,7 @@ sys &test_r ; 0x42
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0xffffffff, 0x1u, 0x0u, 0x1337u, 0x42u});
+    run_and_compare_num(s, {0xffffffffu, 0xffffffff, 0x1u, 0x0u, 0x1337u, 0x42u}); // NOLINT
 }
 
 TEST_F(Unsigned, umin) {
@@ -173,7 +171,5 @@ sys &test_r ; 0x1337
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0xffffffff, 0x0u, 0x1u, 0x42u, 0x1337u});
+    run_and_compare_num(s, {0xffffffffu, 0xffffffff, 0x0u, 0x1u, 0x42u, 0x1337u}); // NOLINT
 }
-
-#pragma clang diagnostic pop
