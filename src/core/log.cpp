@@ -1,8 +1,6 @@
 #include "tx8/core/log.hpp"
 
-using namespace tx;
-
-void Log::reset() {
+void tx::Log::reset() {
     stream = nullptr;
     file   = nullptr;
     delete str;
@@ -10,9 +8,9 @@ void Log::reset() {
     func = nullptr;
 }
 
-Log::Log() { reset(); }
+tx::Log::Log() { reset(); }
 
-Log::~Log() {
+tx::Log::~Log() {
     delete str;
     str = nullptr;
 }

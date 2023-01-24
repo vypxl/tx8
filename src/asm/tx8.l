@@ -19,8 +19,6 @@ tx::int32 tx_lex_hex(const char* str) {
     return strtol(str, (char**)NULL, 16);
 }
 
-using namespace tx::parser;
-
 #define yyterminate() Parser::make_END(location());
 %}
 

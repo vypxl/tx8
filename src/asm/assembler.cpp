@@ -10,15 +10,13 @@
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
-using namespace tx;
+tx::Assembler::Assembler(std::unique_ptr<std::istream> input) : is(std::move(input)), parser(lexer, *this) { }
 
-Assembler::Assembler(std::unique_ptr<std::istream> input) : is(std::move(input)), parser(lexer, *this) { }
+tx::Assembler::Assembler(const std::string& input) : Assembler(std::make_unique<std::istringstream>(input)) { }
 
-Assembler::Assembler(const std::string& input) : Assembler(std::make_unique<std::istringstream>(input)) { }
+tx::Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
 
-Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
-
-void Assembler::run() {
+void tx::Assembler::run() {
     if (!ran) {
         lexer.switch_streams(is.get(), nullptr);
         parser.parse();
@@ -27,7 +25,7 @@ void Assembler::run() {
     ran = true;
 }
 
-bool Assembler::write_binary(std::ostream& output) {
+bool tx::Assembler::write_binary(std::ostream& output) {
     run();
     if (error) {
         tx::log_err("Assembler encountered an error, did not write binary file.\n");
@@ -44,7 +42,7 @@ bool Assembler::write_binary(std::ostream& output) {
     return false;
 }
 
-std::optional<Rom> Assembler::generate_binary() {
+std::optional<tx::Rom> tx::Assembler::generate_binary() {
     run();
     if (error) {
         tx::log_err("Assembler encountered an error, did not generate binary.\n");
@@ -59,7 +57,7 @@ std::optional<Rom> Assembler::generate_binary() {
     return binary;
 }
 
-uint32 Assembler::handle_label(const std::string& name) {
+tx::uint32 tx::Assembler::handle_label(const std::string& name) {
     // search for an existing label with the same name and return its id if found
     for (auto& label : labels) {
         if (name == label.name) return label.id;
@@ -79,7 +77,7 @@ uint32 Assembler::handle_label(const std::string& name) {
 }
 
 // returns the id of the label whose position was set
-uint32 Assembler::set_label_position(const std::string& name) {
+tx::uint32 tx::Assembler::set_label_position(const std::string& name) {
     // find label that matches the name
     for (auto& label : labels) {
         if (name == label.name) {
@@ -100,7 +98,7 @@ uint32 Assembler::set_label_position(const std::string& name) {
     return 0;
 }
 
-uint32 Assembler::convert_label(uint32 id) {
+tx::uint32 tx::Assembler::convert_label(uint32 id) {
     for (auto& label : labels) {
         if (label.id == id) {
             if (label.position != tx_asm_INVALID_LABEL_ADDRESS) return label.position;
@@ -115,13 +113,13 @@ uint32 Assembler::convert_label(uint32 id) {
     return 0;
 }
 
-void Assembler::add_instruction(Instruction inst) {
+void tx::Assembler::add_instruction(Instruction inst) {
     calculate_instruction_length(inst);
     instructions.push_back(inst);
     position += inst.len;
 }
 
-void Assembler::convert_labels() {
+void tx::Assembler::convert_labels() {
     for (auto& inst : instructions) {
         if (inst.params.p1.mode == ParamMode::Label) {
             inst.params.p1.value.u = Assembler::convert_label(inst.params.p1.value.u);
@@ -134,7 +132,7 @@ void Assembler::convert_labels() {
     }
 }
 
-void Assembler::print_instructions() {
+void tx::Assembler::print_instructions() {
     uint32 pos = 0;
     for (auto& inst : instructions) {
         tx::log_err("[asm] [#{:04x}:{:02x}] ", pos, inst.len);
@@ -143,10 +141,10 @@ void Assembler::print_instructions() {
     }
 }
 
-void Assembler::print_labels() {
+void tx::Assembler::print_labels() {
     for (auto& label : labels) tx::log_err("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position);
 }
-void Assembler::write_parameter(Parameter& p, Rom& binary) {
+void tx::Assembler::write_parameter(Parameter& p, Rom& binary) {
     auto*  v_ptr = (uint8*) (&p.value.u);
     size_t c     = 0;
 #define push_next binary.push_back(v_ptr[c++])
@@ -163,7 +161,7 @@ void Assembler::write_parameter(Parameter& p, Rom& binary) {
 #undef push_next
 }
 
-void Assembler::write_instruction(Instruction& inst, Rom& binary) {
+void tx::Assembler::write_instruction(Instruction& inst, Rom& binary) {
     binary.push_back(static_cast<uint8>(inst.opcode));
     if (inst.params.p1.mode != ParamMode::Unused)
         binary.push_back(static_cast<uint8>((((uint32) inst.params.p1.mode) << 4u) | ((uint32) inst.params.p2.mode)));
@@ -172,7 +170,7 @@ void Assembler::write_instruction(Instruction& inst, Rom& binary) {
     write_parameter(inst.params.p2, binary);
 }
 
-uint32 Assembler::calculate_instruction_length(Instruction& inst) {
+tx::uint32 tx::Assembler::calculate_instruction_length(Instruction& inst) {
     return inst.len = 1 + param_mode_bytes[param_count[(size_t) inst.opcode]]
                       + param_sizes[(size_t) inst.params.p1.mode] + param_sizes[(size_t) inst.params.p2.mode];
 }
