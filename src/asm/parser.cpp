@@ -1,4 +1,4 @@
-#include <tx8/asm/parser.hpp>
+#include "tx8/asm/parser.hpp"
 
 tx::AST tx::Parser::get_ast() { return ast; }
 

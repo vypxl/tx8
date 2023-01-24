@@ -2,11 +2,11 @@
 
 #include "tx8/core/cpu.hpp"
 #include "tx8/core/debug.hpp"
+#include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
+#include "tx8/core/types.hpp"
 
 #include <sstream>
-#include <tx8/core/instruction.hpp>
-#include <tx8/core/types.hpp>
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 

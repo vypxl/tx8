@@ -1,8 +1,9 @@
 #include "VMTest.hpp"
 
+#include "tx8/core/stdlib.hpp"
+
 #include <cmath>
 #include <iostream>
-#include <tx8/core/stdlib.hpp>
 
 extern int tx_asm_yydebug;
 
