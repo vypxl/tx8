@@ -20,3 +20,6 @@ namespace tx {
         tx::AST    ast;
     };
 } // namespace tx
+
+std::ostream& operator<<(std::ostream& os, const tx::ParserNode& node);
+std::ostream& operator<<(std::ostream& os, const tx::AST& ast);

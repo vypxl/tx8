@@ -398,4 +398,8 @@ namespace tx {
     const uint32 INSTRUCTION_MAX_LENGTH = 0xa;
 } // namespace tx
 
+std::ostream& operator<<(std::ostream& os, const tx::Parameter& p);
+std::ostream& operator<<(std::ostream& os, const tx::Instruction& inst);
+std::ostream& operator<<(std::ostream& os, const tx::Label& l);
+
 #pragma clang diagnostic warning "-Wunused-function"
