@@ -6,10 +6,12 @@ docs
 bin
 build
 cmake-build-debug
+cmake-build-release
 cmake-build-debug-coverage
 
 Makefile
 *.make
+dev
 
 tmp
 *.o

@@ -5,11 +5,8 @@
  */
 #pragma once
 
-#include <khash.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <string>
+#include <tx8/core/types.hpp>
 
 /// Get the minimum of a or b (beware double evaluation)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -20,9 +17,13 @@ extern "C" {
 /// Get the signum of the comparison between a and b (-1 if lt, 0 if eq, 1 if gt)
 #define CMP(a, b) (((b) < (a)) - ((a) < (b)))
 
-/// Calculate a hash value for a string
-#define tx_str_hash(str) kh_str_hash_func(str)
-
-#ifdef __cplusplus
-}
-#endif
+namespace tx {
+    /// Calculate a hash value for a string
+    static inline uint32 str_hash(const std::string& str) {
+        const char* s = str.c_str();
+        uint32      h = (uint8) *s;
+        if (h != 0)
+            for (++s; *s; ++s) h = (h << 5) - h + (uint32) *s; // NOLINT
+        return h;
+    }
+} // namespace tx

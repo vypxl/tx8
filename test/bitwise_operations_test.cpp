@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(Bitwise, and) {
@@ -34,7 +32,7 @@ sys &test_ai ; 384
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0xfffffffeu, 0u, 0u, 1057, 0xbeefu, 384});
+    run_and_compare_num(s, {0xffffffffu, 0xfffffffeu, 0u, 0u, 1057, 0xbeefu, 384}); // NOLINT
 }
 
 TEST_F(Bitwise, or) {
@@ -69,7 +67,7 @@ sys &test_ai ; -107
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107});
+    run_and_compare_num(s, {0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 7611, 0xdeadffffu, -107}); // NOLINT
 }
 
 TEST_F(Bitwise, not ) {
@@ -92,7 +90,7 @@ sys &test_au ; 0x21524110
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0u, 0xffffffffu, 0x21524110u});
+    run_and_compare_num(s, {0u, 0u, 0xffffffffu, 0x21524110u}); // NOLINT
 }
 
 TEST_F(Bitwise, nand) {
@@ -127,7 +125,7 @@ sys &test_ai ; -385
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, -1058, 0xffff4110u, -385});
+    run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, -1058, 0xffff4110u, -385}); // NOLINT
 }
 
 TEST_F(Bitwise, xor) {
@@ -162,7 +160,7 @@ sys &test_ai ; -491
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, 6554, 0xdead4110u, -491});
+    run_and_compare_num(s, {0u, 1u, 0xffffffffu, 0xffffffffu, 6554, 0xdead4110u, -491}); // NOLINT
 }
 
 TEST_F(Bitwise, slr) {
@@ -198,7 +196,7 @@ sys &test_r ; 0xfffffff
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0u, 0u, 1u, 0x7fu, 0x6f56u, 0x1beefu, 0xffffffffu, 0u, 0xfu, 0xfffffffu});
+    run_and_compare_num(s, {0u, 0u, 0u, 1u, 0x7fu, 0x6f56u, 0x1beefu, 0xffffffffu, 0u, 0xfu, 0xfffffffu}); // NOLINT
 }
 
 TEST_F(Bitwise, sar) {
@@ -234,7 +232,10 @@ sys &test_r ; 0fffffff
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0u, 0u, 1u, 0x7fu, 0xffffef56u, 0x1beefu, 0xffffffffu, 0u, 0xffffffffu, 0xfffffffu});
+    run_and_compare_num(
+        s,
+        {0u, 0u, 0u, 1u, 0x7fu, 0xffffef56u, 0x1beefu, 0xffffffffu, 0u, 0xffffffffu, 0xfffffffu} // NOLINT
+    );
 }
 
 TEST_F(Bitwise, sll) {
@@ -270,7 +271,10 @@ sys &test_r ; 0xfffffff
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0u, 2u, 0u, 0x1feu, 0x7dde0000u, 0x1bd5bu, 0xffffffffu, 0u, 0xf0000000u, 0xfffffffu});
+    run_and_compare_num(
+        s,
+        {0u, 0u, 2u, 0u, 0x1feu, 0x7dde0000u, 0x1bd5bu, 0xffffffffu, 0u, 0xf0000000u, 0xfffffffu} // NOLINT
+    );
 }
 
 TEST_F(Bitwise, ror) {
@@ -298,7 +302,7 @@ sys &test_au ; 0xdeadbeef
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0x56781234u, 0xfcf9dfffu, 0x2u, 0xdeadbeefu});
+    run_and_compare_num(s, {0u, 0x56781234u, 0xfcf9dfffu, 0x2u, 0xdeadbeefu}); // NOLINT
 }
 
 TEST_F(Bitwise, rol) {
@@ -325,7 +329,7 @@ sys &test_au ; 0xdeadbeef
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 0x56781234u, 0x3e77ffffu, 0x80000000u, 0xdeadbeefu});
+    run_and_compare_num(s, {0u, 0x56781234u, 0x3e77ffffu, 0x80000000u, 0xdeadbeefu}); // NOLINT
 }
 
 TEST_F(Bitwise, set) {
@@ -351,7 +355,7 @@ sys &test_au ; 1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {2u, 0u, 0x80000000u, 1u, 0xdu, 1u});
+    run_and_compare_num(s, {2u, 0u, 0x80000000u, 1u, 0xdu, 1u}); // NOLINT
 }
 
 TEST_F(Bitwise, clr) {
@@ -376,7 +380,7 @@ sys &test_au ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1u, 0u, 0x7fffffffu, 1u, 5u, 0u});
+    run_and_compare_num(s, {1u, 0u, 0x7fffffffu, 1u, 5u, 0u}); // NOLINT
 }
 
 TEST_F(Bitwise, tgl) {
@@ -401,7 +405,7 @@ sys &test_au ; 3
 
 hlt
 )EOF";
-    run_and_compare_num(s, {3u, 0u, 0x7fffffffu, 1u, 5u, 3u});
+    run_and_compare_num(s, {3u, 0u, 0x7fffffffu, 1u, 5u, 3u}); // NOLINT
 }
 
 TEST_F(Bitwise, test) {
@@ -418,7 +422,5 @@ sys &test_r ; 0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 1u, 0u, 0u});
+    run_and_compare_num(s, {0u, 1u, 0u, 0u}); // NOLINT
 }
-
-#pragma clang diagnostic pop

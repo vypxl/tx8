@@ -29,6 +29,8 @@
 - 16 megabyte memory
 - 4 byte addresses
 - reading or writing out of bounds (beyond 0xffffff) truncates the address to 24-bit: `0x12345678 => 0x345678`
+- when reading at the edge of memory, 0 is read for all out of bounds bytes
+- when writing at the edge of memory, all out of bounds bytes are ignored
 - 4mb (#0x000000 - #0x3fffff) system reserved / registers (read/writable)
 - 8mb (#0x400000 - #0xbfffff) loaded cartridge data (read/writable)
 - 4mb (#0xc00000 - #0xffffff) work RAM (read/writable)
@@ -49,7 +51,12 @@ When mixing registers or other destinations of different sizes, the first parame
 operation.
 This means when writing to `ab`, the operation is executed in 8-bit mode, the second parameter is truncated to 8-bit.
 On the other hand, when writing to `as`, or `ai` / `a`, the operation is executed in 16/32-bit mode and the second
-parameter is extended or truncated to the size of the first parameter.
+parameter is extended or truncated to the size of the first parameter. This does not hold for arithmetic instructions.
+Those are always executed in 32 bit mode, regardless of the sources and destinations. See [arithmetic](#arithmetic)
+for more information.
+
+Beware that when using smaller registers as destinations, only the lower bytes will be set, the upper bytes will
+retain their previous value. You can use something like `ld a as` afterwards to set the upper bits to zero.
 
 When reading from a smaller register in an operation that requires a 32-bit value, the value is zero-extended.
 When writing a larger value to a smaller register, the result is truncated.
@@ -92,7 +99,7 @@ In binary, parameter modes are indicated by the 0-1 bytes after the opcode. Ever
 parameter mode.
 
 | Code | Mode             |
-|------|------------------|
+| ---- | ---------------- |
 | 0x0  | Unused           |
 | 0x1  | Constant 8bit    |
 | 0x2  | Constant 16bit   |
@@ -161,7 +168,7 @@ If you want to jump based on the result of a `test` bit test operation, use `jne
 tested bit was 1, `jeq` to jump if the tested bit was 0.
 
 | Opcode | Asm  | Parameters | Operation                                | Example       |
-|--------|------|------------|------------------------------------------|---------------|
+| ------ | ---- | ---------- | ---------------------------------------- | ------------- |
 | 0x00   | hlt  | `00`       | halt / stop execution                    | `hlt`         |
 | 0x01   | nop  | `00`       | no operation                             | `nop`         |
 | 0x02   | jmp  | `v0`       | jump to address                          | `jmp :label`  |
@@ -218,27 +225,30 @@ Push and pop behave like this:
 - `pop register` pops as many bytes as the register has (A=4, As=2, Ab=1)
 - `pop address` pops 4 bytes
 
-| Opcode | Asm  | Parameters | Operation                                             | Example        |
-|--------|------|------------|-------------------------------------------------------|----------------|
-| 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2)    | `ld A 42`      |
-| 0x11   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 | `lw a #c01234` |
-| 0x12   | lda  | `v0`       | load value into register A                            | `lda 42`       |
-| 0x13   | sta  | `w0`       | store value from register A into parameter1           | `sta $2`       |
-| 0x14   | ldb  | `v0`       | load value into register B                            | `ldb 55`       |
-| 0x15   | stb  | `w0`       | store value from register B into parameter1           | `stb a`        |
-| 0x16   | ldc  | `v0`       | load value into register C                            | `ldc $32`      |
-| 0x17   | stc  | `w0`       | store value from register C into parameter1           | `stc #c01234`  |
-| 0x18   | ldd  | `v0`       | load value into register D                            | `ldd @cb`      |
-| 0x19   | std  | `w0`       | store value from register D into parameter1           | `std $-35`     |
-| 0x1a   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                | `zero a`       |
-| 0x1b   | push | `v0`       | push onto stack                                       | `push a`       |
-| 0x1c   | pop  | `w0`       | pop from stack                                        | `pop a`        |
+| Opcode | Asm  | Parameters | Operation                                                                            | Example        |
+| ------ | ---- | ---------- | ------------------------------------------------------------------------------------ | -------------- |
+| 0x10   | ld   | `wv`       | load value (parameter2) into parameter1 (p1 := p2) (zero extension on small values)  | `ld A 42`      |
+| 0x11   | lds  | `wv`       | same as `ld`, but values will be sign extended                                       | `ld A 42`      |
+| 0x12   | lw   | `wv`       | load a word (4 bytes) from parameter2 into parameter1 (values will be zero extended) | `lw a #c01234` |
+| 0x13   | lws  | `wv`       | same as `lw`, but values will be sign extended                                       | `lws a -1`     |
+| 0x14   | lda  | `v0`       | load value into register A                                                           | `lda 42`       |
+| 0x15   | sta  | `w0`       | store value from register A into parameter1                                          | `sta $2`       |
+| 0x16   | ldb  | `v0`       | load value into register B                                                           | `ldb 55`       |
+| 0x17   | stb  | `w0`       | store value from register B into parameter1                                          | `stb a`        |
+| 0x18   | ldc  | `v0`       | load value into register C                                                           | `ldc $32`      |
+| 0x19   | stc  | `w0`       | store value from register C into parameter1                                          | `stc #c01234`  |
+| 0x1a   | ldd  | `v0`       | load value into register D                                                           | `ldd @cb`      |
+| 0x1b   | std  | `w0`       | store value from register D into parameter1                                          | `std $-35`     |
+| 0x1c   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                                               | `zero a`       |
+| 0x1d   | push | `v0`       | push onto stack                                                                      | `push a`       |
+| 0x1e   | pop  | `w0`       | pop from stack                                                                       | `pop a`        |
 
 #### Arithmetic
 
 All arithmetic operations are in-place on the first parameter, so an `add a 5` increments register A by 5.
 
-By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended.
+By default, all arithmetic operations are 32-bit, smaller integer constants and smaller registers are zero-extended
+or sign-extended, depending on the instruction (signend integer instructions sign extend, others zero-extend).
 When a smaller register is the destination of an operation, the result is truncated to the size of the register.
 
 Normal instructions operate on signed integers. If you have unsigned integers
@@ -250,7 +260,7 @@ or floats, you have to use the specialized instructions.
   See [flow control](#flow-control).
 - The `inc`, `dec`, `add` and `sub` instructions set the `R` register's lowest bit if there was an unsigned overflow,
   and the second-lowest bit if there was a signed overflow.
-- The `mul` and `umul` instructions sets the `R` register to the top half of the result.
+- The `mul` and `umul` instructions sets the `R` register to the top 32 bit of the 64 bit result.
 - The `div`, and `udiv` instructions sets the `R` register to the remainder of the division.
 - The `max`, `min`, `fmax`, `fmin`, `umax` and `umin` instructions set the `R` register to the discarded value.
 - The `abs` and `fabs` instructions sets the `R` register to the signum of the original value (in the respective data
@@ -271,12 +281,26 @@ max r 2
 
 This would result in the value `1` being stored in `R` and the value `2` being discarded.
 
+Note that the reason why there are `add` and `uadd` instructions is that the the signed `add` sign-extends smaller values,
+and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constantst, you should use
+the correct instruction.
+The same goes for `sub` / `usub`.
+
+Note that the R register behaviour aims to be 'what the programmer expects'. Take the `sll` instruction. When shifting
+the `Ab` register by 8 bits, the `R` register will contain these 8 bits, even if, when considering the 32-bit default mode
+for arithmetic, it would contain just zeros.
+
+##### Increment and decrement
+
+| Opcode | Asm | Parameters | Operation | Example  |
+| ------ | --- | ---------- | --------- | -------- |
+| 0x20   | inc | `w0`       | increment | `inc a`  |
+| 0x21   | dec | `w0`       | decrement | `dec $1` |
+
 ##### Signed Integer Operations
 
 | Opcode | Asm  | Parameters | Operation         | Example    |
-|--------|------|------------|-------------------|------------|
-| 0x20   | inc  | `w0`       | increment         | `inc a`    |
-| 0x21   | dec  | `w0`       | decrement         | `dec $1`   |
+| ------ | ---- | ---------- | ----------------- | ---------- |
 | 0x22   | add  | `wv`       | add               | `add a 5`  |
 | 0x23   | sub  | `wv`       | subtract          | `sub a 8`  |
 | 0x24   | mul  | `wv`       | multiply          | `mul a -2` |
@@ -290,7 +314,7 @@ This would result in the value `1` being stored in `R` and the value `2` being d
 ##### Bitwise Operations
 
 | Opcode | Asm  | Parameters | Operation                                    | Example            |
-|--------|------|------------|----------------------------------------------|--------------------|
+| ------ | ---- | ---------- | -------------------------------------------- | ------------------ |
 | 0x30   | and  | `wv`       | and                                          | `and c 0b10011010` |
 | 0x31   | or   | `wv`       | or                                           | `or c 0x7f`        |
 | 0x32   | not  | `w0`       | not                                          | `not c`            |
@@ -311,32 +335,32 @@ considered. Analogously, the bit position for `set`, `clr`, `tgl`, and `test` is
 
 ##### Floating Point Operations
 
-| Opcode | Asm   | Parameters   | Operation                                | Example          |
-|--------|-------|--------------|------------------------------------------|------------------|
-| 0x40   | finc  | `w0`         | floating point increment                 | `finc a`         |
-| 0x41   | fdec  | `w0`         | floating point decrement                 | `fdec $1`        |
-| 0x42   | fadd  | `wv`         | floating point add                       | `fadd a 5.0`     |
-| 0x43   | fsub  | `wv`         | floating point subtract                  | `fsub a 8`       |
-| 0x44   | fmul  | `wv`         | floating point multiply                  | `fmul a -2.7924` |
-| 0x45   | fdiv  | `wv`         | floating point divide                    | `fdiv a 5.2`     |
-| 0x46   | fmod  | `wv`         | floating point remainder                 | `fmod a 7`       |
-| 0x47   | fmax  | `wv`         | floating point max                       | `fmax a 2.5`     |
-| 0x48   | fmin  | `wv`         | floating point min                       | `fmin a 2.5`     |
-| 0x49   | fabs  | `w0`         | floating point absolute value            | `fabs b`         |
-| 0x4a   | fsign | `w0`         | floating point signum (-1.0 / 0.0 / 1.0) | `fsign b`        |
-| 0x4b   | sin   | `w0`         | sine                                     | `sin a`          |
-| 0x4c   | cos   | `w0`         | cosine                                   | `cos b`          |
-| 0x4d   | tan   | `w0`         | tangent                                  | `tan b`          |
-| 0x4e   | asin  | `w0`         | arc sine                                 | `asin a`         |
-| 0x4f   | acos  | `w0`         | arc cosine                               | `acos b`         |
-| 0x50   | atan  | `w0`         | arc tangent                              | `atan b`         |
-| 0x51   | atan2 | `wv`         | p1 := atan2(p1, p2)                      | `atan2 a b`      |
-| 0x52   | sqrt  | `w0`         | square root                              | `sqrt a`         |
-| 0x53   | pow   | `wv`         | power (p1 := p1 ^ p2)                    | `pow a b`        |
-| 0x54   | exp   | `w0`         | exponential (p1 := exp(p1))              | `exp a`          |
-| 0x55   | log   | `w0`         | natural logarithm (p1 := ln(p1))         | `log a`          |
-| 0x56   | log2  | `w0`         | base 2 logarithm                         | `log2 a`         |
-| 0x57   | log10 | `w0`         | base 10 logarithm                        | `log10 a`        |
+| Opcode | Asm   | Parameters | Operation                                | Example          |
+| ------ | ----- | ---------- | ---------------------------------------- | ---------------- |
+| 0x40   | finc  | `w0`       | floating point increment                 | `finc a`         |
+| 0x41   | fdec  | `w0`       | floating point decrement                 | `fdec $1`        |
+| 0x42   | fadd  | `wv`       | floating point add                       | `fadd a 5.0`     |
+| 0x43   | fsub  | `wv`       | floating point subtract                  | `fsub a 8`       |
+| 0x44   | fmul  | `wv`       | floating point multiply                  | `fmul a -2.7924` |
+| 0x45   | fdiv  | `wv`       | floating point divide                    | `fdiv a 5.2`     |
+| 0x46   | fmod  | `wv`       | floating point remainder                 | `fmod a 7`       |
+| 0x47   | fmax  | `wv`       | floating point max                       | `fmax a 2.5`     |
+| 0x48   | fmin  | `wv`       | floating point min                       | `fmin a 2.5`     |
+| 0x49   | fabs  | `w0`       | floating point absolute value            | `fabs b`         |
+| 0x4a   | fsign | `w0`       | floating point signum (-1.0 / 0.0 / 1.0) | `fsign b`        |
+| 0x4b   | sin   | `w0`       | sine                                     | `sin a`          |
+| 0x4c   | cos   | `w0`       | cosine                                   | `cos b`          |
+| 0x4d   | tan   | `w0`       | tangent                                  | `tan b`          |
+| 0x4e   | asin  | `w0`       | arc sine                                 | `asin a`         |
+| 0x4f   | acos  | `w0`       | arc cosine                               | `acos b`         |
+| 0x50   | atan  | `w0`       | arc tangent                              | `atan b`         |
+| 0x51   | atan2 | `wv`       | p1 := atan2(p1, p2)                      | `atan2 a b`      |
+| 0x52   | sqrt  | `w0`       | square root                              | `sqrt a`         |
+| 0x53   | pow   | `wv`       | power (p1 := p1 ^ p2)                    | `pow a b`        |
+| 0x54   | exp   | `w0`       | exponential (p1 := exp(p1))              | `exp a`          |
+| 0x55   | log   | `w0`       | natural logarithm (p1 := ln(p1))         | `log a`          |
+| 0x56   | log2  | `w0`       | base 2 logarithm                         | `log2 a`         |
+| 0x57   | log10 | `w0`       | base 10 logarithm                        | `log10 a`        |
 
 Beware that floating point operations do not behave as expected when using integer immediates.
 They are **not** converted to floating point values, instead their underlying bits are reinterpreted
@@ -348,18 +372,20 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 
 ##### Unsigned Integer Operations
 
-| Opcode | Asm   | Parameters | Operation                                  | Example       |
-|--------|-------|------------|--------------------------------------------|---------------|
-| 0x60   | umul  | `wv`       | unsigned multiply                          | `umul a b`    |
-| 0x61   | udiv  | `wv`       | unsigned divide                            | `udiv a b`    |
-| 0x62   | umod  | `wv`       | unsigned remainder                         | `umod a b`    |
-| 0x63   | umax  | `wv`       | unsigned max                               | `umax a 2`    |
-| 0x64   | umin  | `wv`       | unsigned min                               | `umin a 0x42` |
+| Opcode | Asm  | Parameters | Operation          | Example       |
+| ------ | ---- | ---------- | ------------------ | ------------- |
+| 0x60   | uadd | `wv`       | unsigned add       | `add a 5`     |
+| 0x61   | usub | `wv`       | unsigned subtract  | `sub a 8`     |
+| 0x62   | umul | `wv`       | unsigned multiply  | `umul a b`    |
+| 0x63   | udiv | `wv`       | unsigned divide    | `udiv a b`    |
+| 0x64   | umod | `wv`       | unsigned remainder | `umod a b`    |
+| 0x65   | umax | `wv`       | unsigned max       | `umax a 2`    |
+| 0x66   | umin | `wv`       | unsigned min       | `umin a 0x42` |
 
 ##### Miscellaneous Operations
 
 | Opcode | Asm   | Parameters | Operation                                                                              | Example    |
-|--------|-------|------------|----------------------------------------------------------------------------------------|------------|
+| ------ | ----- | ---------- | -------------------------------------------------------------------------------------- | ---------- |
 | 0x70   | rand  | `w0`       | p1 := pseudo random float between 0 and 1                                              | `rand $0`  |
 | 0x71   | rseed | `v0`       | set random seed                                                                        | `rseed 42` |
 | 0x72   | itf   | `w0`       | convert integer to floating point                                                      | `itf a`    |
@@ -372,7 +398,7 @@ this usage results in undefined behaviour (there is no half/quarter precision fl
 
 When converting floating point values to int or uint, the conversion behaves like a c-style cast. This means the
 fractional part is discarded, and if the magnitude of the float is too large for the receiving datatype, the result
-is undefined.
+is undefined. The result is also undefined when trying to convert a negative float to an unsigned int.
 
 ###### The random number generator
 
@@ -390,7 +416,7 @@ it is found in the `R` register. To get a random integer without affecting any o
 TX8 programs or games are distributed as binary files. These files must include a header at the top.
 
 | Bytes | Type                                 | Meaning / Content                                                                       |
-|-------|--------------------------------------|-----------------------------------------------------------------------------------------|
+| ----- | ------------------------------------ | --------------------------------------------------------------------------------------- |
 | 0-3   | Magic bytes                          | `0x54 0x58 0x38` (or `TX8` in ascii)                                                    |
 | 4     | Little endian 8bit unsigned integer  | program name length in bytes (0 for no name)                                            |
 | 5-6   | Little endian 16bit unsigned integer | description length in bytes (0 for no description)                                      |

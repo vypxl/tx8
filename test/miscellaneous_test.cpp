@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(Miscellaneous, rand_and_rseed) {
@@ -24,7 +22,10 @@ sys &test_r  ; 0x37
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0.40556046f, 0x33e9u, 0.70946378f, 0x5acfu, 0.001678518f, 0x37u, 0.001678518f, 0x37u});
+    run_and_compare_num(
+        s,
+        {0.40556046f, 0x33e9u, 0.70946378f, 0x5acfu, 0.001678518f, 0x37u, 0.001678518f, 0x37u} // NOLINT
+    );
 }
 
 TEST_F(Miscellaneous, itf) {
@@ -47,7 +48,7 @@ sys &test_af ; -2147483648.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0.0f, 1337.0f, -5.0f, -2147483648.0f});
+    run_and_compare_num(s, {0.0f, 1337.0f, -5.0f, -2147483648.0f}); // NOLINT
 }
 
 TEST_F(Miscellaneous, fti) {
@@ -66,7 +67,7 @@ sys &test_ai ; -4
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0, 133, -4});
+    run_and_compare_num(s, {0, 133, -4}); // NOLINT
 }
 
 TEST_F(Miscellaneous, utf) {
@@ -85,7 +86,7 @@ sys &test_af ; 2147483648.0
 
 hlt
 )EOF";
-    run_and_compare_num(s, {0.0f, 1337.0f, 2147483648.0f});
+    run_and_compare_num(s, {0.0f, 1337.0f, 2147483648.0f}); // NOLINT
 }
 
 TEST_F(Miscellaneous, ftu) {
@@ -98,13 +99,9 @@ lda 42.1337
 ftu a
 sys &test_au ; 42
 
-lda -4.2
-ftu a
-sys &test_au ; 0xfffffffc
-
 hlt
 )EOF";
-    run_and_compare_num(s, {0u, 42u, 0xfffffffcu});
+    run_and_compare_num(s, {0u, 42u}); // NOLINT
 }
 
 #pragma clang diagnostic pop

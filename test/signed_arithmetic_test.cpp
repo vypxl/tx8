@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic   ignored "readability-magic-numbers"
 #include "VMTest.hpp"
 
 TEST_F(Signed, inc) {
@@ -20,7 +18,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {1u, 0u, 0u, INT32_MIN, 0b10u});
+    run_and_compare_num(s, {1u, 0u, 0u, INT32_MIN, 0b10u}); // NOLINT
 }
 
 TEST_F(Signed, dec) {
@@ -41,7 +39,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {-1, -2, 0u, INT32_MAX, 0b10u});
+    run_and_compare_num(s, {-1, -2, 0u, INT32_MAX, 0b10u}); // NOLINT
 }
 
 TEST_F(Signed, add) {
@@ -89,7 +87,7 @@ sys &test_r; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {5u, 0u, 0u, 0u, 0xfffffffeu, 2, 2, -2, -3, -9, 0b10u});
+    run_and_compare_num(s, {5u, 0u, 0u, 0u, 0xfffffffeu, 2, 2, -2, -3, -9, 0b10u}); // NOLINT
 }
 
 TEST_F(Signed, sub) {
@@ -104,7 +102,7 @@ sys &test_au ; 1f
 sys &test_r ; 0 (no overflow)
 
 lda 0xdeadbeef
-sub a 0xbeef
+sub a 0x0beefu32
 sys &test_au ; 0xdead0000
 
 lda 0x12345
@@ -138,7 +136,7 @@ sys &test_r ; 0b10 (signed overflow)
 
 hlt
 )EOF";
-    run_and_compare_num(s, {-1, 0x1fu, 0b0u, 0xdead0000u, 0u, 6, -4, -8, 3, -1, 0x7ffffffbu, 0b10u});
+    run_and_compare_num(s, {-1, 0x1fu, 0b0u, 0xdead0000u, 0u, 6, -4, -8, 3, -1, 0x7ffffffbu, 0b10u}); // NOLINT
 }
 
 TEST_F(Signed, mul) {
@@ -188,7 +186,10 @@ sys &test_r ; 0x5
 
 hlt
 )EOF";
-    run_and_compare_num(s, {6u, 0u, 0u, 0u, 0xffffffffu, 0xffffffffu, 1u, 0u, -77, -385, 385, 0xaadbeef0u, 0x5u});
+    run_and_compare_num(
+        s,
+        {6u, 0u, 0u, 0u, 0xffffffffu, 0xffffffffu, 1u, 0u, -77, -385, 385, 0xaadbeef0u, 0x5u}
+    ); // NOLINT
 }
 
 TEST_F(Signed, div) {
@@ -230,10 +231,12 @@ sys &test_ai ; error
 
 hlt
 )EOF";
-    run_and_compare_num(s,
-                        {0, 2u, 0, 3, 0u, 1337, -7, -3, 0xffffffffu, 7},
-                        "Exception: Division by zero\nCaused by instruction:\n"
-                        "[#40009d] div a <0x0 | 0 | 0.00000>\n");
+    run_and_compare_num(
+        s,
+        {0, 2u, 0, 3, 0u, 1337, -7, -3, 0xffffffffu, 7}, // NOLINT
+        "Exception: Division by zero\nCaused by instruction:\n"
+        "[#40009d] div a <0x0 | 0 | 0.00000>\n"
+    );
 }
 
 TEST_F(Signed, mod) {
@@ -272,10 +275,12 @@ sys &test_ai ; error
 
 hlt
 )EOF";
-    run_and_compare_num(s,
-                        {2, 0, 2, 0, -1, -1, 1},
-                        "Exception: Division by zero\nCaused by instruction:\n"
-                        "[#40008b] mod a <0x0 | 0 | 0.00000>\n");
+    run_and_compare_num(
+        s,
+        {2, 0, 2, 0, -1, -1, 1}, // NOLINT
+        "Exception: Division by zero\nCaused by instruction:\n"
+        "[#40008b] mod a <0x0 | 0 | 0.00000>\n"
+    );
 }
 
 TEST_F(Signed, max) {
@@ -300,7 +305,7 @@ sys &test_ai ; -1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {3, 2u, 5, 0, 0xffffd8f1u, -1});
+    run_and_compare_num(s, {3, 2u, 5, 0, 0xffffd8f1u, -1}); // NOLINT
 }
 
 TEST_F(Signed, min) {
@@ -326,7 +331,7 @@ sys &test_ai ; -1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {2, 3u, -5, -9999, 0u, -1});
+    run_and_compare_num(s, {2, 3u, -5, -9999, 0u, -1}); // NOLINT
 }
 
 TEST_F(Signed, abs) {
@@ -358,7 +363,7 @@ sys &test_ai ; -2147483648
 
 hlt
 )EOF";
-    run_and_compare_num(s, {2, 0xffffffffu, 0, 0u, 42, 1u, 1, (INT32_MIN)});
+    run_and_compare_num(s, {2, 0xffffffffu, 0, 0u, 42, 1u, 1, (INT32_MIN)}); // NOLINT
 }
 
 TEST_F(Signed, sign) {
@@ -377,7 +382,5 @@ sys &test_ai ; 1
 
 hlt
 )EOF";
-    run_and_compare_num(s, {-1, 0, 1});
+    run_and_compare_num(s, {-1, 0, 1}); // NOLINT
 }
-
-#pragma clang diagnostic pop
