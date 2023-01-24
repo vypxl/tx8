@@ -353,6 +353,9 @@ namespace tx {
     /// Mask to get the mode of parameter 2 in the first parameter mode byte
     const uint32 PARAM_MODE_2_MASK = 0xfu;
 
+    /// Constant to have the maximum allowed memory address
+    const uint32 MAX_MEMORY_ADDRESS = 0xffffff;
+
     // clang-format off
     /// Mapping of opcodes to their respective parameter counts
     const std::array<uint8, 256> param_count = {
