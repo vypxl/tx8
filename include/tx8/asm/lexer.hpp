@@ -4,12 +4,11 @@
 
 #include <istream>
 #include <memory>
+#include <optional>
 
 namespace tx {
     namespace lexer::token {
-        struct EndOfFile { };
         struct EndOfLine { };
-        struct Space { };
         struct Register {
             tx::Register which;
         };
@@ -57,9 +56,7 @@ namespace tx {
     class Lexer {
       public:
         using LexerToken = std::variant<
-            tx::lexer::token::EndOfFile,
             tx::lexer::token::EndOfLine,
-            tx::lexer::token::Space,
             tx::lexer::token::Register,
             tx::lexer::token::RegisterAddress,
             tx::lexer::token::AbsoluteAddress,
@@ -74,20 +71,32 @@ namespace tx {
             tx::lexer::token::Label,
             tx::lexer::token::Alias,
             tx::lexer::token::Invalid>;
+
         explicit Lexer(std::istream& input) : is(input) {};
 
-        LexerToken next_token();
+        std::optional<LexerToken> next_token();
 
       private:
         std::istream& is;
+
+        void                        readSpace();
+        std::optional<tx::Register> readRegister();
+        std::optional<tx::uint32>   readAddress();
+        std::optional<std::string>  readIdentifier();
+        std::optional<LexerToken>   readInteger8();
+        std::optional<LexerToken>   readInteger16();
+        std::optional<LexerToken>   readInteger32();
+        std::optional<LexerToken>   readOpcode0();
+        std::optional<LexerToken>   readOpcode1();
+        std::optional<LexerToken>   readOpcode2();
+        std::optional<LexerToken>   readFloat();
+        LexerToken                  readInvalid();
     };
 } // namespace tx
 
 #define o(t) std::ostream& operator<<(std::ostream& os, const tx::lexer::token::t& token)
 
-o(EndOfFile);
 o(EndOfLine);
-o(Space);
 o(Register);
 o(RegisterAddress);
 o(AbsoluteAddress);
