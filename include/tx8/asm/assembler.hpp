@@ -14,17 +14,18 @@
 
 #include <fmt/format.h>
 #include <optional>
+#include <sstream>
 #include <vector>
 
 namespace tx {
     class Assembler {
-        std::vector<Label>            labels;
-        std::vector<Instruction>      instructions;
-        uint32                        position      = 0;
-        uint32                        last_label_id = 1;
-        bool                          error         = false;
-        bool                          ran           = false;
-        std::unique_ptr<std::istream> is;
+        std::vector<Label>       labels;
+        std::vector<Instruction> instructions;
+        uint32                   position      = 0;
+        uint32                   last_label_id = 1;
+        bool                     error         = false;
+        bool                     ran           = false;
+        std::istringstream       is;
 
         tx::Lexer  lexer;
         tx::Parser parser;
@@ -50,7 +51,7 @@ namespace tx {
       public:
         /// @brief Construct the assembler with the given input stream
         /// @param input The input stream to read the assembly code from
-        explicit Assembler(std::unique_ptr<std::istream> input);
+        explicit Assembler(std::istream& input);
         /// Construct the assembler with a string containing the assembly code
         explicit Assembler(const std::string& input);
         /// Construct the assembler with a C-string containing the assembly code

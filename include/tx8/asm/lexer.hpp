@@ -74,12 +74,12 @@ namespace tx {
             tx::lexer::token::Label,
             tx::lexer::token::Alias,
             tx::lexer::token::Invalid>;
-        explicit Lexer(std::unique_ptr<std::istream> input) : is(std::move(input)) {};
+        explicit Lexer(std::istream& input) : is(input) {};
 
         LexerToken next_token();
 
       private:
-        std::unique_ptr<std::istream> is;
+        std::istream& is;
     };
 } // namespace tx
 

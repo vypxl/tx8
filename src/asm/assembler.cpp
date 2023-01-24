@@ -10,9 +10,9 @@
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
-tx::Assembler::Assembler(std::unique_ptr<std::istream> input) : lexer(std::move(input)), parser(lexer) { }
+tx::Assembler::Assembler(std::istream& input) : lexer(input), parser(lexer) { }
 
-tx::Assembler::Assembler(const std::string& input) : Assembler(std::make_unique<std::istringstream>(input)) { }
+tx::Assembler::Assembler(const std::string& input) : is(input), lexer(is), parser(lexer) { }
 
 tx::Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
 
