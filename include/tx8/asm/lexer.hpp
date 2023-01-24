@@ -1,21 +1,17 @@
 #pragma once
 
-#ifndef yyFlexLexerOnce
-#undef yyFlexLexer
-#define yyFlexLexer tx_lex_FlexLexer
-#include <FlexLexer.h>
-#endif
+#include <istream>
+#include <memory>
 
-#undef YY_DECL
-#define YY_DECL tx::parser::Parser::symbol_type tx::parser::Lexer::get_next_token()
-
-#include "tx8_parser.hpp"
-
-namespace tx::parser {
-    class Lexer : public yyFlexLexer { // NOLINT
+namespace tx {
+    struct LexerToken { };
+    class Lexer {
       public:
-        Lexer()          = default;
-        virtual ~Lexer() = default; // NOLINT
-        virtual tx::parser::Parser::symbol_type get_next_token();
+        explicit Lexer(std::unique_ptr<std::istream> input) : is(std::move(input)) {};
+
+        tx::LexerToken next_token();
+
+      private:
+        std::unique_ptr<std::istream> is;
     };
-} // namespace tx::parser
+} // namespace tx
