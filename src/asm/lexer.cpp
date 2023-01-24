@@ -6,6 +6,7 @@
 #include <limits>
 
 using std::optional;
+using std::string;
 using tx::Lexer;
 using namespace tx::lexer::token;
 using LexerToken = tx::Lexer::LexerToken;
@@ -20,10 +21,58 @@ void Lexer::readSpace() {
     if (is.peek() != std::char_traits<char>::eof()) is.unget();
 }
 
-LexerToken Lexer::readInvalid() {
-    std::string s;
-    is >> s;
-    return Invalid {s};
+optional<tx::Register> readReg(const string& s) {
+    tx::Register r = tx::reg_id_from_name(s);
+    if (r != tx::Register::Invalid) return r;
+    return std::nullopt;
+}
+
+optional<LexerToken> readRegister(const string& s) {
+    auto r = readReg(s);
+    if (r.has_value()) return Register {*r};
+    return std::nullopt;
+}
+
+optional<LexerToken> readOpcode(const string& s) {
+    tx::Opcode o = tx::opcode_from_name(s);
+    if (o != tx::Opcode::Invalid) return Opcode {o};
+    return std::nullopt;
+}
+
+optional<std::string> readIdentifier(const string& s) {
+    if (s.empty()) return std::nullopt;
+    if (std::isalpha(s[0]) == 0) return std::nullopt;
+    for (const auto& c : s) {
+        if ((std::isalnum(c) == 0) && c != '_' && c != '-') return std::nullopt;
+    }
+    return s;
+}
+
+// TODO: Implement
+optional<LexerToken> readInteger(const string& s) {
+    if (s.empty()) return std::nullopt;
+    return std::nullopt;
+}
+
+optional<tx::uint32> readAddress(const string& s, bool allow_negative = false) {
+    size_t    pos;
+    long long i;
+    try {
+        i = std::stoll(s, &pos, 16); // NOLINT
+    } catch (const std::invalid_argument&) { return std::nullopt; } catch (const std::out_of_range&) {
+        return std::nullopt;
+    }
+
+    if (s.c_str()[pos] != 0) return std::nullopt;
+    if (i > tx::MAX_MEMORY_ADDRESS || i < -((long long) tx::MAX_MEMORY_ADDRESS)) return std::nullopt;
+    if (i < 0 && !allow_negative) return std::nullopt;
+    return i;
+}
+
+// TODO: Implement
+optional<LexerToken> readFloat(const string& s) {
+    if (s.empty()) return std::nullopt;
+    return std::nullopt;
 }
 
 optional<LexerToken> Lexer::next_token() {
@@ -36,44 +85,40 @@ optional<LexerToken> Lexer::next_token() {
     }
 
     optional<LexerToken> token = std::nullopt;
-    std::string          s;
+    string               s;
     is >> s;
 
     switch (c) {
         case ':':
             s.erase(s.begin());
-            token = readIdentifier().transform([](const auto& s) { return LabelT {s}; });
+            token = readIdentifier(s).transform([](const auto& s) { return LabelT {s}; });
             break;
         case '&':
             s.erase(s.begin());
-            token = readIdentifier().transform([](const auto& s) { return Alias {s}; });
+            token = readIdentifier(s).transform([](const auto& s) { return Alias {s}; });
             break;
         case '@':
             s.erase(s.begin());
-            token = readRegister().transform([](const auto& r) { return RegisterAddress {r}; });
+            token = readReg(s).transform([](const auto& r) { return RegisterAddress {r}; });
             break;
         case '#':
             s.erase(s.begin());
-            token = readAddress().transform([](const auto& r) { return AbsoluteAddress {r}; });
+            token = readAddress(s).transform([](const auto& r) { return AbsoluteAddress {r}; });
             break;
         case '$':
             s.erase(s.begin());
-            token = readAddress().transform([](const auto& r) { return RelativeAddress {r}; });
+            token = readAddress(s, true).transform([](const auto& r) { return RelativeAddress {r}; });
             break;
         default:
-            token = readOpcode0()
-                        .or_else([&]() { return readOpcode1(); })
-                        .or_else([&]() { return readOpcode2(); })
-                        .or_else([&]() {
-                            return readRegister().transform([](const auto& r) { return LexerToken {RegisterT {r}}; });
-                        })
-                        .or_else([&]() { return readInteger8(); })
-                        .or_else([&]() { return readInteger16(); })
-                        .or_else([&]() { return readInteger32(); })
-                        .or_else([&]() { return readFloat(); });
+            // clang-format off
+            token = readOpcode(s)
+                .or_else([&]() { return readRegister(s); })
+                .or_else([&]() { return readInteger(s); })
+                .or_else([&]() { return readFloat(s); });
+            // clang-format on
     }
 
-    return token.value_or(readInvalid());
+    return token.value_or(Invalid {s});
 }
 
 #define o0(t, name) \
@@ -97,12 +142,8 @@ o1t(Register, "Register", which, tx::reg_names);
 o1t(RegisterAddress, "RegisterAddress", which, tx::reg_names);
 o1(AbsoluteAddress, "AbsoluteAddress", address);
 o1(RelativeAddress, "RelativeAddress", address);
-o1(Integer8, "Integer8", value);
-o1(Integer16, "Integer16", value);
-o1(Integer32, "Integer32", value);
-o1t(Opcode0, "Opcode0", opcode, tx::op_names);
-o1t(Opcode1, "Opcode1", opcode, tx::op_names);
-o1t(Opcode2, "Opcode2", opcode, tx::op_names);
+o1(Integer, "Integer", value);
+o1t(Opcode, "Opcode", opcode, tx::op_names);
 o1(Float, "Float", value);
 o1(Label, "Label", name);
 o1(Alias, "Alias", name);

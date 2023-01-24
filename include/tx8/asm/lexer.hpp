@@ -21,22 +21,11 @@ namespace tx {
         struct RelativeAddress {
             tx::uint32 address;
         };
-        struct Integer8 {
-            tx::uint8 value;
+        struct Integer {
+            tx::uint32    value;
+            tx::ValueSize size;
         };
-        struct Integer16 {
-            tx::uint16 value;
-        };
-        struct Integer32 {
-            tx::uint32 value;
-        };
-        struct Opcode0 {
-            tx::Opcode opcode;
-        };
-        struct Opcode1 {
-            tx::Opcode opcode;
-        };
-        struct Opcode2 {
+        struct Opcode {
             tx::Opcode opcode;
         };
         struct Float {
@@ -61,12 +50,8 @@ namespace tx {
             tx::lexer::token::RegisterAddress,
             tx::lexer::token::AbsoluteAddress,
             tx::lexer::token::RelativeAddress,
-            tx::lexer::token::Integer8,
-            tx::lexer::token::Integer16,
-            tx::lexer::token::Integer32,
-            tx::lexer::token::Opcode0,
-            tx::lexer::token::Opcode1,
-            tx::lexer::token::Opcode2,
+            tx::lexer::token::Integer,
+            tx::lexer::token::Opcode,
             tx::lexer::token::Float,
             tx::lexer::token::Label,
             tx::lexer::token::Alias,
@@ -79,18 +64,7 @@ namespace tx {
       private:
         std::istream& is;
 
-        void                        readSpace();
-        std::optional<tx::Register> readRegister();
-        std::optional<tx::uint32>   readAddress();
-        std::optional<std::string>  readIdentifier();
-        std::optional<LexerToken>   readInteger8();
-        std::optional<LexerToken>   readInteger16();
-        std::optional<LexerToken>   readInteger32();
-        std::optional<LexerToken>   readOpcode0();
-        std::optional<LexerToken>   readOpcode1();
-        std::optional<LexerToken>   readOpcode2();
-        std::optional<LexerToken>   readFloat();
-        LexerToken                  readInvalid();
+        void readSpace();
     };
 } // namespace tx
 
@@ -101,12 +75,8 @@ o(Register);
 o(RegisterAddress);
 o(AbsoluteAddress);
 o(RelativeAddress);
-o(Integer8);
-o(Integer16);
-o(Integer32);
-o(Opcode0);
-o(Opcode1);
-o(Opcode2);
+o(Integer);
+o(Opcode);
 o(Float);
 o(Label);
 o(Alias);
