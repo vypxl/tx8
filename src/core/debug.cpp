@@ -8,7 +8,7 @@
 void tx::debug::print_instruction(const Instruction& inst) {
     std::stringstream s;
     s << inst;
-    tx::log_err("{}", s.str());
+    tx::log_err("{}\n", s.str());
 }
 
 void tx::debug::print_parameter(const Parameter& p) {

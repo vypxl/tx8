@@ -32,7 +32,6 @@ std::ostream& operator<<(std::ostream& os, const tx::Instruction& inst) {
     os << tx::op_names[(size_t) inst.opcode];
     if (tx::param_count[(size_t) inst.opcode] > 0) os << " " << inst.params.p1;
     if (tx::param_count[(size_t) inst.opcode] > 1) os << " " << inst.params.p2;
-    os << std::endl;
     return os;
 }
 
