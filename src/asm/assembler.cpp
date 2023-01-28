@@ -20,6 +20,19 @@ void tx::Assembler::run() {
     if (!ran) {
         parser.parse();
         ast = parser.get_ast();
+        if (parser.has_error()) {
+            tx::log_err("Parser encountered an error, did not assemble.\n");
+            return;
+        }
+        for (auto& node : ast) {
+            if (std::holds_alternative<tx::ast::Instruction>(node)) {
+                auto& inst = std::get<tx::ast::Instruction>(node);
+                add_instruction(inst.instruction);
+            } else if (std::holds_alternative<tx::ast::Label>(node)) {
+                auto& label = std::get<tx::ast::Label>(node);
+                handle_label(label.name);
+            }
+        }
         convert_labels();
     }
     ran = true;
