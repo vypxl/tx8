@@ -48,10 +48,57 @@ optional<std::string> readIdentifier(const string& s) {
     return s;
 }
 
-// TODO: Implement
-optional<LexerToken> readInteger(const string& s) {
-    if (s.empty()) return std::nullopt;
-    return std::nullopt;
+optional<LexerToken> readInteger(const string& raw) { // NOLINT
+    if (raw.empty()) return std::nullopt;
+    std::string s = raw;
+
+    bool neg = s[0] == '-';
+    if (neg) s = s.substr(1);
+
+    int base = 10; // NOLINT
+    if (s[1] == 'x') {
+        base = 16; // NOLINT
+        s    = s.substr(2);
+    } else if (s[1] == 'b') {
+        base = 2;
+        s    = s.substr(2);
+    }
+
+    size_t    pos;
+    long long i;
+    try {
+        i = std::stoll(s, &pos, base);
+    } catch (const std::invalid_argument& e) { return std::nullopt; } catch (const std::out_of_range& e) {
+        return std::nullopt;
+    }
+    if (neg) i = -i;
+    tx::uint32 value = i;
+
+#define LIM(type) std::numeric_limits<type>
+#define CASE(suffix, type, size) \
+    if (rest == #suffix) { \
+        if (i < LIM(tx::type)::min() || i > LIM(tx::type)::max()) return std::nullopt; \
+        return Integer {value, tx::ValueSize::size}; \
+    }
+
+    if (pos != s.size()) {
+        std::string rest = s.substr(pos);
+
+        CASE(i8, int8, Byte)
+        CASE(i16, int16, Short)
+        CASE(i32, int32, Word)
+        CASE(u8, uint8, Byte)
+        CASE(u16, uint16, Short)
+        CASE(u32, uint32, Word)
+
+        return std::nullopt;
+    }
+
+    if (i < LIM(tx::int32)::min() || i > LIM(tx::uint32)::max()) return std::nullopt;
+    return Integer {value, tx::ValueSize::Word};
+
+#undef LIM
+#undef CASE
 }
 
 optional<tx::uint32> readAddress(const string& s, bool allow_negative = false) {
@@ -63,16 +110,23 @@ optional<tx::uint32> readAddress(const string& s, bool allow_negative = false) {
         return std::nullopt;
     }
 
-    if (s.c_str()[pos] != 0) return std::nullopt;
+    if (pos != s.size()) return std::nullopt;
     if (i > tx::MAX_MEMORY_ADDRESS || i < -((long long) tx::MAX_MEMORY_ADDRESS)) return std::nullopt;
     if (i < 0 && !allow_negative) return std::nullopt;
     return i;
 }
 
-// TODO: Implement
 optional<LexerToken> readFloat(const string& s) {
     if (s.empty()) return std::nullopt;
-    return std::nullopt;
+    size_t      pos;
+    tx::float32 val;
+    try {
+        val = std::stof(s, &pos);
+    } catch (const std::invalid_argument&) { return std::nullopt; } catch (const std::out_of_range&) {
+        return std::nullopt;
+    }
+    if (pos != s.size()) return std::nullopt;
+    return Float {val};
 }
 
 optional<LexerToken> Lexer::next_token() {
@@ -85,8 +139,15 @@ optional<LexerToken> Lexer::next_token() {
     }
 
     optional<LexerToken> token = std::nullopt;
-    string               s;
+
+    string s;
     is >> s;
+    // this handles the case where the comment starts immediately after a token, e. g. `lda 0; comment`
+    // compare with `lda 0 ; comment` (note the space)
+    if (s.contains(';')) {
+        s = s.substr(0, s.find(';'));
+        is.putback(';');
+    }
 
     switch (c) {
         case ':':
@@ -128,7 +189,7 @@ optional<LexerToken> Lexer::next_token() {
     }
 #define o1(t, name, x) \
     std::ostream& operator<<(std::ostream& os, const t& token) { \
-        os << (name) << " ( " << token.x << " )"; \
+        os << (name) << std::hex << " ( " << token.x << " )"; \
         return os; \
     }
 #define o1t(t, name, x, table) \
