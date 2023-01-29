@@ -32,9 +32,6 @@ find_library(MATH_LIBRARY m)
 
 # Dependencies
 
-find_package(FLEX 2.6 REQUIRED)
-find_package(BISON 3.8 REQUIRED)
-
 # fmt
 
 FetchContent_Declare(
@@ -64,22 +61,10 @@ target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY} fmt::fmt)
 
 # tx8-asm
 
-set(LEXYACC_DIR "${CMAKE_BINARY_DIR}/parser_lexer")
-set(LEXER_OUT "${LEXYACC_DIR}/tx8_lexer.cpp")
-set(PARSER_OUT "${LEXYACC_DIR}/tx8_parser.cpp")
-
-flex_target(LEXER src/asm/tx8.l "${LEXER_OUT}"
-            DEFINES_FILE "${LEXYACC_DIR}/tx8_lexer.hpp")
-bison_target(PARSER src/asm/tx8.y "${PARSER_OUT}"
-             DEFINES_FILE "${LEXYACC_DIR}/tx8_parser.hpp")
-add_flex_bison_dependency(LEXER PARSER)
-
-add_library(tx8-asm SHARED src/asm/assembler.cpp ${LEXYACC_DIR}/tx8_parser.cpp
-                           ${LEXYACC_DIR}/tx8_lexer.cpp)
-target_include_directories(tx8-asm PRIVATE ${LEXYACC_DIR})
+add_library(tx8-asm SHARED src/asm/assembler.cpp src/asm/lexer.cpp
+                           src/asm/parser.cpp)
+target_include_directories(tx8-asm PRIVATE)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
-# Needed because bison generates code with warnings :(
-target_compile_options(tx8-asm PRIVATE -Wno-error)
 
 # Tests
 
@@ -97,10 +82,11 @@ add_executable(
   test/unsigned_arithmetic_test.cpp
   test/miscellaneous_test.cpp
   test/small_registers_test.cpp)
-target_include_directories(tx8-test PRIVATE ${LEXYACC_DIR})
+target_include_directories(tx8-test PRIVATE)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 
 target_compile_options(gtest PRIVATE -Wno-error)
 
 include(GoogleTest)
 gtest_discover_tests(tx8-test)
+add_test(NAME tx8-test COMMAND tx8-test)

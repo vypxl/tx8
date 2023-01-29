@@ -10,25 +10,32 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         compiler: [clang, gcc]
-        build_type: [Debug, Release]
+        build_type: [debug, release]
         include:
           - compiler: clang
-            cc: clang
-            cxx: clang++
+            cc: clang-15
+            cxx: clang++-15
           - compiler: gcc
-            cc: gcc
-            cxx: g++
+            cc: gcc-12
+            cxx: g++-12
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build bison flex libfl2 libfl-dev
+          sudo apt-get install -y ninja-build
+      - name: Install llvm
+        if: matrix.compiler == 'clang'
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 15
+          rm llvm.sh
       - uses: actions/checkout@v2
       - name: configure
         run: |
-          CC=${{ matrix.cc }} CXX=${{ matrix.cxx }} cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja .
+          CC=${{ matrix.cc }} CXX=${{ matrix.cxx }} cmake --preset ${{ matrix.build_type }}
       - name: build
-        run: cmake --build build --target all
+        run: cmake --build --preset ${{ matrix.build_type}} --target all
       - name: Run Test
-        run: cd build && ctest -V
+        run: ctest --preset ${{ matrix.build_type }} -VV

@@ -8,7 +8,6 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-
 class VMTest : public ::testing::Test { // NOLINT
   private:
     void append_num(tx::num32_variant value);
@@ -33,6 +32,10 @@ class VMTest : public ::testing::Test { // NOLINT
     bool run_code(const std::string& s);
 
     void use_testing_stdlib(tx::CPU& cpu);
+
+  public:
+    /// Whether to enable debug output
+    bool debug;
 };
 
 class Signed : public VMTest { };

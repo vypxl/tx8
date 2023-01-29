@@ -2,25 +2,61 @@
 
 #include "tx8/core/cpu.hpp"
 #include "tx8/core/debug.hpp"
+#include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
+#include "tx8/core/types.hpp"
 
 #include <sstream>
-#include <tx8/core/instruction.hpp>
-#include <tx8/core/types.hpp>
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
-tx::Assembler::Assembler(std::unique_ptr<std::istream> input) : is(std::move(input)), parser(lexer, *this) { }
+tx::Assembler::Assembler(std::istream& input) : lexer(input), parser(lexer) { }
 
-tx::Assembler::Assembler(const std::string& input) : Assembler(std::make_unique<std::istringstream>(input)) { }
+tx::Assembler::Assembler(const std::string& input) : is(input), lexer(is), parser(lexer) { }
 
 tx::Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
 
 void tx::Assembler::run() {
     if (!ran) {
-        lexer.switch_streams(is.get(), nullptr);
+        lexer.debug  = debug;
+        parser.debug = debug;
         parser.parse();
+        ast = parser.get_ast();
+        if (parser.has_error()) {
+            tx::log_err("Parser encountered an error, did not assemble.\n");
+            return;
+        }
+        for (auto& node : ast) {
+            if (std::holds_alternative<tx::ast::Instruction>(node)) {
+                auto&           inst = std::get<tx::ast::Instruction>(node);
+                tx::Instruction instruction {.opcode = inst.opcode};
+
+                if (std::holds_alternative<tx::ast::Label>(inst.p1)) {
+                    auto& label           = std::get<tx::ast::Label>(inst.p1);
+                    auto  pos             = handle_label(label.name);
+                    instruction.params.p1 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
+                } else {
+                    instruction.params.p1 = std::get<tx::Parameter>(inst.p1);
+                }
+                if (std::holds_alternative<tx::ast::Label>(inst.p2)) {
+                    auto& label           = std::get<tx::ast::Label>(inst.p2);
+                    auto  pos             = handle_label(label.name);
+                    instruction.params.p2 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
+                } else {
+                    instruction.params.p2 = std::get<tx::Parameter>(inst.p2);
+                }
+                add_instruction(instruction);
+            } else if (std::holds_alternative<tx::ast::Label>(node)) {
+                auto& label = std::get<tx::ast::Label>(node);
+                handle_label(label.name);
+                set_label_position(label.name);
+            }
+        }
         convert_labels();
+        if (debug) {
+            print_instructions();
+            print_labels();
+        }
     }
     ran = true;
 }
@@ -133,15 +169,16 @@ void tx::Assembler::convert_labels() {
 }
 
 void tx::Assembler::print_instructions() {
+    tx::log_err("[asm] Instructions:\n");
     uint32 pos = 0;
     for (auto& inst : instructions) {
-        tx::log_err("[asm] [#{:04x}:{:02x}] ", pos, inst.len);
+        tx::log_err("[asm] [#{:04x}:{:02x}] {}\n", pos, inst.len, inst);
         pos += inst.len;
-        tx::debug::print_instruction(inst);
     }
 }
 
 void tx::Assembler::print_labels() {
+    tx::log_err("[asm] Labels:\n");
     for (auto& label : labels) tx::log_err("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position);
 }
 void tx::Assembler::write_parameter(Parameter& p, Rom& binary) {

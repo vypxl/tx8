@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <tx8/core/cpu.hpp>
+#include "tx8/core/cpu.hpp"
 
 namespace tx::stdlib {
     /// Use this method to register the all standard library functions

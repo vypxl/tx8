@@ -28,13 +28,14 @@ The assembler that can translate tx8-Assembly into bytecode files.
 
 # Development
 
-To start developing on TX8, you need `cmake >= 3.25`, `ninja` and `clang >= 15`. Set up the development environment via
-`bash -c "CC=clang CXX=clang++ cmake -B build -G Ninja"`. You can then build the test executable via `cmake --build build`
-and execute it via `build/tx8-test`.
+To start developing on TX8, you need `cmake >= 3.25`, `ninja` and `clang >= 15` or `gcc >= 12`.
+`Apple Clang` is **not** supported!
+Set up the development environment via `CC=<C compiler> CXX=<C++ compiler> cmake --preset debug"`.
+You can then build the test executable via `cmake --build --preset debug`
+and execute it via `ctest --preset debug` or directly via `build/debug/tx8-test`.
 
-If you are using `clangd`, you should use the cmake command
-`bash -c "CC=clang CXX=clang++ cmake -B build -G Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=1` and link `compile_commands.json`
-via `ln -s build/compile_commands.json compile_commands.json` for `clangd` to work correctly.
+If you are using `clangd`, you should link `compile_commands.json`
+via `ln -s build/debug/compile_commands.json compile_commands.json` for `clangd` to work correctly.
 
 To build the documentation, run `doxygen` in the project root directory.
 

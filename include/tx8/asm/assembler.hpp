@@ -6,27 +6,30 @@
 
 #pragma once
 
-#include "lexer.hpp"
+#include "tx8/asm/lexer.hpp"
+#include "tx8/asm/parser.hpp"
+#include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
-#include "tx8_parser.hpp"
+#include "tx8/core/types.hpp"
 
 #include <fmt/format.h>
 #include <optional>
-#include <tx8/core/types.hpp>
+#include <sstream>
 #include <vector>
 
 namespace tx {
     class Assembler {
-        std::vector<Label>            labels;
-        std::vector<Instruction>      instructions;
-        uint32                        position      = 0;
-        uint32                        last_label_id = 1;
-        bool                          error         = false;
-        bool                          ran           = false;
-        std::unique_ptr<std::istream> is;
+        std::vector<Label>       labels;
+        std::vector<Instruction> instructions;
+        uint32                   position      = 0;
+        uint32                   last_label_id = 1;
+        bool                     error         = false;
+        bool                     ran           = false;
+        std::istringstream       is;
 
-        tx::parser::Lexer  lexer;
-        tx::parser::Parser parser;
+        tx::Lexer  lexer;
+        tx::Parser parser;
+        tx::AST    ast;
 
         /// Get the position associated with the label which has the specified id.
         uint32 convert_label(uint32 id);
@@ -45,12 +48,12 @@ namespace tx {
         static void   write_instruction(Instruction& inst, Rom& binary);
         static uint32 calculate_instruction_length(Instruction& inst);
 
-        friend class tx::parser::Parser;
-
       public:
+        /// Whether to enable debug output
+        bool debug = false;
         /// @brief Construct the assembler with the given input stream
         /// @param input The input stream to read the assembly code from
-        explicit Assembler(std::unique_ptr<std::istream> input);
+        explicit Assembler(std::istream& input);
         /// Construct the assembler with a string containing the assembly code
         explicit Assembler(const std::string& input);
         /// Construct the assembler with a C-string containing the assembly code

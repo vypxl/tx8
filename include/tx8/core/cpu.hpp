@@ -8,6 +8,7 @@
 
 #include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.hpp"
+#include "tx8/core/log.hpp"
 #include "tx8/core/types.hpp"
 
 #include <fmt/format.h>
@@ -129,7 +130,7 @@ namespace tx {
         /// Print an error message and halt the cpu (sets `halted` to true)
         template <typename... Args>
         void error_raw(fmt::format_string<Args...> format, Args... args) {
-            log_err(format, std::forward<Args>(args)...);
+            tx::log_err(format, std::forward<Args>(args)...);
             halted = true;
         }
         /// Same as `error_raw`, but prints the instruction the cpu is currently executing
@@ -139,9 +140,8 @@ namespace tx {
             error_raw(format, std::forward<Args>(args)...);
 
             Instruction current_instruction = parse_instruction(p);
-            log_err("\nCaused by instruction:\n");
-            log_err("[#{:x}] ", p);
-            debug::print_instruction(current_instruction);
+            tx::log_err("\nCaused by instruction:\n");
+            tx::log_err("[#{:x}] {}\n", p, current_instruction);
         }
 
         // All opcode handler functions

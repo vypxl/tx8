@@ -5,8 +5,9 @@
  */
 #pragma once
 
+#include "tx8/core/types.hpp"
+
 #include <string>
-#include <tx8/core/types.hpp>
 
 /// Get the minimum of a or b (beware double evaluation)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
