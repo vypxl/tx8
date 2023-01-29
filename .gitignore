@@ -12,6 +12,7 @@ cmake-build-debug-coverage
 Makefile
 *.make
 dev
+CMakeUserPresets.json
 
 tmp
 *.o
