@@ -124,7 +124,7 @@ namespace tx {
         Invalid = 0xff
     };
 
-    /// Returns true if the instruction corresponding to the given opcode changes the program counter
+    /// Returns true if the instruction corresponding to the given opcode may change the program counter
     static inline bool op_changes_p(Opcode op) {
         return (op >= Opcode::Jmp && op <= Opcode::Jle) || op == Opcode::Call || op == Opcode::Ret;
     }
@@ -254,8 +254,8 @@ namespace tx {
     /// Mapping of tx8 cpu registers to their respective human readable names
     const std::array<std::string, 256> reg_names = {
         "a",  "b",  "c",  "d",  "r",  "o",  "p",  "s",  "", "", "", "", "", "", "", "",
-        "as", "bs", "cs", "ds", "rs", "os", "ps", "ss", "", "", "", "", "", "", "", "",
         "ab", "bb", "cb", "db", "rb", "ob", "pb", "sb", "", "", "", "", "", "", "", "",
+        "as", "bs", "cs", "ds", "rs", "os", "ps", "ss", "", "", "", "", "", "", "", "",
         "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
         "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",
         "",    "",  "",   "",   "",   "",   "",   "", "", "", "", "", "", "", "", "",

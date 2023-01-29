@@ -52,6 +52,8 @@ namespace tx {
 
     void CPU::run() {
         if (debug) log_err("[cpu] Beginning execution...\n");
+
+        tx::uint32 prev_p;
         while (!halted) {
             if (p > MEM_SIZE - INSTRUCTION_MAX_LENGTH - 1 || p < 0) {
                 error(ERR_INVALID_PC);
@@ -71,10 +73,11 @@ namespace tx {
                 log_err("[#{:x}] ", p);
                 debug::print_instruction(current_instruction);
             }
+            prev_p = p;
             exec_instruction(current_instruction);
 
             // do not increment p if instruction changes p
-            if (!op_changes_p(current_instruction.opcode)) p += current_instruction.len;
+            if (p == prev_p) p += current_instruction.len;
         }
         if (debug) log_err("[cpu] Halted.\n");
     }
