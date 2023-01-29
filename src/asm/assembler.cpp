@@ -18,6 +18,8 @@ tx::Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
 
 void tx::Assembler::run() {
     if (!ran) {
+        lexer.debug  = debug;
+        parser.debug = debug;
         parser.parse();
         ast = parser.get_ast();
         if (parser.has_error()) {
@@ -51,6 +53,10 @@ void tx::Assembler::run() {
             }
         }
         convert_labels();
+        if (debug) {
+            print_instructions();
+            print_labels();
+        }
     }
     ran = true;
 }
@@ -163,15 +169,16 @@ void tx::Assembler::convert_labels() {
 }
 
 void tx::Assembler::print_instructions() {
+    tx::log_err("[asm] Instructions:\n");
     uint32 pos = 0;
     for (auto& inst : instructions) {
-        tx::log_err("[asm] [#{:04x}:{:02x}] ", pos, inst.len);
+        tx::log_err("[asm] [#{:04x}:{:02x}] {}\n", pos, inst.len, inst);
         pos += inst.len;
-        tx::debug::print_instruction(inst);
     }
 }
 
 void tx::Assembler::print_labels() {
+    tx::log_err("[asm] Labels:\n");
     for (auto& label : labels) tx::log_err("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position);
 }
 void tx::Assembler::write_parameter(Parameter& p, Rom& binary) {

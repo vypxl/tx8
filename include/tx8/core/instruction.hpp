@@ -4,6 +4,7 @@
  * @details Includes definitions for Opcodes, Registers, Parameters and Instructions
  */
 #pragma once
+#include "fmt/format.h"
 #include "tx8/core/types.hpp"
 
 #include <array>
@@ -15,6 +16,9 @@ namespace tx {
     /// Enum to specify the amount of bytes a value should have
     /// @details Used in various memory-related functions
     enum class ValueSize { Byte = 1, Short = 2, Word = 4 };
+
+    /// Mapping of ValueSize's to their respective human readable names
+    static const std::array<std::string, 5> value_size_names = {"", "byte", "short", "", "word"};
 
     /// List of opcodes understood by a tx8 cpu
     /// Contains constants for every opcode
@@ -142,6 +146,25 @@ namespace tx {
 
         Label = 0xf, /// Only used by the assembler
     };
+
+    /// Mapping of ParamMode's to their respective human readable names
+    const std::array<std::string, 16> param_mode_names = {
+        "unused",
+        "constant8",
+        "constant16",
+        "constant32",
+        "absolute address",
+        "relative address",
+        "register",
+        "register address",
+        "invalid",
+        "invalid",
+        "invalid",
+        "invalid",
+        "invalid",
+        "invalid",
+        "invalid",
+        "label"};
 
     /// Struct representing an instruction parameters
     struct Parameter {
@@ -399,10 +422,76 @@ namespace tx {
 
     /// The maximum length of a binary instruction in bytes
     const uint32 INSTRUCTION_MAX_LENGTH = 0xa;
+
+    inline auto format_as(const Opcode op) { return tx::op_names[(tx::uint32) op]; }
+    inline auto format_as(const Register reg) { return tx::reg_names[(tx::uint32) reg]; }
+    inline auto format_as(const ParamMode mode) { return tx::param_mode_names[(tx::uint32) mode]; }
+    inline auto format_as(const ValueSize size) { return tx::value_size_names[(tx::uint32) size]; }
 } // namespace tx
 
-std::ostream& operator<<(std::ostream& os, const tx::Parameter& p);
-std::ostream& operator<<(std::ostream& os, const tx::Instruction& inst);
-std::ostream& operator<<(std::ostream& os, const tx::Label& l);
+template <>
+struct fmt::formatter<tx::Parameter> : fmt::formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const tx::Parameter& p, FormatContext& ctx) {
+        using namespace tx;
 
+        num32 v = p.value;
+        switch (p.mode) {
+            case ParamMode::Constant8:
+                return formatter<string_view>::format(fmt::format("<{:#x} | {}>", (uint8) v.u, (int8) v.i), ctx);
+            case ParamMode::Constant16:
+                return formatter<string_view>::format(fmt::format("<{:#x} | {}>", (uint16) v.u, (int16) v.i), ctx);
+            case ParamMode::Constant32:
+                return formatter<string_view>::format(fmt::format("<{:#x} | {} | {:.5f}>", v.u, v.i, v.f), ctx);
+            case ParamMode::AbsoluteAddress: return formatter<string_view>::format(fmt::format("#{:x}", v.u), ctx);
+            case ParamMode::RelativeAddress:
+                if (v.i < 0) return formatter<string_view>::format(fmt::format("$-{:x}", -v.i), ctx);
+                else return formatter<string_view>::format(fmt::format("${:x}", v.i), ctx);
+            case ParamMode::RegisterAddress:
+                return formatter<string_view>::format(fmt::format("@{}", reg_names[v.u]), ctx);
+            case ParamMode::Register: return formatter<string_view>::format(fmt::format("{}", reg_names[v.u]), ctx);
+            case ParamMode::Label: return formatter<string_view>::format(fmt::format("label(id: {:#x})", v.u), ctx);
+            case ParamMode::Unused: return formatter<string_view>::format("", ctx);
+            default:
+                return formatter<string_view>::format(
+                    fmt::format("{{ unknown parameter mode {:#x}; value: {:#x} }}", (uint32) p.mode, v.u),
+                    ctx
+                );
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<tx::Instruction> : fmt::formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const tx::Instruction& inst, FormatContext& ctx) {
+        switch (tx::param_count[(size_t) inst.opcode]) {
+            case 0: return formatter<string_view>::format(fmt::format("{}", tx::op_names[(size_t) inst.opcode]), ctx);
+            case 1:
+                return formatter<string_view>::format(
+                    fmt::format("{} {}", tx::op_names[(size_t) inst.opcode], inst.params.p1),
+                    ctx
+                );
+            case 2:
+                return formatter<string_view>::format(
+                    fmt::format("{} {} {}", tx::op_names[(size_t) inst.opcode], inst.params.p1, inst.params.p2),
+                    ctx
+                );
+            // Should not be reached
+            default:
+                return formatter<string_view>::format(
+                    fmt::format("{{ unknown instruction {:#x} }}", (tx::uint32) inst.opcode),
+                    ctx
+                );
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<tx::Label> : fmt::formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const tx::Label& l, FormatContext& ctx) {
+        return formatter<string_view>::format(fmt::format("label({:#x})", l.id), ctx);
+    }
+};
 #pragma clang diagnostic warning "-Wunused-function"

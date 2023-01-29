@@ -49,6 +49,8 @@ namespace tx {
         static uint32 calculate_instruction_length(Instruction& inst);
 
       public:
+        /// Whether to enable debug output
+        bool debug = false;
         /// @brief Construct the assembler with the given input stream
         /// @param input The input stream to read the assembly code from
         explicit Assembler(std::istream& input);

@@ -1,8 +1,8 @@
 #include "tx8/asm/lexer.hpp"
 
 #include "fmt/format.h"
+#include "tx8/core/log.hpp"
 
-#include <iostream>
 #include <limits>
 
 using std::optional;
@@ -132,13 +132,19 @@ optional<LexerToken> readFloat(const string& s) {
 optional<LexerToken> Lexer::next_token() {
     readSpace();
     int c = is.peek();
-    if (is.eof() || is.bad()) return std::nullopt;
-    if (c == '\n') {
-        is.get();
-        return EndOfLine {};
+    if (is.eof() || is.bad()) {
+        if (debug) tx::log_err("[lexer] eof or read error\n");
+        return std::nullopt;
     }
 
     optional<LexerToken> token = std::nullopt;
+
+    if (c == '\n') {
+        is.get();
+        if (debug) tx::log_err("[lexer] got token: {}\n", EndOfLine {});
+        return EndOfLine {};
+    }
+
 
     string s;
     is >> s;
@@ -179,42 +185,7 @@ optional<LexerToken> Lexer::next_token() {
             // clang-format on
     }
 
-    return token.value_or(Invalid {s});
-}
-
-#define o0(t, name) \
-    std::ostream& operator<<(std::ostream& os, [[maybe_unused]] const t& _token) { \
-        os << (name); \
-        return os; \
-    }
-#define o1(t, name, x) \
-    std::ostream& operator<<(std::ostream& os, const t& token) { \
-        os << (name) << std::hex << " ( " << token.x << " )"; \
-        return os; \
-    }
-#define o1t(t, name, x, table) \
-    std::ostream& operator<<(std::ostream& os, const t& token) { \
-        os << (name) << "( " << (table)[(tx::uint32) token.x] << " )"; \
-        return os; \
-    }
-
-o0(EndOfLine, "EOL");
-o1t(Register, "Register", which, tx::reg_names);
-o1t(RegisterAddress, "RegisterAddress", which, tx::reg_names);
-o1(AbsoluteAddress, "AbsoluteAddress", address);
-o1(RelativeAddress, "RelativeAddress", address);
-o1(Integer, "Integer", value);
-o1t(Opcode, "Opcode", opcode, tx::op_names);
-o1(Float, "Float", value);
-o1(Label, "Label", name);
-o1(Alias, "Alias", name);
-o1(Invalid, "Invalid", value);
-
-#undef o0
-#undef o1
-#undef o1t
-
-std::ostream& operator<<(std::ostream& os, const LexerToken& token) {
-    std::visit([&os](auto&& arg) { os << arg; }, token);
-    return os;
+    LexerToken tok = token.value_or(Invalid {s});
+    if (debug) tx::log_err("[lexer] got token: {}\n", tok);
+    return tok;
 }

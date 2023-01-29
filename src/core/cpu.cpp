@@ -70,8 +70,7 @@ namespace tx {
             Instruction current_instruction = parse_instruction(p);
 
             if (debug && current_instruction.opcode != Opcode::Nop) {
-                log_err("[#{:x}] ", p);
-                debug::print_instruction(current_instruction);
+                log_err("[cpu] [#{:x}] {}\n", p, current_instruction);
             }
             prev_p = p;
             exec_instruction(current_instruction);

@@ -2,6 +2,7 @@
 
 #include "tx8/core/instruction.hpp"
 
+#include <fmt/format.h>
 #include <istream>
 #include <memory>
 #include <optional>
@@ -57,6 +58,9 @@ namespace tx {
             tx::lexer::token::Alias,
             tx::lexer::token::Invalid>;
 
+        /// Whether to enable debug output
+        bool debug = false;
+
         explicit Lexer(std::istream& input) : is(input) {};
 
         std::optional<LexerToken> next_token();
@@ -68,20 +72,51 @@ namespace tx {
     };
 } // namespace tx
 
-#define o(t) std::ostream& operator<<(std::ostream& os, const tx::lexer::token::t& token)
+#define FORMATTER_BEGIN(t, name) \
+    template <> \
+    struct fmt::formatter<t> : fmt::formatter<std::string_view> { \
+        template <typename FormatContext> \
+        auto format([[maybe_unused]] const t& /* NOLINT */ name, FormatContext& ctx) {
+#define FORMATTER_END \
+    } \
+    } \
+    ;
 
-o(EndOfLine);
-o(Register);
-o(RegisterAddress);
-o(AbsoluteAddress);
-o(RelativeAddress);
-o(Integer);
-o(Opcode);
-o(Float);
-o(Label);
-o(Alias);
-o(Invalid);
+#define o0(t, name) \
+    FORMATTER_BEGIN(t, token) \
+        return formatter<std::string_view>::format(fmt::format("{}", (name)), ctx); \
+    FORMATTER_END
+#define o1(t, name, x) \
+    FORMATTER_BEGIN(t, token) \
+        return formatter<std::string_view>::format(fmt::format("{} ( {} )", (name), token.x), ctx); \
+    FORMATTER_END
+#define o1t(t, name, x, table) \
+    FORMATTER_BEGIN(t, token) \
+        return formatter<std::string_view>::format( \
+            fmt::format("{} ( {} )", (name), (table)[(tx::uint32) token.x]), \
+            ctx \
+        ); \
+    FORMATTER_END
 
-#undef o
+o0(tx::lexer::token::EndOfLine, "EOL");
+o1t(tx::lexer::token::Register, "Register", which, tx::reg_names);
+o1t(tx::lexer::token::RegisterAddress, "RegisterAddress", which, tx::reg_names);
+o1(tx::lexer::token::AbsoluteAddress, "AbsoluteAddress", address);
+o1(tx::lexer::token::RelativeAddress, "RelativeAddress", address);
+o1(tx::lexer::token::Integer, "Integer", value);
+o1t(tx::lexer::token::Opcode, "Opcode", opcode, tx::op_names);
+o1(tx::lexer::token::Float, "Float", value);
+o1(tx::lexer::token::Label, "Label", name);
+o1(tx::lexer::token::Alias, "Alias", name);
+o1(tx::lexer::token::Invalid, "Invalid", value);
 
-std::ostream& operator<<(std::ostream& os, const tx::Lexer::LexerToken& token);
+FORMATTER_BEGIN(tx::Lexer::LexerToken, token)
+    std::string s;
+    std::visit([&s](auto&& arg) { s = fmt::format("{}", arg); }, token);
+    return formatter<std::string_view>::format(s, ctx);
+FORMATTER_END
+
+#undef o0
+#undef o1
+#undef o1t
+#undef formatter_begin

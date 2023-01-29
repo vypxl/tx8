@@ -3,15 +3,18 @@
 #include "tx8/core/stdlib.hpp"
 
 #include <cmath>
-#include <iostream>
 
-extern int tx_asm_yydebug;
+namespace tx::testing {
+    extern bool enable_debug;
+}
 
 VMTest::VMTest() {
     tx::log.init_str();
     tx::log_err.init_str();
 
-    if (tx_asm_yydebug != 0) {
+    debug = tx::testing::enable_debug;
+
+    if (debug) {
         tx::log.init_stream(&std::cout);
         tx::log_err.init_stream(&std::cerr);
     }
@@ -81,7 +84,8 @@ void VMTest::run_and_compare_num(
 
 bool VMTest::run_code(const std::string& s) {
     tx::Assembler as(s);
-    auto          rom_ = as.generate_binary();
+    as.debug  = debug;
+    auto rom_ = as.generate_binary();
     if (!rom_.has_value()) {
         ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx::log_err.get_str();
         return false;
@@ -89,16 +93,8 @@ bool VMTest::run_code(const std::string& s) {
 
     auto rom = rom_.value();
 
-    if ((bool) tx_asm_yydebug) {
-        tx::log_err("labels:\n");
-        as.print_labels();
-
-        tx::log_err("\ninstructions:\n");
-        as.print_instructions();
-    }
-
     tx::CPU cpu(rom);
-    cpu.debug = (bool) tx_asm_yydebug;
+    cpu.debug = debug;
 
     tx::stdlib::use_stdlib(cpu);
     use_testing_stdlib(cpu);

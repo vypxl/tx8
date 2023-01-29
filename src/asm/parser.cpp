@@ -3,8 +3,6 @@
 #include "tx8/core/log.hpp"
 #include "tx8/core/util.hpp"
 
-#include <iostream>
-
 using std::holds_alternative;
 using LexerToken = tx::Lexer::LexerToken;
 using namespace tx::lexer::token;
@@ -65,12 +63,10 @@ std::optional<std::variant<tx::Parameter, LabelAst>> tx::Parser::read_parameter(
         }
         if (holds_alternative<LabelT>(*token)) { return LabelAst {std::get<LabelT>(*token).name}; }
 
-
-        // tx::log_err("Expected parameter, not {}\n", *token);
-        tx::log_err("Expected parameter\n");
+        tx::log_err("Expected parameter, not {}\n", *token);
         error = true;
     } else {
-        tx::log_err("Expected parameter, not EOF");
+        tx::log_err("Expected parameter, got EOF");
         error = true;
     }
 
@@ -112,8 +108,7 @@ std::optional<tx::ast::Instruction> tx::Parser::read_instruction(tx::Opcode opco
     }
     token = lexer.next_token();
     if (token.has_value() && !holds_alternative<EndOfLine>(*token)) {
-        // tx::log_err("Expected EOL, not {}\n", *token);
-        tx::log_err("Expected EOL\n");
+        tx::log_err("Expected EOL, got {}\n", *token);
         error = true;
         return std::nullopt;
     }
@@ -142,43 +137,15 @@ void tx::Parser::parse() {
                 ast.push_back(label);
             } else if (holds_alternative<EndOfLine>(*token)) {
             } else {
-                // tx::log_err("Expected instruction or label, not {}", *token);
-                tx::log_err("Expected instruction or label, got ");
-                std::cout << *token << std::endl;
+                tx::log_err("Expected instruction or label, got {}\n", *token);
                 error = true;
             }
         } else {
             break;
         }
     }
-}
 
-std::ostream& operator<<(std::ostream& os, const tx::ast::Label& label) {
-    os << "Label: " << label.name;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const tx::ast::Instruction& inst) {
-    os << "Instruction: " << tx::op_names[(tx::uint32) inst.opcode] << " " << inst.p1 << " " << inst.p2;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const tx::ast::Parameter& param) {
-    std::visit([&os](auto&& arg) { os << arg; }, param);
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, [[maybe_unused]] const tx::ast::Invalid& invalid) {
-    os << "Invalid";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const tx::ParserNode& node) {
-    std::visit([&os](auto&& arg) { os << arg; }, node);
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const tx::AST& ast) {
-    for (const auto& node : ast) { os << node << std::endl; }
-    return os;
+    if (debug) {
+        for (const auto& node : ast) { tx::log_err("[parser] {}\n", node); }
+    }
 }
