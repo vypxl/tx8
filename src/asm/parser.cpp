@@ -13,12 +13,13 @@ using OpcodeT        = tx::lexer::token::Opcode;
 using RegisterT      = tx::lexer::token::Register;
 using LabelAst       = tx::ast::Label;
 using InstructionAst = tx::ast::Instruction;
+using ParamAst       = tx::ast::Parameter;
 
 tx::AST tx::Parser::get_ast() { return ast; }
 
 bool tx::Parser::has_error() { return error; }
 
-std::optional<tx::Parameter> tx::Parser::read_parameter() {
+std::optional<std::variant<tx::Parameter, LabelAst>> tx::Parser::read_parameter() {
     std::optional<LexerToken> token;
 
     token = lexer.next_token();
@@ -62,11 +63,7 @@ std::optional<tx::Parameter> tx::Parser::read_parameter() {
                 .value = {tx::str_hash(std::get<Alias>(*token).name)},
                 .mode  = tx::ParamMode::Constant32};
         }
-        // if (holds_alternative<LabelT>(*token)) {
-        //     return tx::Parameter {
-        //         .value = {(tx::uint32) std::get<LabelT>(*token).which},
-        //         .mode  = tx::ParamMode::Label};
-        // }
+        if (holds_alternative<LabelT>(*token)) { return LabelAst {std::get<LabelT>(*token).name}; }
 
 
         // tx::log_err("Expected parameter, not {}\n", *token);
@@ -83,14 +80,17 @@ std::optional<tx::Parameter> tx::Parser::read_parameter() {
 std::optional<tx::ast::Instruction> tx::Parser::read_instruction(tx::Opcode opcode) {
     std::optional<LexerToken> token;
 
-    tx::Instruction              instruction {.opcode = opcode};
-    std::optional<tx::Parameter> p;
+    InstructionAst instruction {
+        .opcode = opcode,
+        .p1     = tx::Parameter {.value = {0}, .mode = tx::ParamMode::Unused},
+        .p2     = tx::Parameter {.value = {0}, .mode = tx::ParamMode::Unused}};
+    std::optional<ParamAst> p;
 
     switch (tx::param_count[(tx::uint32) opcode]) {
         case 1:
             p = read_parameter();
             if (p.has_value()) {
-                instruction.params.p1 = p.value();
+                instruction.p1 = p.value();
             } else {
                 return std::nullopt;
             }
@@ -98,13 +98,13 @@ std::optional<tx::ast::Instruction> tx::Parser::read_instruction(tx::Opcode opco
         case 2:
             p = read_parameter();
             if (p.has_value()) {
-                instruction.params.p1 = p.value();
+                instruction.p1 = p.value();
             } else {
                 return std::nullopt;
             }
             p = read_parameter();
             if (p.has_value()) {
-                instruction.params.p2 = p.value();
+                instruction.p2 = p.value();
             } else {
                 return std::nullopt;
             }
@@ -118,7 +118,7 @@ std::optional<tx::ast::Instruction> tx::Parser::read_instruction(tx::Opcode opco
         return std::nullopt;
     }
 
-    return tx::ast::Instruction {instruction};
+    return instruction;
 }
 
 void tx::Parser::parse() {
@@ -153,14 +153,18 @@ void tx::Parser::parse() {
     }
 }
 
-
 std::ostream& operator<<(std::ostream& os, const tx::ast::Label& label) {
     os << "Label: " << label.name;
     return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const tx::ast::Instruction& inst) {
-    os << "Instruction: " << inst.instruction;
+    os << "Instruction: " << tx::op_names[(tx::uint32) inst.opcode] << " " << inst.p1 << " " << inst.p2;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const tx::ast::Parameter& param) {
+    std::visit([&os](auto&& arg) { os << arg; }, param);
     return os;
 }
 
