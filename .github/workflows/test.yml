@@ -1,4 +1,4 @@
-name: Tests
+name: Tests and coverage
 on:
   push:
     branches: [main]
@@ -11,7 +11,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build bison flex libfl2 libfl-dev
+          sudo apt-get install -y ninja-build
       - name: Install llvm
         run: |
           wget https://apt.llvm.org/llvm.sh
@@ -26,8 +26,8 @@ jobs:
           ."
       - name: build
         run: cmake --build build --target all
-      - name: Run Test
-        run: cd build && ctest -V
+      - name: Run Tests
+        run: cd build && ctest -VV
       - name: Setup python
         uses: actions/setup-python@v2
         with:
