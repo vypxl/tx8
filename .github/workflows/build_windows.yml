@@ -21,13 +21,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install tools
-        run: choco install -y ninja
+        run: choco install -y ninja mingw
       - uses: actions/checkout@v2
       - name: configure
-        run: |
-          $env:CC=${{ matrix.cc }}
-          $env:CXX=${{ matrix.cxx }}
-          cmake --preset ${{ matrix.build_type }}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake --preset ${{ matrix.build_type }}
       - name: build
         run: cmake --build --preset ${{ matrix.build_type }}
       - name: test
