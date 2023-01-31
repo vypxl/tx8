@@ -21,7 +21,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install tools
-        run: choco install -y ninja mingw
+        run: choco install -y ninja
+      - name: install mingw 12
+        if: matrix.compiler == "gcc"
+        run: choco install mingw --force --version=12.2.0
       - uses: actions/checkout@v2
       - name: configure
         env:
