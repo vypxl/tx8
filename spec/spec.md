@@ -38,6 +38,7 @@
 ## Assembly Programming (TX8-Asm)
 
 Programming TX8 is generally done in assembly. The virtual processor and assembly language used is described below.
+For a formal syntax specification, see [tx8_asm_language.md](tx8_asm_language.md).
 
 ### Registers
 
@@ -152,9 +153,9 @@ fcmp 2.3 3.1
 
 lda 2.3
 fsub a 3.1
-fisgn a
+fsign a
 fti a
-sta R
+sta r
 ```
 
 The conditional jump instructions read from the `R` register. They essentially compare the value in `R` to 0
