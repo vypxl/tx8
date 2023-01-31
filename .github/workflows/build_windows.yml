@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install tools
-        run: winget install -h ninja
+        run: choco install -y ninja
       - uses: actions/checkout@v2
       - name: configure
         run: |
