@@ -28,8 +28,12 @@ The assembler that can translate tx8-Assembly into bytecode files.
 
 # Development
 
-To start developing on TX8, you need `cmake >= 3.25`, `ninja` and `clang >= 15` or `gcc >= 12`.\
-`Apple Clang` is **not** supported!\
+To start developing on TX8, you need `cmake >= 3.25`, `ninja` and `clang >= 15` or `gcc >= 12`.
+
+MacOS: `Apple Clang` is **not** supported as it is missing modern c++ features this project uses.\
+Windows: `MSVC` and `mingw` are not supported because I can't get them to work. Please use clang, it comes with visual studio.
+In theory MSVC and mingw should work. If you want to use these tools, and figure out a way how to do so, please tell me :)
+
 Set up the development environment via `CC=<C compiler> CXX=<C++ compiler> cmake --preset debug`.\
 You can then build the test executable via `cmake --build --preset debug`\
 and execute it via `ctest --preset debug` or directly via `build/debug/tx8-test`.
