@@ -27,8 +27,8 @@ jobs:
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
-        run: cmake --preset {{ matrix.build_type }}
+        run: cmake --preset ${{ matrix.build_type }}
       - name: build
-        run: cmake --build --preset {{ matrix.build_type }}
+        run: cmake --build --preset ${{ matrix.build_type }}
       - name: test
-        run: ctest --preset {{ matrix.build_type }} -VV
+        run: ctest --preset ${{ matrix.build_type }} -VV
