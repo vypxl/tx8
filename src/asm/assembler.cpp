@@ -101,7 +101,7 @@ tx::uint32 tx::Assembler::handle_label(const std::string& name) {
 
     // create a new label
     Label label;
-    label.name     = strdup(name.c_str());
+    label.name     = name;
     label.id       = ++last_label_id;
     label.position = tx_asm_INVALID_LABEL_ADDRESS;
 
