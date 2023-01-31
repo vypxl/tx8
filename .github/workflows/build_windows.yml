@@ -9,22 +9,16 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        compiler: [clang, gcc]
+        compiler: [clang]
         build_type: [debug, release]
         include:
           - compiler: clang
             cc: clang.exe
             cxx: clang++.exe
-          - compiler: gcc
-            cc: gcc.exe
-            cxx: g++.exe
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install tools
         run: choco install -y ninja
-      - name: install mingw 12
-        if: matrix.compiler == 'gcc'
-        run: choco install mingw --force --version=12.2.0
       - uses: actions/checkout@v2
       - name: configure
         env:
