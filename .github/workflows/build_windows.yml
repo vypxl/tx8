@@ -1,0 +1,34 @@
+name: Build on Windows
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest]
+        compiler: [clang, gcc]
+        build_type: [debug, release]
+        include:
+          - compiler: clang
+            cc: clang.exe
+            cxx: clang++.exe
+          - compiler: gcc
+            cc: gcc.exe
+            cxx: g++.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install tools
+        run: winget install -h ninja
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          $env:CC=${{ matrix.cc }}
+          $env:CXX=${{ matrix.cxx }}
+          cmake --preset ${{ matrix.build_type }}
+      - name: build
+        run: cmake --build --preset ${{ matrix.build_type }}
+      - name: test
+        run: ctest --preset ${{ matrix.build_type }} -VV
