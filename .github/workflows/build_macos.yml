@@ -1,0 +1,34 @@
+name: Build on MacOS
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest]
+        compiler: [clang, gcc]
+        build_type: [debug, release]
+        include:
+          - compiler: clang
+            cc: $(brew --prefix llvm@15)/bin/clang
+            cxx: $(brew --prefix llvm@15)/bin/clang++
+          - compiler: gcc
+            cc: gcc-12
+            cxx: g++-12
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install tools
+        run: brew install ninja gcc@12
+      - uses: actions/checkout@v2
+      - name: configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake --preset {{ matrix.build_type }}
+      - name: build
+        run: cmake --build --preset {{ matrix.build_type }}
+      - name: test
+        run: ctest --preset {{ matrix.build_type }} -VV
