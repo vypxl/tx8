@@ -28,8 +28,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-find_library(MATH_LIBRARY m)
-
 # Dependencies
 
 # fmt
@@ -57,7 +55,7 @@ FetchContent_MakeAvailable(googletest)
 add_library(tx8-core SHARED src/core/cpu.cpp src/core/debug.cpp
                             src/core/stdlib.cpp src/core/log.cpp)
 target_include_directories(tx8-core PUBLIC include)
-target_link_libraries(tx8-core PUBLIC ${MATH_LIBRARY} fmt::fmt)
+target_link_libraries(tx8-core PUBLIC fmt::fmt)
 
 # tx8-asm
 
