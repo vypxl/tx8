@@ -8,8 +8,6 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
 
-add_compile_options(-fPIC)
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   add_compile_options(-Wall -Wextra -Wno-unknown-pragmas -Werror)
 endif()
@@ -52,14 +50,14 @@ FetchContent_MakeAvailable(googletest)
 
 # tx8-core
 
-add_library(tx8-core SHARED src/core/cpu.cpp src/core/debug.cpp
+add_library(tx8-core STATIC src/core/cpu.cpp src/core/debug.cpp
                             src/core/stdlib.cpp src/core/log.cpp)
 target_include_directories(tx8-core PUBLIC include)
 target_link_libraries(tx8-core PUBLIC fmt::fmt)
 
 # tx8-asm
 
-add_library(tx8-asm SHARED src/asm/assembler.cpp src/asm/lexer.cpp
+add_library(tx8-asm STATIC src/asm/assembler.cpp src/asm/lexer.cpp
                            src/asm/parser.cpp)
 target_include_directories(tx8-asm PRIVATE)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
