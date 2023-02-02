@@ -18,7 +18,7 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh 15
           rm llvm.sh
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: configure
         run: "CC=clang-15 CXX=clang++-15 cmake -B build -DCMAKE_BUILD_TYPE=Release
           -G Ninja -DCMAKE_C_FLAGS='--coverage -fprofile-instr-generate -fcoverage-mapping'
@@ -29,7 +29,7 @@ jobs:
       - name: Run Tests
         run: cd build && ctest -VV
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Upload code coverage to coveralls

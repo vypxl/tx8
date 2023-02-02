@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Install tools
         run: brew install ninja gcc@12
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: configure
         run: |
           export CC=${{ matrix.cc }}
