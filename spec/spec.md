@@ -418,11 +418,12 @@ TX8 programs or games are distributed as binary files. These files must include 
 
 | Bytes | Type                                 | Meaning / Content                                                                       |
 | ----- | ------------------------------------ | --------------------------------------------------------------------------------------- |
-| 0-3   | Magic bytes                          | `0x54 0x58 0x38` (or `TX8` in ascii)                                                    |
-| 4     | Little endian 8bit unsigned integer  | program name length in bytes (0 for no name)                                            |
+| 0-3   | Magic bytes                          | `0x54 0x58 0x38 0x00` (or `TX8\0` in ascii)                                             |
+| 4     | 8bit unsigned integer                | program name length in bytes (0 for no name)                                            |
 | 5-6   | Little endian 16bit unsigned integer | description length in bytes (0 for no description)                                      |
 | 7-10  | Little endian 32bit unsigned integer | Length of the actual binary data in bytes                                               |
-| 11-64 | Reserved                             | Reserved for future use (should be all-zero)                                            |
-| 65+   | String                               | Program name (as many bytes as specified, not zero-terminated)                          |
+| 11    | 8bit unsigned integer                | Checksum: XOR of all bytes in header (except this byte)                                 |
+| 12-63 | Reserved                             | Reserved for future use (should be all-zero)                                            |
+| 64+   | String                               | Program name (as many bytes as specified, not zero-terminated)                          |
 | ...   | String                               | Description (as many bytes as specified, not zero-terminated)                           |
 | Rest  | Binary                               | Actual binary data (instructions, assets, ...). This part is what is loaded into memory |
