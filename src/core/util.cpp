@@ -1,15 +1,11 @@
 #include "tx8/core/util.hpp"
 
+#include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 
 #include <istream>
 
 using namespace tx;
-
-const char*  MAGIC_STR           = "TX8";
-const uint32 MAGIC               = *((uint32*) MAGIC_STR);
-const uint32 BASIC_ROM_INFO_LEN  = 64;
-const uint32 CHECKSUM_BYTE_INDEX = 11;
 
 #define debug false
 
@@ -28,8 +24,16 @@ std::optional<RomInfo> tx::parse_header(std::istream& stream) {
     stream.read((char*) &description_len, sizeof(uint16));
     stream.read((char*) &info.size, sizeof(uint32));
 
+    if (info.size > tx::MAX_ROM_SIZE) {
+        if (debug) tx::log_err("Invalid rom size: {}, maximum allowed is {}\n", info.size, tx::MAX_ROM_SIZE);
+        return std::nullopt;
+    }
+
     uint8 header_checksum;
     stream.read((char*) &header_checksum, sizeof(uint8));
+
+    // Skip unused bytes
+    stream.seekg(UNUSED_BYTES_COUNT, std::ios::cur);
 
     info.name.resize(name_len);
     info.description.resize(description_len);
@@ -79,6 +83,9 @@ std::vector<uint8> tx::build_header(const RomInfo& info) {
 
     // Skip checksum byte
     ptr += sizeof(uint8);
+
+    // Skip unused bytes
+    ptr += UNUSED_BYTES_COUNT;
 
     memcpy(ptr, info.name.data(), info.name.size()); // NOLINT
     ptr += info.name.size();

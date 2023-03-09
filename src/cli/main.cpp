@@ -1,6 +1,7 @@
 #include "tx8/asm/assembler.hpp"
 #include "tx8/core/cpu.hpp"
 #include "tx8/core/stdlib.hpp"
+#include "tx8/core/util.hpp"
 
 #include <CLI/CLI.hpp>
 #include <fmt/format.h>
@@ -9,18 +10,29 @@
 
 void cmd_run(const std::string& fname, bool debug) {
     std::ifstream file(fname, std::ios::in);
-    tx::Assembler as(file);
-    as.debug  = debug;
-    auto rom_ = as.generate_binary();
+    auto          rominfo = tx::parse_header(file);
 
-    file.close();
+    tx::Rom rom;
 
-    if (!rom_.has_value()) {
-        fmt::println("Assembler encountered an error: \n{}", tx::log_err.get_str());
-        exit(1);
+    if (rominfo.has_value()) {
+        tx::log("Running {}\n", rominfo.value());
+        rom.resize(rominfo.value().size);
+        file.read((char*) rom.data(), (long) rom.size());
+    } else {
+        tx::log("Running source file {}\n", fname);
+        file.seekg(0);
+
+        tx::Assembler as(file);
+        as.debug  = debug;
+        auto rom_ = as.generate_binary();
+        if (!rom_.has_value()) {
+            fmt::println("Assembler encountered an error: \n{}", tx::log_err.get_str());
+            exit(1);
+        }
+        rom = std::move(rom_.value());
     }
 
-    auto rom = rom_.value();
+    file.close();
 
     tx::CPU cpu(rom);
     cpu.debug = debug;
@@ -35,8 +47,14 @@ void cmd_build(const std::string& srcName, const std::string& destName, bool deb
     std::ofstream dest(destName, std::ios::out | std::ios::binary);
     tx::Assembler as(src);
     as.debug = debug;
+    as.run();
+
+    tx::RomInfo info {as.get_binary_size(), "Game", "Description"};
+    auto        header = tx::build_header(info);
+
+    dest.write((char*) header.data(), (long) header.size());
     as.write_binary(dest);
-    fmt::println("Wrote {} bytes tx8 binary to {}", as.get_binary_size(), destName);
+    tx::log("Wrote {} bytes tx8 binary to {}\n", header.size() + info.size, destName);
 }
 
 int main() {
