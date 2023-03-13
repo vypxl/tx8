@@ -48,10 +48,19 @@ set(GTEST_FORCE_SHARED_CRT
     CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+# CLI11 (for command line parsing)
+
+FetchContent_Declare(
+  cli11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11
+  GIT_TAG main)
+
+FetchContent_MakeAvailable(cli11)
+
 # tx8-core
 
-add_library(tx8-core STATIC src/core/cpu.cpp src/core/debug.cpp
-                            src/core/stdlib.cpp src/core/log.cpp)
+add_library(tx8-core STATIC src/core/cpu.cpp src/core/stdlib.cpp
+                            src/core/log.cpp src/core/util.cpp)
 target_include_directories(tx8-core PUBLIC include)
 target_link_libraries(tx8-core PUBLIC fmt::fmt)
 
@@ -61,6 +70,12 @@ add_library(tx8-asm STATIC src/asm/assembler.cpp src/asm/lexer.cpp
                            src/asm/parser.cpp)
 target_include_directories(tx8-asm PRIVATE)
 target_link_libraries(tx8-asm PRIVATE tx8-core)
+
+# tx8-cli
+
+add_executable(tx8-cli src/cli/main.cpp)
+target_include_directories(tx8-cli PRIVATE include)
+target_link_libraries(tx8-cli PRIVATE tx8-core tx8-asm CLI11::CLI11 fmt::fmt)
 
 # Tests
 
@@ -77,7 +92,8 @@ add_executable(
   test/float_arithmetic_test.cpp
   test/unsigned_arithmetic_test.cpp
   test/miscellaneous_test.cpp
-  test/small_registers_test.cpp)
+  test/small_registers_test.cpp
+  test/util_test.cpp)
 target_include_directories(tx8-test PRIVATE)
 target_link_libraries(tx8-test tx8-core tx8-asm gtest)
 

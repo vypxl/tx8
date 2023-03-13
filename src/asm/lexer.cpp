@@ -133,7 +133,7 @@ optional<LexerToken> Lexer::next_token() {
     readSpace();
     int c = is.peek();
     if (is.eof() || is.bad()) {
-        if (debug) tx::log_err("[lexer] eof or read error\n");
+        tx::log_debug("[lexer] eof or read error\n");
         return std::nullopt;
     }
 
@@ -141,7 +141,7 @@ optional<LexerToken> Lexer::next_token() {
 
     if (c == '\n') {
         is.get();
-        if (debug) tx::log_err("[lexer] got token: {}\n", EndOfLine {});
+        tx::log_debug("[lexer] got token: {}\n", EndOfLine {});
         return EndOfLine {};
     }
 
@@ -186,6 +186,6 @@ optional<LexerToken> Lexer::next_token() {
     }
 
     LexerToken tok = token.value_or(Invalid {s});
-    if (debug) tx::log_err("[lexer] got token: {}\n", tok);
+    tx::log_debug("[lexer] got token: {}\n", tok);
     return tok;
 }

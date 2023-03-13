@@ -379,6 +379,20 @@ namespace tx {
     /// Constant to have the maximum allowed memory address
     const uint32 MAX_MEMORY_ADDRESS = 0xffffff;
 
+    /// Constant to have the maximum allowed rom size (8MiB)
+    const uint32 MAX_ROM_SIZE = 0x800000;
+
+    /// Rom header: Magic bytes as string
+    constexpr const char* MAGIC_STR = "TX8";
+    /// Rom header: Magic bytes as uint32
+    const uint32 MAGIC = *((uint32*) MAGIC_STR);
+    /// Rom header: Length of the basic rom info (without name/description)
+    const uint32 BASIC_ROM_INFO_LEN = 64;
+    /// Rom header: Index of the checksu byte
+    const uint32 CHECKSUM_BYTE_INDEX = 11;
+    /// Rom header: Number of reserved bytes
+    const uint32 UNUSED_BYTES_COUNT = 52;
+
     // clang-format off
     /// Mapping of opcodes to their respective parameter counts
     const std::array<uint8, 256> param_count = {

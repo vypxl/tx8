@@ -58,9 +58,6 @@ namespace tx {
             tx::lexer::token::Alias,
             tx::lexer::token::Invalid>;
 
-        /// Whether to enable debug output
-        bool debug = false;
-
         explicit Lexer(std::istream& input) : is(input) {};
 
         std::optional<LexerToken> next_token();

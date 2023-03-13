@@ -26,6 +26,19 @@ You can also find the TX8 specification in this repository under `spec/`.
 
 The assembler that can translate tx8-Assembly into bytecode files.
 
+## TX8 CLI
+
+The command line tool exposing tx8 to the user. After building (see below), the executable can be found in
+`build/debug/tx8-cli`. Run it to see how to use it. The cli can run tx8 assembly files and rom files, and
+compile tx8 assembly files into rom files.
+
+Example:
+
+```sh
+tx8-cli build test/hello-world.tx8
+tx8-cli run out.txr
+```
+
 # Development
 
 To start developing on TX8, you need `cmake >= 3.25`, `ninja` and `clang >= 15` or `gcc >= 12`.

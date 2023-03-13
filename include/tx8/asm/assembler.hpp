@@ -49,8 +49,6 @@ namespace tx {
         static uint32 calculate_instruction_length(Instruction& inst);
 
       public:
-        /// Whether to enable debug output
-        bool debug = false;
         /// @brief Construct the assembler with the given input stream
         /// @param input The input stream to read the assembly code from
         explicit Assembler(std::istream& input);
@@ -71,7 +69,7 @@ namespace tx {
         /// @returns The binary buffer if successful
         std::optional<Rom> generate_binary();
         /// Get the size of the binary the assembler would currently generate (only makes sense after run() was called)
-        static inline uint32 get_binary_size(Assembler* as) { return as->position; }
+        inline uint32 get_binary_size() const { return position; }
 
         /// Print an error message with the current line number from lex
         template <typename... Args>

@@ -12,11 +12,10 @@ VMTest::VMTest() {
     tx::log.init_str();
     tx::log_err.init_str();
 
-    debug = tx::testing::enable_debug;
-
-    if (debug) {
+    if (tx::testing::enable_debug) {
         tx::log.init_stream(&std::cout);
         tx::log_err.init_stream(&std::cerr);
+        tx::log_debug.init_stream(&std::cerr);
     }
 }
 
@@ -84,8 +83,7 @@ void VMTest::run_and_compare_num(
 
 bool VMTest::run_code(const std::string& s) {
     tx::Assembler as(s);
-    as.debug  = debug;
-    auto rom_ = as.generate_binary();
+    auto          rom_ = as.generate_binary();
     if (!rom_.has_value()) {
         ADD_FAILURE() << "Assembler encountered an error:" << std::endl << tx::log_err.get_str();
         return false;
@@ -94,7 +92,6 @@ bool VMTest::run_code(const std::string& s) {
     auto rom = rom_.value();
 
     tx::CPU cpu(rom);
-    cpu.debug = debug;
 
     tx::stdlib::use_stdlib(cpu);
     use_testing_stdlib(cpu);
