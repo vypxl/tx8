@@ -1,7 +1,6 @@
 #include "tx8/asm/assembler.hpp"
 
 #include "tx8/core/cpu.hpp"
-#include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.hpp"
@@ -18,8 +17,6 @@ tx::Assembler::Assembler(const char* input) : Assembler(std::string(input)) { }
 
 void tx::Assembler::run() {
     if (!ran) {
-        lexer.debug  = debug;
-        parser.debug = debug;
         parser.parse();
         ast = parser.get_ast();
         if (parser.has_error()) {
@@ -53,7 +50,7 @@ void tx::Assembler::run() {
             }
         }
         convert_labels();
-        if (debug) {
+        if (tx::log_debug.is_enabled()) {
             print_instructions();
             print_labels();
         }
@@ -169,18 +166,19 @@ void tx::Assembler::convert_labels() {
 }
 
 void tx::Assembler::print_instructions() {
-    tx::log_err("[asm] Instructions:\n");
+    tx::log_debug("[asm] Instructions:\n");
     uint32 pos = 0;
     for (auto& inst : instructions) {
-        tx::log_err("[asm] [#{:04x}:{:02x}] {}\n", pos, inst.len, inst);
+        tx::log_debug("[asm] [#{:04x}:{:02x}] {}\n", pos, inst.len, inst);
         pos += inst.len;
     }
 }
 
 void tx::Assembler::print_labels() {
-    tx::log_err("[asm] Labels:\n");
-    for (auto& label : labels) tx::log_err("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position);
+    tx::log_debug("[asm] Labels:\n");
+    for (auto& label : labels) tx::log_debug("[asm] :{} [{:x}] = #{:x}\n", label.name, label.id, label.position);
 }
+
 void tx::Assembler::write_parameter(Parameter& p, Rom& binary) {
     auto*  v_ptr = (uint8*) (&p.value.u);
     size_t c     = 0;

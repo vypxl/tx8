@@ -32,10 +32,6 @@ class VMTest : public ::testing::Test { // NOLINT
     bool run_code(const std::string& s);
 
     void use_testing_stdlib(tx::CPU& cpu);
-
-  public:
-    /// Whether to enable debug output
-    bool debug;
 };
 
 class Signed : public VMTest { };

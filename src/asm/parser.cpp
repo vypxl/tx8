@@ -145,7 +145,7 @@ void tx::Parser::parse() {
         }
     }
 
-    if (debug) {
-        for (const auto& node : ast) { tx::log_err("[parser] {}\n", node); }
+    if (tx::log_debug.is_enabled()) {
+        for (const auto& node : ast) { tx::log_debug("[parser] {}\n", node); }
     }
 }

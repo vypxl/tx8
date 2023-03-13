@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include "tx8/core/debug.hpp"
 #include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.hpp"
@@ -50,9 +49,6 @@ namespace tx {
             };
             std::array<uint32, REGISTER_COUNT> registers;
         };
-
-        /// If debug information should be printed
-        bool debug;
 
       private:
         /// System function table

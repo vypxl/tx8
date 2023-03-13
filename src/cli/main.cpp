@@ -8,23 +8,24 @@
 #include <fstream>
 #include <iostream>
 
-void cmd_run(const std::string& fname, bool debug) {
+static tx::Log log_cli;
+
+void cmd_run(const std::string& fname) {
     std::ifstream file(fname, std::ios::in);
     auto          rominfo = tx::parse_header(file);
 
     tx::Rom rom;
 
     if (rominfo.has_value()) {
-        tx::log("Running {}\n", rominfo.value());
+        log_cli("Running {}\n", rominfo.value());
         rom.resize(rominfo.value().size);
         file.read((char*) rom.data(), (long) rom.size());
     } else {
-        tx::log("Running source file {}\n", fname);
+        log_cli("Running source file {}\n", fname);
         file.seekg(0);
 
         tx::Assembler as(file);
-        as.debug  = debug;
-        auto rom_ = as.generate_binary();
+        auto          rom_ = as.generate_binary();
         if (!rom_.has_value()) {
             fmt::println("Assembler encountered an error: \n{}", tx::log_err.get_str());
             exit(1);
@@ -35,18 +36,16 @@ void cmd_run(const std::string& fname, bool debug) {
     file.close();
 
     tx::CPU cpu(rom);
-    cpu.debug = debug;
 
     tx::stdlib::use_stdlib(cpu);
 
     cpu.run();
 }
 
-void cmd_build(const std::string& srcName, const std::string& destName, bool debug) {
+void cmd_build(const std::string& srcName, const std::string& destName) {
     std::ifstream src(srcName, std::ios::in);
     std::ofstream dest(destName, std::ios::out | std::ios::binary);
     tx::Assembler as(src);
-    as.debug = debug;
     as.run();
 
     tx::RomInfo info {as.get_binary_size(), "Game", "Description"};
@@ -54,7 +53,7 @@ void cmd_build(const std::string& srcName, const std::string& destName, bool deb
 
     dest.write((char*) header.data(), (long) header.size());
     as.write_binary(dest);
-    tx::log("Wrote {} bytes tx8 binary to {}\n", header.size() + info.size, destName);
+    log_cli("Wrote {} bytes tx8 binary to {}\n", header.size() + info.size, destName);
 }
 
 int main() {
@@ -63,7 +62,14 @@ int main() {
     app.require_subcommand(1, 1);
 
     bool debug = false;
+    bool quiet = false;
     app.add_flag("-v,--debug", debug, "Verbose debug output");
+    app.add_flag("-q,--quiet", quiet, "Quiet mode (no additional output from the cli)");
+
+    app.parse_complete_callback([&]() {
+        if (debug) tx::log_debug.init_stream(&std::cerr);
+        if (!quiet) log_cli.init_stream(&std::cout);
+    });
 
     auto* run = app.add_subcommand("run", "Run a tx8 file");
 
@@ -73,7 +79,7 @@ int main() {
         ->required()
         ->check(CLI::ExistingFile);
 
-    run->callback([&]() { cmd_run(run_src, debug); });
+    run->callback([&]() { cmd_run(run_src); });
 
     auto*       build = app.add_subcommand("build", "Build a tx8 rom from a source file");
     std::string build_src;
@@ -85,7 +91,7 @@ int main() {
         ->default_str("out.txr")
         ->check(CLI::NonexistentPath);
 
-    build->callback([&]() { cmd_build(build_src, build_dest, debug); });
+    build->callback([&]() { cmd_build(build_src, build_dest); });
 
     tx::log.init_stream(&std::cout);
     tx::log_err.init_stream(&std::cerr);

@@ -7,14 +7,12 @@
 
 using namespace tx;
 
-#define debug false
-
 std::optional<RomInfo> tx::parse_header(std::istream& stream) {
     RomInfo info;
     uint32  magic;
     stream.read((char*) &magic, sizeof(uint32));
     if (magic != MAGIC) {
-        if (debug) tx::log_err("Invalid magic bytes: {:x} instead of {:x}\n", magic, MAGIC);
+        tx::log_debug("[header_parse] Invalid magic bytes: {:x} instead of {:x}\n", magic, MAGIC);
         return std::nullopt;
     }
 
@@ -25,7 +23,7 @@ std::optional<RomInfo> tx::parse_header(std::istream& stream) {
     stream.read((char*) &info.size, sizeof(uint32));
 
     if (info.size > tx::MAX_ROM_SIZE) {
-        if (debug) tx::log_err("Invalid rom size: {}, maximum allowed is {}\n", info.size, tx::MAX_ROM_SIZE);
+        tx::log_debug("[header_parse] Invalid rom size: {}, maximum allowed is {}\n", info.size, tx::MAX_ROM_SIZE);
         return std::nullopt;
     }
 
@@ -51,11 +49,11 @@ std::optional<RomInfo> tx::parse_header(std::istream& stream) {
     }
 
     if (checksum != header_checksum) {
-        if (debug) tx::log_err("Invalid checksum: {:x} instead of {:x}\n", checksum, header_checksum);
+        tx::log_debug("[header_parse] Invalid checksum: {:x} instead of {:x}\n", checksum, header_checksum);
         return std::nullopt;
     }
     if (stream.fail()) {
-        if (debug) tx::log_err("Failed to parse header: read failure\n");
+        tx::log_debug("[header_parse] Failed to parse header: read failure\n");
         return std::nullopt;
     }
     return info;

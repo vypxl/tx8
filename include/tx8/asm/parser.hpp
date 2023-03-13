@@ -26,9 +26,6 @@ namespace tx {
 
     class Parser {
       public:
-        /// Whether to enable debug output
-        bool debug = false;
-
         explicit Parser(tx::Lexer& lexer) : lexer(lexer) {};
         void    parse();
         tx::AST get_ast();

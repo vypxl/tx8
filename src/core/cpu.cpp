@@ -34,7 +34,6 @@ namespace tx {
         // initialize registers and memory
         halted  = false;
         stopped = false;
-        debug   = false;
         rseed   = RAND_INITIAL_SEED;
         a       = 0;
         b       = 0;
@@ -51,7 +50,7 @@ namespace tx {
     }
 
     void CPU::run() {
-        if (debug) log_err("[cpu] Beginning execution...\n");
+        log_debug("[cpu] Beginning execution...\n");
 
         tx::uint32 prev_p;
         while (!halted) {
@@ -63,22 +62,20 @@ namespace tx {
             // TODO: implement properly upon implementing interrupts
             if (stopped) {
                 halted = true;
-                if (debug) log_err("[cpu] Stopped.\n");
+                log_debug("[cpu] Stopped.\n");
                 break;
             }
 
             Instruction current_instruction = parse_instruction(p);
 
-            if (debug && current_instruction.opcode != Opcode::Nop) {
-                log_err("[cpu] [#{:x}] {}\n", p, current_instruction);
-            }
+            if (current_instruction.opcode != Opcode::Nop) { log_debug("[cpu] [#{:x}] {}\n", p, current_instruction); }
             prev_p = p;
             exec_instruction(current_instruction);
 
             // do not increment p if instruction changes p
             if (p == prev_p) p += current_instruction.len;
         }
-        if (debug) log_err("[cpu] Halted.\n");
+        log_debug("[cpu] Halted.\n");
     }
 
     uint32 CPU::rand() {

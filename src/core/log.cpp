@@ -4,8 +4,9 @@ void tx::Log::reset() {
     stream = nullptr;
     file   = nullptr;
     delete str;
-    str  = nullptr;
-    func = nullptr;
+    str     = nullptr;
+    func    = nullptr;
+    enabled = false;
 }
 
 tx::Log::Log() { reset(); }
@@ -17,3 +18,4 @@ tx::Log::~Log() {
 
 tx::Log tx::log;
 tx::Log tx::log_err;
+tx::Log tx::log_debug;
