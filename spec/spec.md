@@ -39,6 +39,7 @@
 
 Programming TX8 is generally done in assembly. The virtual processor and assembly language used is described below.
 For a formal syntax specification, see [tx8_asm_language.md](tx8_asm_language.md).
+A tx8 assembly file has the file extension `.tx8`.
 
 ### Registers
 
@@ -412,9 +413,10 @@ This means the `rand` operation always produces the same sequence of numbers if 
 Note that `rand` returns a random **float** between 0 and 1, not an integer. If you need the random integer,
 it is found in the `R` register. To get a random integer without affecting any other registers, use `rand r`.
 
-## Binary Files
+## Roms (Binary Files)
 
 TX8 programs or games are distributed as binary files. These files must include a header at the top.
+The file extension for tx8 roms is `.txr`.
 
 | Bytes | Type                                 | Meaning / Content                                                                       |
 | ----- | ------------------------------------ | --------------------------------------------------------------------------------------- |
