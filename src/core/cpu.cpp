@@ -25,7 +25,8 @@
 #define ERR_DIV_BY_ZERO       "Exception: Division by zero"
 
 namespace tx {
-    CPU::CPU(Rom rom) { // NOLINT
+    CPU::CPU(Rom rom, bool gpu_enabled) : gpu(*this) { // NOLINT
+        this->gpu_enabled = gpu_enabled;
         if (rom.size() > ROM_SIZE) {
             error(ERR_ROM_TOO_LARGE);
             return;
@@ -47,6 +48,9 @@ namespace tx {
 
         // load rom into memory
         std::copy(rom.begin(), rom.end(), mem.begin() + ROM_START);
+
+        // init gpu if enabled
+        if (gpu_enabled) { gpu.init_window(); }
     }
 
     void CPU::run() {
@@ -54,6 +58,11 @@ namespace tx {
 
         tx::uint32 prev_p;
         while (!halted) {
+            if (gpu_enabled) {
+                if (gpu.window_events()) break;
+                gpu.draw_frame_if_needed();
+            }
+
             if (p > MEM_SIZE - INSTRUCTION_MAX_LENGTH - 1 || p < 0) {
                 error(ERR_INVALID_PC);
                 break;
@@ -76,6 +85,8 @@ namespace tx {
             if (p == prev_p) p += current_instruction.len;
         }
         log_debug("[cpu] Halted.\n");
+        gpu.window_loop();
+        gpu.destroy();
     }
 
     uint32 CPU::rand() {

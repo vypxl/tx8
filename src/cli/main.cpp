@@ -35,7 +35,7 @@ void cmd_run(const std::string& fname) {
 
     file.close();
 
-    tx::CPU cpu(rom);
+    tx::CPU cpu(rom, true);
 
     tx::stdlib::use_stdlib(cpu);
 

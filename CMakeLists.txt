@@ -57,12 +57,25 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cli11)
 
+# SDL2
+
+FetchContent_Declare(
+  SDL2
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL
+  GIT_TAG release-2.26.5)
+
+FetchContent_MakeAvailable(SDL2)
+target_compile_options(SDL2-static PRIVATE -w)
+target_compile_options(SDL2 PRIVATE -w)
+target_compile_options(SDL2_test PRIVATE -w)
+
 # tx8-core
 
-add_library(tx8-core STATIC src/core/cpu.cpp src/core/stdlib.cpp
-                            src/core/log.cpp src/core/util.cpp)
+add_library(
+  tx8-core STATIC src/core/cpu.cpp src/core/gpu.cpp src/core/stdlib.cpp
+                  src/core/log.cpp src/core/util.cpp)
 target_include_directories(tx8-core PUBLIC include)
-target_link_libraries(tx8-core PUBLIC fmt::fmt)
+target_link_libraries(tx8-core PUBLIC fmt::fmt SDL2-static)
 
 # tx8-asm
 

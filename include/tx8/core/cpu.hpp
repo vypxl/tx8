@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "tx8/core/gpu.hpp"
 #include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.hpp"
@@ -50,6 +51,8 @@ namespace tx {
             std::array<uint32, REGISTER_COUNT> registers;
         };
 
+        GPU gpu;
+
       private:
         /// System function table
         std::map<uint32, Sysfunc> sys_func_table;
@@ -59,10 +62,12 @@ namespace tx {
         bool halted;
         /// If the cpu is currently idle and waiting for an interrupt
         bool stopped;
+        /// If the gpu is enabled (if not, the gpu will not be updated, meaning the window (if it was created) freezes)
+        bool gpu_enabled;
 
       public:
         /// Initialize all cpu members and copy the rom into the memory
-        explicit CPU(Rom rom);
+        explicit CPU(Rom rom, bool gpu_enabled = false);
         /// Execute instructions until an error occurs or a hlt instruction is reached
         void run();
         /// Register the given function in the system function table
