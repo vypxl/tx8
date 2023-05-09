@@ -35,6 +35,13 @@
 - 8mb (#0x400000 - #0xbfffff) loaded cartridge data (read/writable)
 - 4mb (#0xc00000 - #0xffffff) work RAM (read/writable)
 
+### Layout of system reserved memory space
+
+- System registers
+- VRAM
+  - 16kb (#0x100000 - #0x103fff) Tile data background (64 tiles)
+  - 576b (#0x104000 - #0x10423f) Map Data BG0 (32x18 tiles, each tile vhtttttt: vertical flip, horizontal flip, tile number)
+
 ## Assembly Programming (TX8-Asm)
 
 Programming TX8 is generally done in assembly. The virtual processor and assembly language used is described below.
