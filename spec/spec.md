@@ -141,6 +141,35 @@ Parameters are described like this: Three characters, one for each parameter:
 - `v` for values (constants, addresses, registers)
 - `w` for writable (addresses, registers)
 
+### Strings
+
+Raw string data (ascii) can be included in tx8 assembly.
+There are two ways of doing this.
+
+First, strings can be embedded as raw data in between instruction, by just wrapping the desired text in double quotes `"<text>"`.
+Then, the ascii bytes will be inserted into the binary at the position they appear in the assembly. You might want to add a label before
+the string to be able to reference it.
+
+Second, strings can be used like other parameters. For example, the instruction `push "Hello world"`, would push the address of the
+specified text in the rom to the stack. The string is placed in the data section located at the end of the rom data. This way, the instruction
+flow stays the same, no need for jumps to skip the string data.
+
+Strings are wrapped in double quotes. You can use the escape codes `\t`, `\r`, `\n` and `\\`. Invalid escape codes are ignored and treated like normal text.
+Strings can wrap multiple lines.
+
+Note that all strings are implicitly null-terminated.
+
+Note that if you use the first way, you might need to jump past the string data or risk the cpu executing the string data as code.
+
+```tx8
+jmp :code
+:hello_str "Hello world"
+
+:code
+push :hello_str
+sys &println
+```
+
 #### Flow Control
 
 The comparison instructions `cmp`, `fcmp` and `ucmp` compare the first parameter to the second parameter
