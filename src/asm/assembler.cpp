@@ -4,8 +4,10 @@
 #include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 #include "tx8/core/types.hpp"
+#include "tx8/core/util.hpp"
 
 #include <sstream>
+#include <variant>
 
 #define tx_asm_INVALID_LABEL_ADDRESS 0xffffffff
 
@@ -32,23 +34,51 @@ void tx::Assembler::run() {
                     auto& label           = std::get<tx::ast::Label>(inst.p1);
                     auto  pos             = handle_label(label.name);
                     instruction.params.p1 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
-                } else {
+                } else if (std::holds_alternative<tx::ast::String>(inst.p1)) {
+                    auto& str             = std::get<tx::ast::String>(inst.p1);
+                    auto  pos             = handle_string(str.value);
+                    instruction.params.p1 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
+                } else if (std::holds_alternative<tx::Parameter>(inst.p1)) {
                     instruction.params.p1 = std::get<tx::Parameter>(inst.p1);
+                } else {
+                    report_error("Unreachable, parameter 1 variant holds weird type");
                 }
+
                 if (std::holds_alternative<tx::ast::Label>(inst.p2)) {
                     auto& label           = std::get<tx::ast::Label>(inst.p2);
                     auto  pos             = handle_label(label.name);
                     instruction.params.p2 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
-                } else {
+                } else if (std::holds_alternative<tx::ast::String>(inst.p2)) {
+                    auto& str             = std::get<tx::ast::String>(inst.p2);
+                    auto  pos             = handle_string(str.value);
+                    instruction.params.p2 = tx::Parameter {.value = {pos}, .mode = tx::ParamMode::Label};
+                } else if (std::holds_alternative<tx::Parameter>(inst.p2)) {
                     instruction.params.p2 = std::get<tx::Parameter>(inst.p2);
+                } else {
+                    report_error("Unreachable, parameter 2 variant holds weird type");
                 }
+
                 add_instruction(instruction);
             } else if (std::holds_alternative<tx::ast::Label>(node)) {
                 auto& label = std::get<tx::ast::Label>(node);
                 handle_label(label.name);
                 set_label_position(label.name);
+            } else if (std::holds_alternative<tx::ast::String>(node)) {
+                auto& str = std::get<tx::ast::String>(node);
+                // +1 for null byte
+                instructions.emplace_back(std::vector<tx::uint8>(str.value.begin(), str.value.end() + 1));
+                position += str.value.size() + 1;
+            } else {
+                report_error("Unreachable, ast node holds weird type");
             }
         }
+
+        // calculate data section offsets
+        for (const auto& entry : data_section) {
+            set_label_position(entry.label_name);
+            position += entry.data.size();
+        }
+
         convert_labels();
         if (tx::log_debug.is_enabled()) {
             print_instructions();
@@ -85,7 +115,15 @@ std::optional<tx::Rom> tx::Assembler::generate_binary() {
     Rom binary;
     binary.reserve(position);
 
-    for (auto& inst : instructions) write_instruction(inst, binary);
+    for (auto& inst : instructions) {
+        std::visit(
+            overloaded {
+                [&](tx::Instruction inst) { write_instruction(inst, binary); },
+                [&](std::vector<tx::uint8> raw) { binary.insert(binary.end(), raw.begin(), raw.end()); }},
+            inst
+        );
+    }
+    for (const auto& entry : data_section) binary.insert(binary.end(), entry.data.begin(), entry.data.end());
 
     return binary;
 }
@@ -107,6 +145,14 @@ tx::uint32 tx::Assembler::handle_label(const std::string& name) {
 
     // return the new id
     return label.id;
+}
+
+tx::uint32 tx::Assembler::handle_string(const std::string& str) {
+    std::string label_name = fmt::format("__tx_data_str_{}", last_string_id++);
+    tx::uint32  label_id   = handle_label(label_name);
+    data_section.push_back(DataSectionEntry {label_name, std::vector<tx::uint8>(str.begin(), str.end() + 1)});
+
+    return label_id;
 }
 
 // returns the id of the label whose position was set
@@ -148,12 +194,14 @@ tx::uint32 tx::Assembler::convert_label(uint32 id) {
 
 void tx::Assembler::add_instruction(Instruction inst) {
     calculate_instruction_length(inst);
-    instructions.push_back(inst);
+    instructions.emplace_back(inst);
     position += inst.len;
 }
 
 void tx::Assembler::convert_labels() {
-    for (auto& inst : instructions) {
+    for (auto& instruction : instructions) {
+        if (!std::holds_alternative<tx::Instruction>(instruction)) continue;
+        auto& inst = std::get<tx::Instruction>(instruction);
         if (inst.params.p1.mode == ParamMode::Label) {
             inst.params.p1.value.u = Assembler::convert_label(inst.params.p1.value.u);
             inst.params.p1.mode    = ParamMode::Constant32;
@@ -169,8 +217,18 @@ void tx::Assembler::print_instructions() {
     tx::log_debug("[asm] Instructions:\n");
     uint32 pos = 0;
     for (auto& inst : instructions) {
-        tx::log_debug("[asm] [#{:04x}:{:02x}] {}\n", pos, inst.len, inst);
-        pos += inst.len;
+        std::visit(
+            overloaded {
+                [&](const tx::Instruction& i) {
+                    tx::log_debug("[asm] [#{:04x}:{:02x}] {}\n", pos, i.len, i);
+                    pos += i.len;
+                },
+                [&](const std::vector<tx::uint8>& data) {
+                    tx::log_debug("[asm] [#{:04x}] Data of length {}\n", pos, data.size());
+                    pos += data.size();
+                }},
+            inst
+        );
     }
 }
 

@@ -38,6 +38,9 @@ namespace tx {
         struct Alias {
             std::string name;
         };
+        struct StringT {
+            std::string value;
+        };
         struct Invalid {
             std::string value;
         };
@@ -56,6 +59,7 @@ namespace tx {
             tx::lexer::token::Float,
             tx::lexer::token::Label,
             tx::lexer::token::Alias,
+            tx::lexer::token::StringT,
             tx::lexer::token::Invalid>;
 
         explicit Lexer(std::istream& input) : is(input) {};
@@ -105,6 +109,7 @@ o1t(tx::lexer::token::Opcode, "Opcode", opcode, tx::op_names);
 o1(tx::lexer::token::Float, "Float", value);
 o1(tx::lexer::token::Label, "Label", name);
 o1(tx::lexer::token::Alias, "Alias", name);
+o1(tx::lexer::token::StringT, "String", value);
 o1(tx::lexer::token::Invalid, "Invalid", value);
 
 FORMATTER_BEGIN(tx::Lexer::LexerToken, token)

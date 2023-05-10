@@ -12,12 +12,13 @@ using RegisterT      = tx::lexer::token::Register;
 using LabelAst       = tx::ast::Label;
 using InstructionAst = tx::ast::Instruction;
 using ParamAst       = tx::ast::Parameter;
+using StringAst      = tx::ast::String;
 
 tx::AST tx::Parser::get_ast() { return ast; }
 
 bool tx::Parser::has_error() { return error; }
 
-std::optional<std::variant<tx::Parameter, LabelAst>> tx::Parser::read_parameter() {
+std::optional<ParamAst> tx::Parser::read_parameter() {
     std::optional<LexerToken> token;
 
     token = lexer.next_token();
@@ -62,6 +63,7 @@ std::optional<std::variant<tx::Parameter, LabelAst>> tx::Parser::read_parameter(
                 .mode  = tx::ParamMode::Constant32};
         }
         if (holds_alternative<LabelT>(*token)) { return LabelAst {std::get<LabelT>(*token).name}; }
+        if (holds_alternative<StringT>(*token)) { return tx::ast::String {std::get<StringT>(*token).value}; };
 
         tx::log_err("Expected parameter, not {}\n", *token);
         error = true;
@@ -136,8 +138,11 @@ void tx::Parser::parse() {
                 };
                 ast.push_back(label);
             } else if (holds_alternative<EndOfLine>(*token)) {
+            } else if (holds_alternative<StringT>(*token)) {
+                StringAst string {std::get<StringT>(*token).value};
+                ast.push_back(string);
             } else {
-                tx::log_err("Expected instruction or label, got {}\n", *token);
+                tx::log_err("Expected instruction, label or string, got {}\n", *token);
                 error = true;
             }
         } else {

@@ -13,7 +13,10 @@ namespace tx {
         struct Label {
             std::string name;
         };
-        using Parameter = std::variant<tx::Parameter, Label>;
+        struct String {
+            std::string value;
+        };
+        using Parameter = std::variant<tx::Parameter, Label, String>;
         struct Instruction {
             tx::Opcode opcode;
             Parameter  p1;
@@ -21,7 +24,7 @@ namespace tx {
         };
         struct Invalid { };
     } // namespace ast
-    using ParserNode = std::variant<tx::ast::Instruction, tx::ast::Label, tx::ast::Invalid>;
+    using ParserNode = std::variant<tx::ast::Instruction, tx::ast::Label, tx::ast::String, tx::ast::Invalid>;
     using AST        = std::vector<tx::ParserNode>;
 
     class Parser {
@@ -36,8 +39,8 @@ namespace tx {
         tx::AST    ast;
         bool       error = false;
 
-        std::optional<std::variant<tx::Parameter, tx::ast::Label>> read_parameter();
-        std::optional<tx::ast::Instruction>                        read_instruction(tx::Opcode opcode);
+        std::optional<tx::ast::Parameter>   read_parameter();
+        std::optional<tx::ast::Instruction> read_instruction(tx::Opcode opcode);
     };
 } // namespace tx
 
@@ -53,6 +56,10 @@ namespace tx {
 
 FORMATTER_BEGIN(tx::ast::Label, label)
     return formatter<string_view>::format(fmt::format("Label '{}'", label.name), ctx);
+FORMATTER_END
+
+FORMATTER_BEGIN(tx::ast::String, string)
+    return formatter<string_view>::format(fmt::format("String '{}'", string.value), ctx);
 FORMATTER_END
 
 FORMATTER_BEGIN(tx::ast::Parameter, token)

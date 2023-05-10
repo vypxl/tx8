@@ -18,14 +18,22 @@
 #include <vector>
 
 namespace tx {
+    struct DataSectionEntry {
+        std::string            label_name;
+        std::vector<tx::uint8> data;
+    };
+
     class Assembler {
-        std::vector<Label>       labels;
-        std::vector<Instruction> instructions;
-        uint32                   position      = 0;
-        uint32                   last_label_id = 1;
-        bool                     error         = false;
-        bool                     ran           = false;
-        std::istringstream       is;
+        std::vector<Label>                                             labels;
+        std::vector<std::variant<Instruction, std::vector<tx::uint8>>> instructions;
+        std::vector<DataSectionEntry>                                  data_section;
+
+        uint32             position       = 0;
+        uint32             last_label_id  = 1;
+        uint32             last_string_id = 1;
+        bool               error          = false;
+        bool               ran            = false;
+        std::istringstream is;
 
         tx::Lexer  lexer;
         tx::Parser parser;
@@ -38,6 +46,8 @@ namespace tx {
 
         /// Register a new label and return its id or the id of the already registered label with the same name
         uint32 handle_label(const std::string& name);
+        /// Register a new string to be put into the data section. Returns the id of the label which points to the string data.
+        uint32 handle_string(const std::string& str);
         /// Set the position of a registered label if it has not been set already. Returns the id of the label.
         uint32 set_label_position(const std::string& name);
 

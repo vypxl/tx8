@@ -129,6 +129,32 @@ optional<LexerToken> readFloat(const string& s) {
     return Float {val};
 }
 
+optional<LexerToken> readString(std::istream& is) {
+    std::string result;
+    char        c;
+
+    // Read string until terminating ", while allowing escaped characters
+    while (is.get(c) && c != '"') {
+        if (c == '\\') {
+            if (!is.get(c)) { return std::nullopt; }
+            switch (c) {
+                case '"':
+                case '\\': result += c; break;
+                case 'n': result += '\n'; break;
+                case 'r': result += '\r'; break;
+                case 't': result += '\t'; break;
+                default: result += '\\'; result += c;
+            }
+        } else {
+            result += c;
+        }
+    }
+
+    if (is.fail()) { return std::nullopt; }
+
+    return StringT {result};
+}
+
 optional<LexerToken> Lexer::next_token() {
     readSpace();
     int c = is.peek();
@@ -150,7 +176,7 @@ optional<LexerToken> Lexer::next_token() {
     is >> s;
     // this handles the case where the comment starts immediately after a token, e. g. `lda 0; comment`
     // compare with `lda 0 ; comment` (note the space)
-    if (s.contains(';')) {
+    if (s.contains(';') && !(s[0] == '"')) {
         s = s.substr(0, s.find(';'));
         is.putback(';');
     }
@@ -175,6 +201,11 @@ optional<LexerToken> Lexer::next_token() {
         case '$':
             s.erase(s.begin());
             token = readAddress(s, true).transform([](const auto& r) { return RelativeAddress {r}; });
+            break;
+        case '"':
+            s.erase(s.begin());
+            for ([[maybe_unused]] char c : s) { is.unget(); }
+            token = readString(is);
             break;
         default:
             // clang-format off
