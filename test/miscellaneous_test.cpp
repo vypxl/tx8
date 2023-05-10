@@ -104,4 +104,29 @@ hlt
     run_and_compare_num(s, {0u, 42u}); // NOLINT
 }
 
+TEST_F(Miscellaneous, strings) {
+    std::string s = R"EOF(
+jmp :code
+
+:string_1 "String \t\r\n\\\1" ; string
+:string_2
+"String2";String2
+:multiline "multi ; test
+line";multiline
+
+:code
+push :string_1
+sys &println
+push "hi!"; hi
+sys &println
+push :string_2
+sys &println
+push :multiline
+sys &println
+
+hlt
+    )EOF";
+    run_and_compare_str(s, "String \t\r\n\\\\1\nhi!\nString2\nmulti ; test\nline\n");
+}
+
 #pragma clang diagnostic pop
