@@ -27,6 +27,7 @@
 ## Memory
 
 - 16 megabyte memory
+- Zero-initialized
 - 4 byte addresses
 - reading or writing out of bounds (beyond 0xffffff) truncates the address to 24-bit: `0x12345678 => 0x345678`
 - when reading at the edge of memory, 0 is read for all out of bounds bytes
@@ -68,11 +69,27 @@ The available CPU registers are described here:
 - `A`,`B`,`C`,`D`: general purpose registers
 - `R`: 'rest' register (stores secondary results of previous operations)
 - `O`: offset for relative addressing
-- `S`: Stack pointer
 - `P`: Program counter / Instruction Pointer
+- `S`: Stack pointer
 
 The program counter can have any value in the range 0..0xfffff0 to prevent parsing an instruction outside of memory,
 because an instruction can be up to 10 bytes long.
+
+The program counter starts at `0x400000`, the first byte of the mapped rom data.
+The stack pointer starts at `0xc02000`, in work ram. It is advised to change this according to the programs needs.
+
+For how the registers are represented as parameters in binary, see this table:
+
+| Register | 32-bit | 16-bit | 8-bit |
+| -------- | ------ | ------ | ----- |
+| A        | 0x0    | 0x20   | 0x10  |
+| B        | 0x1    | 0x21   | 0x11  |
+| C        | 0x2    | 0x22   | 0x12  |
+| D        | 0x3    | 0x23   | 0x13  |
+| R        | 0x4    | 0x24   | 0x14  |
+| O        | 0x5    | 0x25   | 0x15  |
+| P        | 0x6    | 0x26   | 0x16  |
+| S        | 0x7    | 0x27   | 0x17  |
 
 ### Stack
 
@@ -93,23 +110,23 @@ There are 5 ways to give parameters to instructions:
 
 - Constant mode (decimal, hex, binary and float): `lda 42`, `lda 0x2a`, `lda 0b101010`, `lda 42.1337`
 - Absolute address mode (`#` prefix): `lda #42`
-- Relative address mode (`$` prefix, dependent on register `O`): `lda $-42`
+- Relative address mode (`$` prefix, the given address is offset by the value in register `O`): `lda $-42`
 - Register mode: `lda bi`
-- Register address mode: `lda @bs`
+- Register address mode (`@` prefix, interprets the value in the register as an address): `lda @bs`
 
 In binary, parameter modes are indicated by the 0-1 bytes after the opcode. Every 4 bits represent one
 parameter mode.
 
-| Code | Mode             |
-| ---- | ---------------- |
-| 0x0  | Unused           |
-| 0x1  | Constant 8bit    |
-| 0x2  | Constant 16bit   |
-| 0x3  | Constant 32bit   |
-| 0x4  | Absolute address |
-| 0x5  | Relative address |
-| 0x6  | Register         |
-| 0x7  | Register address |
+| Code | Mode             | Amount of bytes the parameter takes |
+| ---- | ---------------- | ----------------------------------- |
+| 0x0  | Unused           | 0                                   |
+| 0x1  | Constant 8bit    | 1                                   |
+| 0x2  | Constant 16bit   | 2                                   |
+| 0x3  | Constant 32bit   | 4                                   |
+| 0x4  | Absolute address | 3                                   |
+| 0x5  | Relative address | 3                                   |
+| 0x6  | Register         | 1                                   |
+| 0x7  | Register address | 1                                   |
 
 An example binary instruction looks like this:
 
@@ -133,13 +150,9 @@ Jump points should be used to jump to absolute addresses like this:
 :continue hlt     ; You can put a label and an instruction on the same line
 ```
 
-### Instruction List
+### Integer Endianness
 
-Parameters are described like this: Three characters, one for each parameter:
-
-- `0` for unused
-- `v` for values (constants, addresses, registers)
-- `w` for writable (addresses, registers)
+tx8 uses little-endian.
 
 ### Strings
 
@@ -170,6 +183,21 @@ push :hello_str
 sys &println
 ```
 
+### Panics / Crashes
+
+When the cpu runs into an error, such as trying to write to a non writable location (e. g. a constant value), the cpu should stop executing
+and crash with an error.
+
+Reading an invalid opcode will **not** crash, invalid opcodes shall be treated like `nop`. The runtime can output a warning if desired.
+
+### Instruction List
+
+Parameters are described like this: Three characters, one for each parameter:
+
+- `0` for unused
+- `v` for values (constants, addresses, registers)
+- `w` for writable (addresses, registers)
+
 #### Flow Control
 
 The comparison instructions `cmp`, `fcmp` and `ucmp` compare the first parameter to the second parameter
@@ -198,27 +226,31 @@ then use the `jeq`, `jne`, `jgt`, `jge`, `jlt` or `jle` instructions to jump bas
 If you want to jump based on the result of a `test` bit test operation, use `jne` after `test` to jump if the
 tested bit was 1, `jeq` to jump if the tested bit was 0.
 
-| Opcode | Asm  | Parameters | Operation                                | Example       |
-| ------ | ---- | ---------- | ---------------------------------------- | ------------- |
-| 0x00   | hlt  | `00`       | halt / stop execution                    | `hlt`         |
-| 0x01   | nop  | `00`       | no operation                             | `nop`         |
-| 0x02   | jmp  | `v0`       | jump to address                          | `jmp :label`  |
-| 0x03   | jeq  | `v0`       | jump if equal                            | `jeq :branch` |
-| 0x04   | jne  | `v0`       | jump if not equal                        | `jne :branch` |
-| 0x05   | jgt  | `v0`       | jump if greater than                     | `jgt :branch` |
-| 0x06   | jge  | `v0`       | jump if greater than or equal to         | `jge :branch` |
-| 0x07   | jlt  | `v0`       | jump if less than                        | `jlt :branch` |
-| 0x08   | jle  | `v0`       | jump if less than or equal to            | `jle :branch` |
-| 0x09   | cmp  | `vv`       | Compare signed                           | `cmp a -5`    |
-| 0x0a   | fcmp | `vv`       | Compare floating point                   | `fcmp a 0.5`  |
-| 0x0b   | ucmp | `vv`       | Compare unsigned                         | `ucmp a 0`    |
-| 0x0c   | call | `v0`       | call function                            | `call :fun`   |
-| 0x0d   | ret  | `00`       | return from function                     | `ret`         |
-| 0x0e   | sys  | `v0`       | call system function (more further down) | `sys &PRINT`  |
+| Opcode | Asm  | Parameters | Operation                                        | Example       |
+| ------ | ---- | ---------- | ------------------------------------------------ | ------------- |
+| 0x00   | hlt  | `00`       | halt / stop execution                            | `hlt`         |
+| 0x01   | nop  | `00`       | no operation                                     | `nop`         |
+| 0x02   | jmp  | `v0`       | jump to address                                  | `jmp :label`  |
+| 0x03   | jeq  | `v0`       | jump if equal                                    | `jeq :branch` |
+| 0x04   | jne  | `v0`       | jump if not equal                                | `jne :branch` |
+| 0x05   | jgt  | `v0`       | jump if greater than                             | `jgt :branch` |
+| 0x06   | jge  | `v0`       | jump if greater than or equal to                 | `jge :branch` |
+| 0x07   | jlt  | `v0`       | jump if less than                                | `jlt :branch` |
+| 0x08   | jle  | `v0`       | jump if less than or equal to                    | `jle :branch` |
+| 0x09   | cmp  | `vv`       | Compare signed                                   | `cmp a -5`    |
+| 0x0a   | fcmp | `vv`       | Compare floating point                           | `fcmp a 0.5`  |
+| 0x0b   | ucmp | `vv`       | Compare unsigned                                 | `ucmp a 0`    |
+| 0x0c   | call | `v0`       | call function                                    | `call :fun`   |
+| 0x0d   | ret  | `00`       | return from function                             | `ret`         |
+| 0x0e   | sys  | `v0`       | call system function (see [syscalls](#syscalls)) | `sys &print`  |
 
 ##### Calling Convention
 
-The calling convention of TX8 is very similar
+There is a calling convention. tx8 libraries and programs are encouraged to use it for
+better compatibility. The programmer may still choose a different way of calling functions
+if they so please.
+
+The calling convention of tx8 is very similar
 to [CDECL](https://en.wikibooks.org/wiki/X86_Disassembly/Calling_Conventions#CDECL)
 To properly call a function / subroutine, the caller must follow these steps:
 
@@ -234,6 +266,14 @@ The callee must follow these steps:
 - use a `ret` instruction to return to the caller (pops the topmost address off the stack and jumps to it)
 
 The callee does not have to preserve any register values.
+
+##### Syscalls
+
+The `sys` instruction expects a 32 bit value corresponding to a syscall defined in the runtime. The runtime
+should implement the standard library (see [Syscall standard library](#syscall-standard-library)), and should also allow registering custom system calls.
+
+Each syscall has a name and an id. The id is calculated via the string hash function (see [String hash function](#string-hash-function)),
+by feeding the name of the syscall to it. `sys &print` => id is `strhash("print")`.
 
 #### Loading and Storing
 
@@ -255,6 +295,9 @@ Push and pop behave like this:
 - `push constant` pushes as many bytes as the constant has (A=4, As=2, Ab=1)
 - `pop register` pops as many bytes as the register has (A=4, As=2, Ab=1)
 - `pop address` pops 4 bytes
+
+`push` decreases the stack pointer by the amout of bytes pushed, and
+`pop` increases the stack pointer by the amount of bytes popped.
 
 | Opcode | Asm  | Parameters | Operation                                                                            | Example        |
 | ------ | ---- | ---------- | ------------------------------------------------------------------------------------ | -------------- |
@@ -431,7 +474,7 @@ When converting floating point values to int or uint, the conversion behaves lik
 fractional part is discarded, and if the magnitude of the float is too large for the receiving datatype, the result
 is undefined. The result is also undefined when trying to convert a negative float to an unsigned int.
 
-###### The random number generator
+### The random number generator
 
 The `rand` operation uses a pseudo random number generator, specifically a
 [Linear congruential generator](https://en.wikipedia.org/wiki/Linear_congruential_generator) with a multiplier of
@@ -441,6 +484,38 @@ is `0x12345678`.
 This means the `rand` operation always produces the same sequence of numbers if the seed is not changed.
 Note that `rand` returns a random **float** between 0 and 1, not an integer. If you need the random integer,
 it is found in the `R` register. To get a random integer without affecting any other registers, use `rand r`.
+
+### Syscall standard library
+
+The following syscalls shall be implemented by the runtime:
+
+| Name      | Function                                                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| print_u32 | Prints the topmost 32 bit value from the stack as an unsigned int                                                                            |
+| print_i32 | Prints the topmost 32 bit value from the stack as a signed int                                                                               |
+| print_f32 | Prints the topmost 32 bit value from the stack as a float                                                                                    |
+| print     | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack                                  |
+| println   | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack, followed by a newline character |
+
+The table now includes the missing functions and their corresponding descriptions.
+
+"Print" can mean just printing to stdout, but a more sophisticated runtime might define it otherwise.
+
+### String hash function
+
+tx8 defines the following string hash function. It is used by [syscalls](#syscalls), and may be used for other purposes in the future.
+
+The function takes a string and returns a 32-bit hash value. See the C reference implementation:
+
+```c
+uint32_t str_hash(const char* s) {
+    uint32 h = (uint8_t) *s;
+    if (h != 0)
+        for (++s; *s; ++s)
+            h = (h << 5) - h + (uint32_t) *s;
+    return h;
+}
+```
 
 ## Roms (Binary Files)
 
