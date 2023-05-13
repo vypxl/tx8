@@ -267,7 +267,7 @@ namespace tx {
 
 #define COMP_JUMP(comparison, name) \
     void CPU::op_##name(const Parameters& params) { \
-        /* NOLINT */ if (read_r() comparison 0) \
+        /* NOLINT */ if (((tx::int32)(read_r())) comparison 0) \
             jump(PARAMV(1)); \
     }
 
