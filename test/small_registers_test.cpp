@@ -60,6 +60,25 @@ hlt
     run_and_compare_num(s, {1u, 0u, 0u, -1u, 0u}); // NOLINT
 }
 
+TEST_F(SmallRegisters, loading_into_small_registers) {
+    std::string s = R"EOF(
+ld #0 0x112233
+ld a #0
+sys &test_au ; 0x112233
+
+zero a
+ld as #0
+sys &test_au ; 0x2233
+
+zero a
+ld ab #0
+sys &test_au ; 0x33
+
+hlt
+)EOF";
+    run_and_compare_num(s, {0x112233u, 0x2233u, 0x33u}); // NOLINT
+}
+
 TEST_F(SmallRegisters, inc) {
     std::string s = R"EOF(
 lda 0xff
