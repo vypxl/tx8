@@ -129,4 +129,39 @@ hlt
     run_and_compare_str(s, "String \t\r\n\\\\1\nhi!\nString2\nmulti ; test\nline\n");
 }
 
+// Tests if a write to the p register makes the program counter not increment after the instruction
+TEST_F(Miscellaneous, write_to_p) {
+    std::string s = R"EOF(
+lda 0
+ld p :next
+
+:next
+lda 1
+nop
+nop
+
+sys &test_au
+hlt
+    )EOF";
+    run_and_compare_num(s, {1u});
+}
+
+// Tests if the call instruction works at a basic level
+TEST_F(Miscellaneous, call_loop) {
+    std::string s = R"EOF(
+lda 0
+call :fun
+jmp :end
+
+:fun
+lda 1
+ret
+
+:end
+sys &test_au
+hlt
+    )EOF";
+    run_and_compare_num(s, {1u});
+}
+
 #pragma clang diagnostic pop
