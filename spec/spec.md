@@ -226,6 +226,9 @@ then use the `jeq`, `jne`, `jgt`, `jge`, `jlt` or `jle` instructions to jump bas
 If you want to jump based on the result of a `test` bit test operation, use `jne` after `test` to jump if the
 tested bit was 1, `jeq` to jump if the tested bit was 0.
 
+Note, after executing any instruction changing the `P` register, such as `jmp` or `call`, the program counter
+shall not be incremented. This means `ld p :function` also does **not** increment `P` after executing.
+
 | Opcode | Asm  | Parameters | Operation                                        | Example       |
 | ------ | ---- | ---------- | ------------------------------------------------ | ------------- |
 | 0x00   | hlt  | `00`       | halt / stop execution                            | `hlt`         |
