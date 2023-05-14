@@ -490,7 +490,7 @@ sys &test_au ; 0x1234ea
 
 lda 0x123456
 xor as bb
-sys &test_au ; 0x12caea
+sys &test_au ; 0x1234ea
 
 hlt
 )EOF";

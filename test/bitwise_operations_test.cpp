@@ -182,7 +182,7 @@ sys &test_au ; 0x7f
 lda 0xdeadbeef
 slr a 17
 sys &test_au ; 0x6f56
-sys &test_r ; 0x1eef
+sys &test_r ; 0x1beef
 
 lda 0xffffffff
 slr a 32 ; (0 in the lowest 5 bits)
@@ -218,7 +218,7 @@ sys &test_au ; 0x7f
 lda 0xdeadbeef
 sar a 17
 sys &test_au ; 0xffffef56
-sys &test_r ; 0x1eef
+sys &test_r ; 0x1beef
 
 lda 0xffffffff
 sar a 32 ; (0 in the lowest 5 bits)
