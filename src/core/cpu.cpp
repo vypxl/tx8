@@ -301,7 +301,10 @@ namespace tx {
 #undef COMPARISON
 
     void CPU::op_call(const Parameters& params) {
-        push(p);
+        tx::uint32 len = (uint8
+        ) (1 + param_mode_bytes[param_count[(tx::uint8) Opcode::Call]] + param_sizes[(tx::uint8) params.p1.mode]
+           + param_sizes[(tx::uint8) params.p2.mode]);
+        push(p + len);
         jump(PARAMV(1));
     }
 
