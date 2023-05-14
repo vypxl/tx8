@@ -519,10 +519,12 @@ The following syscalls shall be implemented by the runtime:
 | print_f32 | Prints the topmost 32 bit value from the stack as a float                                                                                    |
 | print     | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack                                  |
 | println   | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack, followed by a newline character |
+| put       | Prints the topmost byte on the stack as an ascii character                                                                                   |
+| get       | Reads one character from input and pushes it onto the stack                                                                                  |
 
 Strings in memory work like they do in C on reasonable architectures. The memory address points to the first character, address+1 to the second, and so on.
 
-"Print" can mean just printing to stdout, but a more sophisticated runtime might define it otherwise.
+"Print" and "Read" can mean just printing to stdout and reading from stdin, but a more sophisticated runtime might define it otherwise.
 
 ### String hash function
 

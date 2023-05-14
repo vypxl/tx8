@@ -1,6 +1,7 @@
 #include "tx8/core/stdlib.hpp"
 
 #include "tx8/core/cpu.hpp"
+#include "tx8/core/instruction.hpp"
 #include "tx8/core/log.hpp"
 
 #define f(name) void name(CPU& cpu)
@@ -40,6 +41,18 @@ namespace tx::stdlib {
         tx::log("{}\n", str);
     }
 
+    /// `put(char c)` - Prints the character `c`
+    f(put) {
+        char c = (char) cpu.top();
+        tx::log("{}", c);
+    }
+
+    /// `get()` - Reads a character from stdin and pushes it to the stack
+    f(get) {
+        char c = (char) getc(stdin);
+        cpu.push(c, tx::ValueSize::Byte);
+    }
+
 #pragma clang diagnostic warning "-Wunused-parameter"
 
 
@@ -51,6 +64,8 @@ namespace tx::stdlib {
         r(print_f32);
         r(print);
         r(println);
+        r(put);
+        r(get);
     }
 
 } // namespace tx::stdlib
