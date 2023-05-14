@@ -108,7 +108,7 @@ Comments can be added after a semi-colon (;).
 
 There are 5 ways to give parameters to instructions:
 
-- Constant mode (decimal, hex, binary and float): `lda 42`, `lda 0x2a`, `lda 0b101010`, `lda 42.1337`
+- Constant mode (decimal, hex, binary and float): `lda 42`, `lda 0x2a`, `lda 0b101010`, `lda 42.1337` (for smaller than 32-bit constants, add suffixes `u8, i16, ..` to your number)
 - Absolute address mode (`#` prefix): `lda #42`
 - Relative address mode (`$` prefix, the given address is offset by the value in register `O`): `lda $-42`
 - Register mode: `lda bi`
@@ -283,13 +283,18 @@ by feeding the name of the syscall to it. `sys &print` => id is `strhash("print"
 The shortcuts for registers (`lda`, `stc`, ...) are for convenience, `ld` can be used for everything.
 `ld` moves a different amount of bytes according to its parameters:
 
-- `ld register something` moves as many bytes as the register has (A=4, As=2, Ab=1) or how many the other parameter
-  might have, whichever is lower
-- `ld address register` moves as many bytes as the register has (A=4, As=2, Ab=1)
-- `ld address address` moves one byte
-- `ld address constant` moves as many bytes as the constant has
+- `ld register something` moves as many bytes as the register has (A=4, As=2, Ab=1). If the destination is smaller (smaller register or constant), the value is extended. If it is larger, it is truncated.
+- `ld address register` moves as many bytes as the register has (A=4, As=2, Ab=1).
+- `ld address address` moves one byte.
+- `ld address constant` moves as many bytes as the constant has.
 
-Use `lw` to always move 4 bytes.
+Use `lw` to move 4 bytes. The case `lw register something` is obsolete, but still included for completeness.
+`lw`'s purpose is to allow loading a full integer into (or from) memory, regardless of the size of the source.
+
+- `lw register something` behaves like ld.
+- `lw address register` extends the register value to 4 bytes, then moves these 4 bytes to the destination address.
+- `lw address address` moves 4 bytes.
+- `lw address constant` extends the value to 4 bytes and moves it.
 
 Push and pop behave like this:
 
@@ -299,8 +304,8 @@ Push and pop behave like this:
 - `pop register` pops as many bytes as the register has (A=4, As=2, Ab=1)
 - `pop address` pops 4 bytes
 
-`push` decreases the stack pointer by the amout of bytes pushed, and
-`pop` increases the stack pointer by the amount of bytes popped.
+`push` decreases the stack pointer by the amout of bytes pushed, then writes the value to the new address `S` points to.
+`pop` reads the value currently pointed to by `S`, then increases the stack pointer by the amount of bytes popped.
 
 | Opcode | Asm  | Parameters | Operation                                                                            | Example        |
 | ------ | ---- | ---------- | ------------------------------------------------------------------------------------ | -------------- |
@@ -316,7 +321,7 @@ Push and pop behave like this:
 | 0x19   | stc  | `w0`       | store value from register C into parameter1                                          | `stc #c01234`  |
 | 0x1a   | ldd  | `v0`       | load value into register D                                                           | `ldd @cb`      |
 | 0x1b   | std  | `w0`       | store value from register D into parameter1                                          | `std $-35`     |
-| 0x1c   | zero | `w0`       | zero out parameter1 (addresses 1 byte)                                               | `zero a`       |
+| 0x1c   | zero | `w0`       | zero out parameter1 (for memory addresses: only 1 byte)                              | `zero a`       |
 | 0x1d   | push | `v0`       | push onto stack                                                                      | `push a`       |
 | 0x1e   | pop  | `w0`       | pop from stack                                                                       | `pop a`        |
 
@@ -346,8 +351,13 @@ or floats, you have to use the specialized instructions.
 - The `set`, `clr` `tgl` and `test` instructions set the `R` register to the original value of the bit they operated on.
 - The `rand` operation places the original random integer into the `R` register.
 
+Every instruction that is not specified to change the `R` register does not change it, meaning it keeps its old value.
+
 Note that the R register assignment is done **after** the operation itself, this means if one specified the `R`
 register as the destination of an operation, the normal value is discarded and the residual value is found in `R`.
+
+When the R register is set as a byproduct of an instruction, any previously set bits are discarded. For example, if an `inc`
+instruction would set the lowest bit, all other bits will be zero.
 
 Example:
 
@@ -359,7 +369,7 @@ max r 2
 This would result in the value `1` being stored in `R` and the value `2` being discarded.
 
 Note that the reason why there are `add` and `uadd` instructions is that the the signed `add` sign-extends smaller values,
-and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constantst, you should use
+and the unsigned `uadd` zero-extends them. This means whenever you use smaller registers or constants, you should use
 the correct instruction.
 The same goes for `sub` / `usub`.
 
@@ -390,25 +400,27 @@ for arithmetic, it would contain just zeros.
 
 ##### Bitwise Operations
 
-| Opcode | Asm  | Parameters | Operation                                    | Example            |
-| ------ | ---- | ---------- | -------------------------------------------- | ------------------ |
-| 0x30   | and  | `wv`       | and                                          | `and c 0b10011010` |
-| 0x31   | or   | `wv`       | or                                           | `or c 0x7f`        |
-| 0x32   | not  | `w0`       | not                                          | `not c`            |
-| 0x33   | nand | `wv`       | nand                                         | `nand c d`         |
-| 0x34   | xor  | `wv`       | xor                                          | `xor c d`          |
-| 0x35   | slr  | `wv`       | shift logical right                          | `slr b 2`          |
-| 0x36   | sar  | `wv`       | shift arithmetic right                       | `sar b 1`          |
-| 0x37   | sll  | `wv`       | shift logical left                           | `sll b 1`          |
-| 0x38   | ror  | `wv`       | rotate right                                 | `ror b 3`          |
-| 0x39   | rol  | `wv`       | rotate left                                  | `rol b 7`          |
-| 0x3a   | set  | `wv`       | set the p2'th bit of p1                      | `set a 5`          |
-| 0x3b   | clr  | `wv`       | clear the p2'th bit of p1                    | `clr a 7`          |
-| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1                   | `tgl a 7`          |
-| 0x3d   | test | `vv`       | test the p2'th bit of p1 (write it into `R`) | `test a 3`         |
+| Opcode | Asm  | Parameters | Operation                                            | Example            |
+| ------ | ---- | ---------- | ---------------------------------------------------- | ------------------ |
+| 0x30   | and  | `wv`       | and                                                  | `and c 0b10011010` |
+| 0x31   | or   | `wv`       | or                                                   | `or c 0x7f`        |
+| 0x32   | not  | `w0`       | not                                                  | `not c`            |
+| 0x33   | nand | `wv`       | nand                                                 | `nand c d`         |
+| 0x34   | xor  | `wv`       | xor                                                  | `xor c d`          |
+| 0x35   | slr  | `wv`       | shift logical right                                  | `slr b 2`          |
+| 0x36   | sar  | `wv`       | shift arithmetic right                               | `sar b 1`          |
+| 0x37   | sll  | `wv`       | shift logical left                                   | `sll b 1`          |
+| 0x38   | ror  | `wv`       | rotate right                                         | `ror b 3`          |
+| 0x39   | rol  | `wv`       | rotate left                                          | `rol b 7`          |
+| 0x3a   | set  | `wv`       | set the p2'th bit of p1                              | `set a 5`          |
+| 0x3b   | clr  | `wv`       | clear the p2'th bit of p1                            | `clr a 7`          |
+| 0x3c   | tgl  | `wv`       | toggle the p2'th bit of p1                           | `tgl a 7`          |
+| 0x3d   | test | `vv`       | write the p2'th bit of p1 into the lowest bit of `R` | `test a 3`         |
 
 When shifting, only the lower 5 (4 / 3 with 16 / 8 bit destinations) bits of the shift amount are
 considered. Analogously, the bit position for `set`, `clr`, `tgl`, and `test` is also truncated.
+
+The bits are zero indexed. `set a 0` sets the lowest bit.
 
 ##### Floating Point Operations
 
@@ -484,6 +496,14 @@ The `rand` operation uses a pseudo random number generator, specifically a
 `214013`, an increment of `2541011` and a modulo of `2^32`. The random range is `0 - 0x7fff` and the initial seed
 is `0x12345678`.
 
+In C, it would be implemented like this:
+
+```c
+uint16_t rand() {
+  return ((rseed = (rseed * 214013 + 2541011)) >> 16) & 0x7fff;
+}
+```
+
 This means the `rand` operation always produces the same sequence of numbers if the seed is not changed.
 Note that `rand` returns a random **float** between 0 and 1, not an integer. If you need the random integer,
 it is found in the `R` register. To get a random integer without affecting any other registers, use `rand r`.
@@ -500,7 +520,7 @@ The following syscalls shall be implemented by the runtime:
 | print     | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack                                  |
 | println   | Prints the zero-terminated string located at the memory address specified by the topmost value on the stack, followed by a newline character |
 
-The table now includes the missing functions and their corresponding descriptions.
+Strings in memory work like they do in C on reasonable architectures. The memory address points to the first character, address+1 to the second, and so on.
 
 "Print" can mean just printing to stdout, but a more sophisticated runtime might define it otherwise.
 
